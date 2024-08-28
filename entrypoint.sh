@@ -59,9 +59,9 @@ else
   # Apply WissKI recipe
   echo -e "\033[0;33mAPPLY WISSKI DEV RECIPE.\033[0m"
   {
-    composer require rnsrk/wisski_recipe_base_dev
-    drush recipe ../recipes/wisski_recipe_base_dev
-    composer unpack rnsrk/wisski_recipe_base_dev 
+    composer require rnsrk/wisski_recipe_base:${WISSKI_BASE_RECIPE_VERSION}
+    drush recipe ../recipes/wisski_recipe_base
+    composer unpack rnsrk/wisski_recipe_base
     drush cr
   } 1> /dev/null
   echo -e "\033[0;32mWISSKI DEV RECIPE APPLIED.\033[0m\n"
