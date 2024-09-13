@@ -1,6 +1,7 @@
 FROM drupal:11.0.1-php8.3-apache-bookworm
 
-LABEL org.opencontainers.image.source="https://github.com/soda-collections-objects-data-literacy/wisski-base-image.git"
+LABEL org.opencontainers.image.source=https://github.com/soda-collections-objects-data-literacy/wisski-base-image.git
+LABEL org.opencontainers.image.description="Plain Drupal with preinstalled Site and basic WissKI environment with only core components with connection to triplestore provided by env variables."
 
 # Install apts
 
