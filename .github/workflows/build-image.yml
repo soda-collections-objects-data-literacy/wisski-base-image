@@ -1,43 +1,45 @@
-name: Build and Push Docker Image
+name: Publish WissKI Base Docker Image
 
 on:
   push:
-    branches:
-      - 1.x
+    branches: [main]
+    tags:
+      - "v*.*.*"
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  PLATFORMS: linux/amd64
+  CONTEXT_DIRECTORY: .
 
 jobs:
-  build-and-push:
+  publish:
     runs-on: ubuntu-latest
-
-    # Set rights
     permissions:
       packages: write
-      contents: read
-      attestations: write
-      id-token: write
-
     steps:
-      # Check for problems
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # Login to GitHub Container Registry
-      - name: Login to GitHub Packages
-        uses: docker/login-action@v1
+      - uses: docker/metadata-action@v5
+        id: meta
         with:
-          registry: ghcr.io
+          images: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      ## Build and push
-      - name: Build and push Docker image
-        id: push
-        uses: docker/build-push-action@v2
+          registry: ${{ env.REGISTRY }}
+      - uses: docker/build-push-action@v6
         with:
-          context: .
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: ${{ env.PLATFORMS }}
+          pull: true
           push: true
-          tags: ghcr.io/${{ github.repository }}:1.x
-
-      # Output
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
