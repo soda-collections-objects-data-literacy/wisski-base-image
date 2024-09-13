@@ -38,7 +38,6 @@ jobs:
           registry: ${{ env.REGISTRY }}
       - uses: docker/build-push-action@v6
         with:
-          description: "Basic WissKI Image with only the core WissKI components installed."
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ env.PLATFORMS }}
