@@ -59,9 +59,9 @@ else
   # Apply WissKI Base recipe
   echo -e "\033[0;33mAPPLY WISSKI BASE ENVIRONMENT RECIPE.\033[0m"
   {
-    composer require soda-collection-objects-data-literacy/wisski_grain:${WISSKI_GRAIN_RECIPE_VERSION}
-    drush recipe ../recipes/wisski_grain
-    composer unpack soda-collection-objects-data-literacy/wisski_grain
+    composer require soda-collection-objects-data-literacy/wisski_grain_yeast_water:${WISSKI_GRAIN_YEAST_WATER_RECIPE_VERSION}
+    drush recipe ../recipes/wisski_grain_yeast_water
+    composer unpack soda-collection-objects-data-literacy/wisski_grain_yeast_water
     drush cr
   } 1> /dev/null
   echo -e "\033[0;32mWISSKI DEV RECIPE APPLIED.\033[0m\n"
@@ -85,17 +85,19 @@ else
     --same_as="http://www.w3.org/2002/07/owl#sameAs" 1> /dev/null
   echo -e "\033[0;32mDEFAULT TRIPLESTORE ADAPTER INSTALLED.\033[0m\n"
 
-  # Apply WissKI Yeast recipe
-  if [[ ${WISSKI_RECIPES} =~ "wisski_yeast" ]]; then
-    echo -e "\033[0;33mAPPLY WISSKI YEAST RECIPE.\033[0m"
+  # Apply WissKI flavour recipe
+
+  for FLAVOUR in ${WISSKI_FLAVOURS}; do
+    echo -e "\033[0;33mAPPLY WISSKI ${FLAVOUR} RECIPE.\033[0m"
     {
-      composer require soda-collection-objects-data-literacy/wisski_yeast:${WISSKI_YEAST_RECIPE_VERSION}
-      drush recipe ../recipes/wisski_yeast
-      composer unpack soda-collection-objects-data-literacy/wisski_yeast
+      composer require soda-collection-objects-data-literacy/wisski_${FLAVOUR}:dev-main
+      drush recipe ../recipes/wisski_${FLAVOUR}
+      composer unpack soda-collection-objects-data-literacy/wisski_${FLAVOUR}
       drush cr
     } 1> /dev/null
-    echo -e "\033[0;32mWISSKI DEV RECIPE APPLIED.\033[0m\n"
-  fi
+    echo -e "\033[0;32mWISSKI ${FLAVOUR} RECIPE APPLIED.\033[0m\n"
+  done
+
 
   # Set permissions
   echo -e "\033[0;33mSET PERMISSIONS.\033[0m"
