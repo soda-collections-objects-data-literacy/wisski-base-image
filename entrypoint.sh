@@ -85,6 +85,18 @@ else
     --same_as="http://www.w3.org/2002/07/owl#sameAs" 1> /dev/null
   echo -e "\033[0;32mDEFAULT TRIPLESTORE ADAPTER INSTALLED.\033[0m\n"
 
+  # Apply WissKI Yeast recipe
+  if [[ ${WISSKI_RECIPES} =~ "wisski_yeast" ]]; then
+    echo -e "\033[0;33mAPPLY WISSKI YEAST RECIPE.\033[0m"
+    {
+      composer require soda-collection-objects-data-literacy/wisski_yeast:${WISSKI_YEAST_RECIPE_VERSION}
+      drush recipe ../recipes/wisski_yeast
+      composer unpack soda-collection-objects-data-literacy/wisski_yeast
+      drush cr
+    } 1> /dev/null
+    echo -e "\033[0;32mWISSKI DEV RECIPE APPLIED.\033[0m\n"
+  fi
+
   # Set permissions
   echo -e "\033[0;33mSET PERMISSIONS.\033[0m"
   {
