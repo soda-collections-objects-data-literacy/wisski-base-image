@@ -85,9 +85,8 @@ else
     --same_as="http://www.w3.org/2002/07/owl#sameAs" 1> /dev/null
   echo -e "\033[0;32mDEFAULT TRIPLESTORE ADAPTER INSTALLED.\033[0m\n"
 
-  # Apply WissKI flavour recipe
-
   for FLAVOUR in ${WISSKI_FLAVOURS}; do
+    # Apply WissKI flavour recipe
     echo -e "\033[0;33mAPPLY WISSKI ${FLAVOUR} RECIPE.\033[0m"
     {
       composer require soda-collection-objects-data-literacy/wisski_${FLAVOUR}:dev-main
