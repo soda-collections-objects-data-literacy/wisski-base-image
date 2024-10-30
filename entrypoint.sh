@@ -92,6 +92,7 @@ else
       composer require soda-collection-objects-data-literacy/wisski_${FLAVOUR}:dev-main
       drush recipe ../recipes/wisski_${FLAVOUR}
       composer unpack soda-collection-objects-data-literacy/wisski_${FLAVOUR}
+      drush wisski-core:recreate-menus
       drush cr
     } 1> /dev/null
     echo -e "\033[0;32mWISSKI ${FLAVOUR} RECIPE APPLIED.\033[0m\n"
