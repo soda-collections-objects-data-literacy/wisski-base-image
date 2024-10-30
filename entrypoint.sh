@@ -56,12 +56,12 @@ else
   } 1> /dev/null
   echo -e "\033[0;32mRECIPE COMPOSER PLUGIN INSTALLED.\033[0m\n"
 
-  # Apply WissKI recipe
-  echo -e "\033[0;33mAPPLY WISSKI DEV RECIPE.\033[0m"
+  # Apply WissKI Base recipe
+  echo -e "\033[0;33mAPPLY WISSKI BASE ENVIRONMENT RECIPE.\033[0m"
   {
-    composer require soda-collection-objects-data-literacy/wisski_recipe_base:${WISSKI_BASE_RECIPE_VERSION}
-    drush recipe ../recipes/wisski_recipe_base
-    composer unpack soda-collection-objects-data-literacy/wisski_recipe_base
+    composer require soda-collection-objects-data-literacy/wisski_grain:${WISSKI_GRAIN_RECIPE_VERSION}
+    drush recipe ../recipes/wisski_grain
+    composer unpack soda-collection-objects-data-literacy/wisski_grain
     drush cr
   } 1> /dev/null
   echo -e "\033[0;32mWISSKI DEV RECIPE APPLIED.\033[0m\n"
