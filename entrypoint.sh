@@ -80,7 +80,7 @@ else
     --preferred=1  \
     --read_url=${TS_READ_URL} \
     --write_url=${TS_WRITE_URL} \
-    --federatable=1 \
+    --federatable=0 \
     --default_graph=${DEFAULT_GRAPH} \
     --same_as="http://www.w3.org/2002/07/owl#sameAs" 1> /dev/null
   drush cr
