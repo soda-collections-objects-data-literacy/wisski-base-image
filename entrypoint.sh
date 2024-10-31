@@ -91,7 +91,7 @@ else
     echo -e "\033[0;33mAPPLY WISSKI ${FLAVOUR} RECIPE.\033[0m"
     {
       echo -e "\033[0;33mIMPORT WISSKI DEFAULT ONTOLOGY.\033[0m"
-      drush wisski-core:import-ontology --store="default" --ontology_url="http://wiss-ki.eu/ontology/1.2.0/" --reasoning
+      drush wisski-core:import-ontology --store="default" --ontology_url="https://wiss-ki.eu/ontology/" --reasoning
       echo -e "\033[0;32mWISSKI DEFAULT ONTOLOGY IMPORTED.\033[0m\n"
     }
     {
