@@ -64,7 +64,7 @@ else
     composer unpack soda-collection-objects-data-literacy/wisski_grain_yeast_water
     drush cr
   } 1> /dev/null
-  echo -e "\033[0;32mWISSKI DEV RECIPE APPLIED.\033[0m\n"
+  echo -e "\033[0;32mWISSKI WISSKI BASE ENVIRONMENT RECIPE APPLIED.\033[0m\n"
 
   # Install default adapter
   echo -e "\033[0;33mINSTALL DEFAULT TRIPLESTORE ADAPTER.\033[0m"
@@ -93,6 +93,8 @@ else
       echo -e "\033[0;33mIMPORT WISSKI DEFAULT ONTOLOGY.\033[0m"
       drush wisski-core:import-ontology --store="default" --ontology_url="http://wiss-ki.eu/ontology/1.2.0/" --reasoning
       echo -e "\033[0;32mWISSKI DEFAULT ONTOLOGY IMPORTED.\033[0m\n"
+    }
+    {
       composer require soda-collection-objects-data-literacy/wisski_${FLAVOUR}:dev-main
       drush recipe ../recipes/wisski_${FLAVOUR}
       composer unpack soda-collection-objects-data-literacy/wisski_${FLAVOUR}
