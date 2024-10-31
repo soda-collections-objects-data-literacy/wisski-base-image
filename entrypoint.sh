@@ -83,17 +83,18 @@ else
     --federatable=0 \
     --default_graph=${DEFAULT_GRAPH} \
     --same_as="http://www.w3.org/2002/07/owl#sameAs" 1> /dev/null
+  drush cr
   echo -e "\033[0;32mDEFAULT TRIPLESTORE ADAPTER INSTALLED.\033[0m\n"
 
   for FLAVOUR in ${WISSKI_FLAVOURS}; do
     # Apply WissKI flavour recipe
     echo -e "\033[0;33mAPPLY WISSKI ${FLAVOUR} RECIPE.\033[0m"
     {
+      drush wisski-core:import-ontology --store="default" --ontology_url="http://wiss-ki.eu/ontology/1.2.0/" --reasoning
       composer require soda-collection-objects-data-literacy/wisski_${FLAVOUR}:dev-main
       drush recipe ../recipes/wisski_${FLAVOUR}
       composer unpack soda-collection-objects-data-literacy/wisski_${FLAVOUR}
       drush wisski-core:recreate-menus
-      #drush wisski-core:import-ontology --store="default" --ontology_url="http://wiss-ki.eu/ontology/1.2.0/" --reasoning
       drush cr
     } 1> /dev/null
     echo -e "\033[0;32mWISSKI ${FLAVOUR} RECIPE APPLIED.\033[0m\n"
