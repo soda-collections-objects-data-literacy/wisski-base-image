@@ -18,7 +18,15 @@ echo -e "\033[0;32m|THIS INSTALLS WISSKI DEV ENVIRONMENT!|\033[0m"
 echo -e "\033[0;32m+-------------------------------------+\033[0m"
 echo -e "\n"
 
-# set recommended PHP.ini settings
+# Define the path to the settings.php file
+SETTINGS_FILE="/opt/drupal/web/sites/default/settings.php"
+
+# Check if Drupal is already installed
+if [ -f "$SETTINGS_FILE" ]; then
+  echo -e "\033[0;32mDRUPAL IS ALREADY INSTALLED.\033[0m\n"
+else
+
+  # set recommended PHP.ini settings
 
 # Drupal requirements
 
@@ -55,13 +63,6 @@ echo -e "\033[0;33mSET PHP MEMORY SETTINGS.\033[0m"
 } >> /usr/local/etc/php/conf.d/99-wisski-recommended.ini;
 echo -e "\033[0;32mPHP MEMORY SETTINGS SET.\033[0m\n"
 
-# Define the path to the settings.php file
-SETTINGS_FILE="/opt/drupal/web/sites/default/settings.php"
-
-# Check if Drupal is already installed
-if [ -f "$SETTINGS_FILE" ]; then
-  echo -e "\033[0;32mDRUPAL IS ALREADY INSTALLED.\033[0m\n"
-else
   # Install the site
   echo -e "\033[0;33mINSTALLING DRUPAL SITE...\033[0m"
   { drush si \
