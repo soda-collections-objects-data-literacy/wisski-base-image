@@ -18,6 +18,37 @@ echo -e "\033[0;32m|THIS INSTALLS WISSKI DEV ENVIRONMENT!|\033[0m"
 echo -e "\033[0;32m+-------------------------------------+\033[0m"
 echo -e "\n"
 
+# set recommended PHP.ini settings
+
+# Drupal requirements
+
+# Output buffering is not enabled. This may degrade Drupal's performance.
+# You can enable output buffering by default in your PHP settings.
+RUN { \
+		echo 'output_buffering = 4096'; \
+	} >> /usr/local/etc/php/conf.d/99-drupal-recommended.ini;
+
+# see https://secure.php.net/manual/en/opcache.installation.php
+RUN { \
+		echo 'opcache.memory_consumption=128'; \
+		echo 'opcache.interned_strings_buffer=8'; \
+		echo 'opcache.max_accelerated_files=4000'; \
+		echo 'opcache.revalidate_freq=0'; \
+		echo 'opcache.fast_shutdown=1'; \
+	} >> /usr/local/etc/php/conf.d/99-opcache-recommended.ini;
+
+# set memory settings for WissKi
+RUN { \
+		echo 'max_execution_time = 1200'; \
+		echo 'max_input_time = 600'; \
+		echo 'max_input_nesting_level = 640'; \
+		echo 'max_input_vars = 10000'; \
+		echo 'memory_limit = 2048M'; \
+		echo 'upload_max_filesize = 512M'; \
+		echo 'max_file_uploads = 50'; \
+		echo 'post_max_size = 512M'; \
+	} >> /usr/local/etc/php/conf.d/99-wisski-recommended.ini;
+
 # Define the path to the settings.php file
 SETTINGS_FILE="/opt/drupal/web/sites/default/settings.php"
 
@@ -34,6 +65,15 @@ else
     --account-pass="${DRUPAL_PASSWORD}"
   } 1> /dev/null
   echo -e "\033[0;32mDRUPAL SITE \"${SITE_NAME}\" INSTALLED.\033[0m\n"
+
+  # Set trusted host settings
+  echo -e "\033[0;33mSETTING TRUSTED HOST SETTINGS...\033[0m"
+  {
+    echo '$settings['trusted_host_patterns'] = [
+      '^'.getenv('DRUPAL_TRUSTED_HOST').'$',
+    ];' >> /opt/drupal/web/sites/default/settings.php
+  } 1> /dev/null
+  echo -e "\033[0;32mTRUSTED HOST SETTINGS SET.\033[0m\n"
 
   # Lets get dirty with composer
   echo -e "\033[0;33mSET COMPOSER MINIMUM STABILITY.\033[0m"
