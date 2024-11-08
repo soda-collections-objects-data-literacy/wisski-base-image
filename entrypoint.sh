@@ -36,7 +36,7 @@ echo -e "\033[0;33mSET PHP OPCACHE RECOMMENDED SETTINGS.\033[0m"
 		echo 'opcache.memory_consumption=128'; \
 		echo 'opcache.interned_strings_buffer=8'; \
 		echo 'opcache.max_accelerated_files=4000'; \
-		echo 'opcache.revalidate_freq=0'; \
+		echo 'opcache.revalidate_freq=2'; \
 		echo 'opcache.fast_shutdown=1'; \
 } >> /usr/local/etc/php/conf.d/99-opcache-recommended.ini;
 echo -e "\033[0;32mOPCACHE RECOMMENDED SETTINGS SET.\033[0m\n"
@@ -48,7 +48,7 @@ echo -e "\033[0;33mSET PHP MEMORY SETTINGS.\033[0m"
 		echo 'max_input_time = 600'; \
 		echo 'max_input_nesting_level = 640'; \
 		echo 'max_input_vars = 10000'; \
-		echo 'memory_limit = 2048M'; \
+		echo 'memory_limit = 512M'; \
 		echo 'upload_max_filesize = 512M'; \
 		echo 'max_file_uploads = 50'; \
 		echo 'post_max_size = 512M'; \
