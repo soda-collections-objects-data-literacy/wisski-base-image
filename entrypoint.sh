@@ -26,43 +26,6 @@ if [ -f "$SETTINGS_FILE" ]; then
   echo -e "\033[0;32mDRUPAL IS ALREADY INSTALLED.\033[0m\n"
 else
 
-  # set recommended PHP.ini settings
-
-# Drupal requirements
-
-# Output buffering is not enabled. This may degrade Drupal's performance.
-# You can enable output buffering by default in your PHP settings.
-echo -e "\033[0;33mSET PHP OUTPUT BUFFERING.\033[0m"
-{ \
-	echo 'output_buffering = 4096'; \
-} >> /usr/local/etc/php/conf.d/99-drupal-recommended.ini;
-echo -e "\033[0;32mOUTPUT BUFFERING SET.\033[0m\n"
-
-# see https://secure.php.net/manual/en/opcache.installation.php
-echo -e "\033[0;33mSET PHP OPCACHE RECOMMENDED SETTINGS.\033[0m"
-{ \
-		echo 'opcache.memory_consumption=128'; \
-		echo 'opcache.interned_strings_buffer=8'; \
-		echo 'opcache.max_accelerated_files=4000'; \
-		echo 'opcache.revalidate_freq=2'; \
-		echo 'opcache.fast_shutdown=1'; \
-} >> /usr/local/etc/php/conf.d/99-opcache-recommended.ini;
-echo -e "\033[0;32mOPCACHE RECOMMENDED SETTINGS SET.\033[0m\n"
-
-# set memory settings for WissKi
-echo -e "\033[0;33mSET PHP MEMORY SETTINGS.\033[0m"
-{ \
-		echo 'max_execution_time = 1200'; \
-		echo 'max_input_time = 600'; \
-		echo 'max_input_nesting_level = 640'; \
-		echo 'max_input_vars = 10000'; \
-		echo 'memory_limit = 512M'; \
-		echo 'upload_max_filesize = 512M'; \
-		echo 'max_file_uploads = 50'; \
-		echo 'post_max_size = 512M'; \
-} >> /usr/local/etc/php/conf.d/99-wisski-recommended.ini;
-echo -e "\033[0;32mPHP MEMORY SETTINGS SET.\033[0m\n"
-
   # Install the site
   echo -e "\033[0;33mINSTALLING DRUPAL SITE...\033[0m"
   { drush si \
@@ -150,6 +113,43 @@ echo -e "\033[0;32mPHP MEMORY SETTINGS SET.\033[0m\n"
     } 1> /dev/null
     echo -e "\033[0;32mWISSKI ${FLAVOUR} RECIPE APPLIED.\033[0m\n"
   done
+
+  # set recommended PHP.ini settings
+
+# Drupal requirements
+
+# Output buffering is not enabled. This may degrade Drupal's performance.
+# You can enable output buffering by default in your PHP settings.
+echo -e "\033[0;33mSET PHP OUTPUT BUFFERING.\033[0m"
+{ \
+	echo 'output_buffering = on'; \
+} >> /usr/local/etc/php/conf.d/99-drupal-recommended.ini;
+echo -e "\033[0;32mOUTPUT BUFFERING SET.\033[0m\n"
+
+# see https://secure.php.net/manual/en/opcache.installation.php
+echo -e "\033[0;33mSET PHP OPCACHE RECOMMENDED SETTINGS.\033[0m"
+{ \
+		echo 'opcache.memory_consumption=128'; \
+		echo 'opcache.interned_strings_buffer=8'; \
+		echo 'opcache.max_accelerated_files=4000'; \
+		echo 'opcache.revalidate_freq=2'; \
+		echo 'opcache.fast_shutdown=1'; \
+} >> /usr/local/etc/php/conf.d/99-opcache-recommended.ini;
+echo -e "\033[0;32mOPCACHE RECOMMENDED SETTINGS SET.\033[0m\n"
+
+# set memory settings for WissKi
+echo -e "\033[0;33mSET PHP MEMORY SETTINGS.\033[0m"
+{ \
+		echo 'max_execution_time = 1200'; \
+		echo 'max_input_time = 600'; \
+		echo 'max_input_nesting_level = 640'; \
+		echo 'max_input_vars = 10000'; \
+		echo 'memory_limit = 512M'; \
+		echo 'upload_max_filesize = 512M'; \
+		echo 'max_file_uploads = 50'; \
+		echo 'post_max_size = 512M'; \
+} >> /usr/local/etc/php/conf.d/99-wisski-recommended.ini;
+echo -e "\033[0;32mPHP MEMORY SETTINGS SET.\033[0m\n"
 
 
   # Set permissions
