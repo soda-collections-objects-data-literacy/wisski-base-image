@@ -76,8 +76,8 @@ echo -e "\033[0;32mPHP MEMORY SETTINGS SET.\033[0m\n"
   # Set trusted host settings
   echo -e "\033[0;33mSETTING TRUSTED HOST SETTINGS...\033[0m"
   {
-    echo '$settings['trusted_host_patterns'] = [
-      '^'.getenv('DRUPAL_TRUSTED_HOST').'$',
+    echo '$settings["trusted_host_patterns"] = [
+      "^".getenv("DRUPAL_TRUSTED_HOST")."$",
     ];' >> /opt/drupal/web/sites/default/settings.php
   } 1> /dev/null
   echo -e "\033[0;32mTRUSTED HOST SETTINGS SET.\033[0m\n"
