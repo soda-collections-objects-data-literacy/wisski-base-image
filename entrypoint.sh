@@ -72,6 +72,7 @@ else
   #{
     composer require soda-collection-objects-data-literacy/wisski_grain_yeast_water:${WISSKI_GRAIN_YEAST_WATER_VERSION}
     composer unpack soda-collection-objects-data-literacy/wisski_grain_yeast_water
+    drush cr
     drush recipe ../recipes/wisski_grain_yeast_water
     drush cr
   #} 1> /dev/null
@@ -109,6 +110,7 @@ else
       composer require soda-collection-objects-data-literacy/wisski_${FLAVOUR}:dev-main
       composer unpack soda-collection-objects-data-literacy/wisski_${FLAVOUR}
       drush recipe ../recipes/wisski_${FLAVOUR}
+      drush cr
       drush wisski-core:recreate-menus
       drush cr
     } 1> /dev/null
