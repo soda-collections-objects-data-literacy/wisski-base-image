@@ -47,6 +47,7 @@ else
 
   # Lets get dirty with composer
   echo -e "\033[0;33mSET COMPOSER MINIMUM STABILITY.\033[0m"
+  echo -e "\033[0;33mPWD: $(pwd)\033[0m\n"
   composer config minimum-stability dev > /dev/null
   echo -e "\033[0;32mCOMPOSER MINIMUM STABILITY SET.\033[0m\n"
   # Install development modules
@@ -68,32 +69,32 @@ else
 
   # Apply WissKI Base recipe
   echo -e "\033[0;33mAPPLY WISSKI BASE ENVIRONMENT RECIPE.\033[0m"
-  {
+  #{
     composer require soda-collection-objects-data-literacy/wisski_grain_yeast_water:${WISSKI_GRAIN_YEAST_WATER_VERSION}
-    drush recipe ../recipes/wisski_grain_yeast_water
     composer unpack soda-collection-objects-data-literacy/wisski_grain_yeast_water
+    drush recipe ../recipes/wisski_grain_yeast_water
     drush cr
-  } 1> /dev/null
+  #} 1> /dev/null
   echo -e "\033[0;32mWISSKI WISSKI BASE ENVIRONMENT RECIPE APPLIED.\033[0m\n"
 
   # Install default adapter
   echo -e "\033[0;33mINSTALL DEFAULT TRIPLESTORE ADAPTER.\033[0m"
-  drush wisski-salz:create-adapter \
-    --type="sparql11_with_pb" \
-    --adapter_label="Default" \
-    --adapter_machine_name="default" \
-    --description="Default SALZ adapter" \
-    --ts_machine_name=${TS_REPOSITORY} \
-    --ts_user=${TS_USERNAME} \
-    --ts_password=${TS_PASSWORD} \
-    --writable=1 \
-    --preferred=1  \
-    --read_url=${TS_READ_URL} \
-    --write_url=${TS_WRITE_URL} \
-    --federatable=0 \
-    --default_graph=${DEFAULT_GRAPH} \
-    --same_as="http://www.w3.org/2002/07/owl#sameAs" 1> /dev/null
-  drush cr
+    drush wisski-salz:create-adapter \
+      --type="sparql11_with_pb" \
+      --adapter_label="Default" \
+      --adapter_machine_name="default" \
+      --description="Default SALZ adapter" \
+      --ts_machine_name=${TS_REPOSITORY} \
+      --ts_user=${TS_USERNAME} \
+      --ts_password=${TS_PASSWORD} \
+      --writable=1 \
+      --preferred=1  \
+      --read_url=${TS_READ_URL} \
+      --write_url=${TS_WRITE_URL} \
+      --federatable=0 \
+      --default_graph=${DEFAULT_GRAPH} \
+      --same_as="http://www.w3.org/2002/07/owl#sameAs" 1> /dev/null
+    drush cr
   echo -e "\033[0;32mDEFAULT TRIPLESTORE ADAPTER INSTALLED.\033[0m\n"
 
   for FLAVOUR in ${WISSKI_FLAVOURS}; do
@@ -106,8 +107,8 @@ else
     }
     {
       composer require soda-collection-objects-data-literacy/wisski_${FLAVOUR}:dev-main
-      drush recipe ../recipes/wisski_${FLAVOUR}
       composer unpack soda-collection-objects-data-literacy/wisski_${FLAVOUR}
+      drush recipe ../recipes/wisski_${FLAVOUR}
       drush wisski-core:recreate-menus
       drush cr
     } 1> /dev/null
