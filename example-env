@@ -1,18 +1,28 @@
+# Database settings
 DB_DRIVER=mysql
-DB_HOST=
-DB_NAME=
-DB_PASSWORD=
-DB_USER=
-DEFAULT_GRAPH=
-DOMAIN=
-DRUPAL_USER=
-DRUPAL_PASSWORD=
-DRUPAL_TRUSTED_HOST=
-SITE_NAME=
-TS_PASSWORD=
-TS_READ_URL=
-TS_REPOSITORY=default
-TS_USERNAME=
-TS_WRITE_URL=
-WISSKI_GRAIN_YEAST_WATER_VERSION=
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=drupal
+DB_USER=drupal
+tDB_PASSWORD=change_me
+
+# Drupal settings
+DOMAIN=localhost
+DRUPAL_TRUSTED_HOST=localhost
+DRUPAL_USER=admin
+DRUPAL_PASSWORD=also_change_me
+SITE_NAME=My WissKI
+
+# WissKI settings
+# For a full list of versions see: https://packagist.org/packages/soda-collection-objects-data-literacy/wisski_grain_yeast_water
+WISSKI_GRAIN_YEAST_WATER_VERSION=dev-main
+# For a full list of flavours see: TODO: add the link
 WISSKI_FLAVOURS=
+DEFAULT_GRAPH=http://my.graph/
+
+# Triplestore settings
+TS_READ_URL=http://public.graph.database/repositories/default
+TS_WRITE_URL=http://public.graph.database/repositories/default/statements
+TS_REPOSITORY=default
+TS_USERNAME=admin
+TS_PASSWORD=change_me_as_well
