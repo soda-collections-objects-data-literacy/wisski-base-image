@@ -88,6 +88,8 @@ else
       --ts_machine_name=${TS_REPOSITORY} \
       --ts_user=${TS_USERNAME} \
       --ts_password=${TS_PASSWORD} \
+      --ts_use_token=1 \
+      --ts_token=${TS_TOKEN} \
       --writable=1 \
       --preferred=1  \
       --read_url=${TS_READ_URL} \
