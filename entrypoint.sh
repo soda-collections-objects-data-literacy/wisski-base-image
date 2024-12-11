@@ -29,7 +29,7 @@ else
   # Install the site
   echo -e "\033[0;33mINSTALLING DRUPAL SITE...\033[0m"
   { drush si \
-    --db-url="${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:3306/${DB_NAME}" \
+    --db-url="${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}" \
     --site-name="${SITE_NAME}" \
     --account-name="${DRUPAL_USER}" \
     --account-pass="${DRUPAL_PASSWORD}"
