@@ -7,11 +7,32 @@ LABEL org.opencontainers.image.description="Plain Drupal with preinstalled Site 
 
 RUN apt-get update; \
     apt-get install -y --no-install-recommends \
+    apt-utils \
+    autoconf \
+    automake \
     default-mysql-client \
     git \
+    iipimage-server \
+    iipimage-doc \
+    imagemagick \
+    libapache2-mod-fcgid \
+    libfreetype6-dev \
+    libjpeg-dev \
+    libjpeg62-turbo \
+    libonig-dev \
+    libpng-dev \
+    libpng16-16 \
+    libpq-dev \
+    libtiff-dev \
+    libtiff5-dev \
+    libtool \
+    libvips-dev \
+    libvips-tools \
+    libzip-dev \
+    openjdk-17-jdk \
     unzip \
     vim \
-    wget
+    wget;
 
 # Upload progress
 RUN	set -eux; \
@@ -23,6 +44,19 @@ RUN	set -eux; \
 # Install apcu
 RUN set -eux; \
     pecl install apcu;
+
+# Install iipsrv
+RUN set -eux; \
+    git clone https://github.com/ruven/iipsrv.git; \
+    cd iipsrv; \
+    ./autogen.sh; \
+    ./configure; \
+    make; \
+    mkdir /fcgi-bin; \
+    cp src/iipsrv.fcgi /fcgi-bin/iipsrv.fcgi
+
+# Add IIPServer config
+COPY iipsrv.conf /etc/apache2/mods-available/iipsrv.conf
 
 # Add php configs
 RUN { \

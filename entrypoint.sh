@@ -117,6 +117,16 @@ else
       drush cr
     } 1> /dev/null
     echo -e "\033[0;32mWISSKI ${FLAVOUR} RECIPE APPLIED.\033[0m\n"
+
+    # Set IIP server config
+    if [ "${FLAVOUR}" == "fruity" ]; then
+      echo -e "\033[0;33mDownload Mirador integration library.\033[0m"
+      drush wisski-mirador:wisski-mirador-integration
+      echo -e "\033[0;32mMirador integration library downloaded.\033[0m\n"
+      echo -e "\033[0;33mSet IIIF configs.\033[0m"
+      drush config-set wisski_iip_image.wisski_iiif_settings iiif_server "https://${DOMAIN}/fcgi-bin/iipsrv.fcgi?IIIF="
+      echo -e "\033[0;32mIIIF configs set.\033[0m\n"
+    fi
   done
 
   # set recommended PHP.ini settings
