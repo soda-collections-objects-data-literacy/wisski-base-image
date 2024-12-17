@@ -109,6 +109,10 @@ else
       echo -e "\033[0;32mWISSKI DEFAULT ONTOLOGY IMPORTED.\033[0m\n"
     }
     {
+       if [ "${FLAVOUR}" == "fruity" ]; then
+        drush config:delete core.entity_form_display.wisski_individual.b3f2003dbc2f46de7270ab8ccc06d193.default
+        drush config:delete core.entity_view_display.wisski_individual.b3f2003dbc2f46de7270ab8ccc06d193.default
+       fi
       composer require soda-collection-objects-data-literacy/wisski_${FLAVOUR}:dev-main
       composer unpack soda-collection-objects-data-literacy/wisski_${FLAVOUR}
       drush recipe ../recipes/wisski_${FLAVOUR}
