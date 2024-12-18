@@ -100,19 +100,21 @@ else
     drush cr
   echo -e "\033[0;32mDEFAULT TRIPLESTORE ADAPTER INSTALLED.\033[0m\n"
 
+  echo -e "\033[0;33mIMPORT WISSKI DEFAULT ONTOLOGY.\033[0m"
+  drush wisski-core:import-ontology --store="default" --ontology_url="https://wiss-ki.eu/ontology/" --reasoning
+  echo -e "\033[0;32mWISSKI DEFAULT ONTOLOGY IMPORTED.\033[0m\n"
+
   for FLAVOUR in ${WISSKI_FLAVOURS}; do
     # Apply WissKI flavour recipe
     echo -e "\033[0;33mAPPLY WISSKI ${FLAVOUR} RECIPE.\033[0m"
+
     {
-      echo -e "\033[0;33mIMPORT WISSKI DEFAULT ONTOLOGY.\033[0m"
-      drush wisski-core:import-ontology --store="default" --ontology_url="https://wiss-ki.eu/ontology/" --reasoning
-      echo -e "\033[0;32mWISSKI DEFAULT ONTOLOGY IMPORTED.\033[0m\n"
-    }
-    {
-       if [ "${FLAVOUR}" == "fruity" ]; then
-        drush config:delete core.entity_form_display.wisski_individual.b3f2003dbc2f46de7270ab8ccc06d193.default
-        drush config:delete core.entity_view_display.wisski_individual.b3f2003dbc2f46de7270ab8ccc06d193.default
-       fi
+       #if [ "${FLAVOUR}" != "sweet" ]; then
+       # echo -e "\033[0;33mDelete old configs.\033[0m"
+       # drush config:delete core.entity_form_display.wisski_individual.b3f2003dbc2f46de7270ab8ccc06d193.default
+       # drush config:delete core.entity_view_display.wisski_individual.b3f2003dbc2f46de7270ab8ccc06d193.default
+       # echo -e "\033[0;32mOld configs deleted.\033[0m\n"
+       #fi
       composer require soda-collection-objects-data-literacy/wisski_${FLAVOUR}:dev-main
       composer unpack soda-collection-objects-data-literacy/wisski_${FLAVOUR}
       drush recipe ../recipes/wisski_${FLAVOUR}
