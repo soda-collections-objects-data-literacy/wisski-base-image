@@ -109,12 +109,12 @@ else
     echo -e "\033[0;33mAPPLY WISSKI ${FLAVOUR} RECIPE.\033[0m"
 
     {
-       #if [ "${FLAVOUR}" != "sweet" ]; then
-       # echo -e "\033[0;33mDelete old configs.\033[0m"
-       # drush config:delete core.entity_form_display.wisski_individual.b3f2003dbc2f46de7270ab8ccc06d193.default
-       # drush config:delete core.entity_view_display.wisski_individual.b3f2003dbc2f46de7270ab8ccc06d193.default
-       # echo -e "\033[0;32mOld configs deleted.\033[0m\n"
-       #fi
+       if [ "${FLAVOUR}" != "sweet" ]; then
+        echo -e "\033[0;33mDelete old configs.\033[0m"
+        drush config:delete core.entity_form_display.wisski_individual.b3f2003dbc2f46de7270ab8ccc06d193.default
+        drush config:delete core.entity_view_display.wisski_individual.b3f2003dbc2f46de7270ab8ccc06d193.default
+        echo -e "\033[0;32mOld configs deleted.\033[0m\n"
+       fi
       composer require soda-collection-objects-data-literacy/wisski_${FLAVOUR}:dev-main
       composer unpack soda-collection-objects-data-literacy/wisski_${FLAVOUR}
       drush recipe ../recipes/wisski_${FLAVOUR}
@@ -130,10 +130,10 @@ else
       drush wisski-mirador:wisski-mirador-integration
       echo -e "\033[0;32mMirador integration library downloaded.\033[0m\n"
       echo -e "\033[0;33mDownload Colorbox integration library.\033[0m"
-      drush drush colorbox:plugin
+      drush colorbox:plugin
       echo -e "\033[0;32mColorbox integration library downloaded.\033[0m\n"
       echo -e "\033[0;33mDownload DomPurify integration library.\033[0m"
-      drush drush colorbox:dompurify
+      drush colorbox:dompurify
       echo -e "\033[0;32mDomPurify integration library downloaded.\033[0m\n"
       echo -e "\033[0;33mSet IIIF configs.\033[0m"
       drush config-set wisski_iip_image.wisski_iiif_settings iiif_server "https://${SITE_NAME}.${DOMAIN}/fcgi-bin/iipsrv.fcgi?IIIF="
