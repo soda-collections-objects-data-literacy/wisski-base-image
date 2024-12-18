@@ -134,7 +134,7 @@ else
       drush drush colorbox:dompurify
       echo -e "\033[0;32mDomPurify integration library downloaded.\033[0m\n"
       echo -e "\033[0;33mSet IIIF configs.\033[0m"
-      drush config-set wisski_iip_image.wisski_iiif_settings iiif_server "https://${DOMAIN}/fcgi-bin/iipsrv.fcgi?IIIF="
+      drush config-set wisski_iip_image.wisski_iiif_settings iiif_server "https://${SITE_NAME}.${DOMAIN}/fcgi-bin/iipsrv.fcgi?IIIF="
       echo -e "\033[0;32mIIIF configs set.\033[0m\n"
     fi
   done
