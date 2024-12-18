@@ -108,13 +108,14 @@ else
     # Apply WissKI flavour recipe
     echo -e "\033[0;33mAPPLY WISSKI ${FLAVOUR} RECIPE.\033[0m"
 
+
+    if [[ "${WISSKI_FLAVOURS}" == *sweet* ]] && [ "${FLAVOUR}" != "sweet" ]; then
+    echo -e "\033[0;33mDelete old configs.\033[0m"
+    drush config:delete core.entity_form_display.wisski_individual.b3f2003dbc2f46de7270ab8ccc06d193.default
+    drush config:delete core.entity_view_display.wisski_individual.b3f2003dbc2f46de7270ab8ccc06d193.default
+    echo -e "\033[0;32mOld configs deleted.\033[0m\n"
+    fi
     {
-       if [ "${FLAVOUR}" != "sweet" ]; then
-        echo -e "\033[0;33mDelete old configs.\033[0m"
-        drush config:delete core.entity_form_display.wisski_individual.b3f2003dbc2f46de7270ab8ccc06d193.default
-        drush config:delete core.entity_view_display.wisski_individual.b3f2003dbc2f46de7270ab8ccc06d193.default
-        echo -e "\033[0;32mOld configs deleted.\033[0m\n"
-       fi
       composer require soda-collection-objects-data-literacy/wisski_${FLAVOUR}:dev-main
       composer unpack soda-collection-objects-data-literacy/wisski_${FLAVOUR}
       drush recipe ../recipes/wisski_${FLAVOUR}
