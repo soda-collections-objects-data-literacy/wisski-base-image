@@ -127,6 +127,12 @@ else
       echo -e "\033[0;33mDownload Mirador integration library.\033[0m"
       drush wisski-mirador:wisski-mirador-integration
       echo -e "\033[0;32mMirador integration library downloaded.\033[0m\n"
+      echo -e "\033[0;33mDownload Colorbox integration library.\033[0m"
+      drush drush colorbox:plugin
+      echo -e "\033[0;32mColorbox integration library downloaded.\033[0m\n"
+      echo -e "\033[0;33mDownload DomPurify integration library.\033[0m"
+      drush drush colorbox:dompurify
+      echo -e "\033[0;32mDomPurify integration library downloaded.\033[0m\n"
       echo -e "\033[0;33mSet IIIF configs.\033[0m"
       drush config-set wisski_iip_image.wisski_iiif_settings iiif_server "https://${DOMAIN}/fcgi-bin/iipsrv.fcgi?IIIF="
       echo -e "\033[0;32mIIIF configs set.\033[0m\n"
