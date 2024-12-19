@@ -67,10 +67,6 @@ else
   } 1> /dev/null
   echo -e "\033[0;32mRECIPE COMPOSER PLUGIN INSTALLED.\033[0m\n"
 
-  echo -e "\033[0;33mAPPLY RECIPE PATCH.\033[0m"
-    patch -p0 -i /opt/drupal/ConfigConfigurator.patch /opt/drupal/web/core/lib/Drupal/Core/Recipe/ConfigConfigurator.php
-  echo -e "\033[0;32mRECIPE PATCH APPLIED.\033[0m\n"
-
   # Apply WissKI Base recipe
   echo -e "\033[0;33mAPPLY WISSKI BASE ENVIRONMENT RECIPE.\033[0m"
     composer unpack soda-collection-objects-data-literacy/wisski_grain_yeast_water

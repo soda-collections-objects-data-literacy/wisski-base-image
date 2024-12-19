@@ -1,4 +1,4 @@
-FROM drupal:11.0.5-php8.3-apache-bookworm
+FROM drupal:11.1.0-rc1-php8.3-apache-bookworm
 
 LABEL org.opencontainers.image.source=https://github.com/soda-collections-objects-data-literacy/wisski-base-image.git
 LABEL org.opencontainers.image.description="Plain Drupal with preinstalled Site and basic WissKI environment with only core components with connection to triplestore provided by env variables."
@@ -75,8 +75,6 @@ RUN ln -s /opt/drupal/vendor/bin/drush /usr/local/bin/drush
 # Change ownerships
 RUN chown -R www-data:www-data /var/www/html
 
-# Add Recipes stuff
-COPY ConfigConfigurator.patch /opt/drupal/ConfigConfigurator.patch
 # Add entrypoint
 COPY entrypoint.sh /entrypoint.sh
 
