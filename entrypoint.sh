@@ -58,6 +58,10 @@ else
   } 1> /dev/null
   echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
 
+  echo -e "\033[0;33mHACK CONFIGURATION.\033[0m"
+  mv /opt/drupal/ConfigConfigurator.php /opt/drupal/web/core/lib/Drupal/Core/Recipe/ConfigConfigurator.php
+  echo -e "\033[0;32mCONFIGURATION HACKED.\033[0m\n"
+
   # Add Drupal Recipe Composer plugin
   echo -e "\033[0;33mINSTALL RECIPE COMPOSER PLUGIN.\033[0m"
   {
