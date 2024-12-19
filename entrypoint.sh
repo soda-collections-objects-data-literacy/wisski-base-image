@@ -67,15 +67,17 @@ else
   } 1> /dev/null
   echo -e "\033[0;32mRECIPE COMPOSER PLUGIN INSTALLED.\033[0m\n"
 
+  echo -e "\033[0;33mAPPLY RECIPE PATCH.\033[0m"
+    patch -p0 -i /opt/drupal/ConfigConfigurator.patch /opt/drupal/web/core/lib/Drupal/Core/Recipe/ConfigConfigurator.php
+  echo -e "\033[0;32mRECIPE PATCH APPLIED.\033[0m\n"
+
   # Apply WissKI Base recipe
   echo -e "\033[0;33mAPPLY WISSKI BASE ENVIRONMENT RECIPE.\033[0m"
-  #{
-    composer require soda-collection-objects-data-literacy/wisski_grain_yeast_water:${WISSKI_GRAIN_YEAST_WATER_VERSION}
     composer unpack soda-collection-objects-data-literacy/wisski_grain_yeast_water
+    composer require soda-collection-objects-data-literacy/wisski_grain_yeast_water:${WISSKI_GRAIN_YEAST_WATER_VERSION}
     drush cr
     drush recipe ../recipes/wisski_grain_yeast_water
     drush cr
-  #} 1> /dev/null
   echo -e "\033[0;32mWISSKI WISSKI BASE ENVIRONMENT RECIPE APPLIED.\033[0m\n"
 
   # Install default adapter
@@ -107,17 +109,9 @@ else
   for FLAVOUR in ${WISSKI_FLAVOURS}; do
     # Apply WissKI flavour recipe
     echo -e "\033[0;33mAPPLY WISSKI ${FLAVOUR} RECIPE.\033[0m"
-
-
-    if [[ "${WISSKI_FLAVOURS}" == *sweet* ]] && [ "${FLAVOUR}" != "sweet" ]; then
-    echo -e "\033[0;33mDelete old configs.\033[0m"
-    drush config:delete core.entity_form_display.wisski_individual.b3f2003dbc2f46de7270ab8ccc06d193.default
-    drush config:delete core.entity_view_display.wisski_individual.b3f2003dbc2f46de7270ab8ccc06d193.default
-    echo -e "\033[0;32mOld configs deleted.\033[0m\n"
-    fi
     {
-      composer require soda-collection-objects-data-literacy/wisski_${FLAVOUR}:dev-main
       composer unpack soda-collection-objects-data-literacy/wisski_${FLAVOUR}
+      composer require soda-collection-objects-data-literacy/wisski_${FLAVOUR}:dev-main
       drush recipe ../recipes/wisski_${FLAVOUR}
       drush cr
       drush wisski-core:recreate-menus

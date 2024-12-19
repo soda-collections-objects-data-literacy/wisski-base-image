@@ -72,8 +72,13 @@ RUN composer require drush/drush
 # add composer bin to PATH
 RUN ln -s /opt/drupal/vendor/bin/drush /usr/local/bin/drush
 
+# Change ownerships
 RUN chown -R www-data:www-data /var/www/html
 
+# Add Recipe patch
+COPY ConfigConfigurator.patch /opt/drupal/ConfigConfigurator.patch
+
+# Add entrypoint
 COPY entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
