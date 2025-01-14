@@ -53,7 +53,7 @@ else
   # Install development modules
   echo -e "\033[0;33mINSTALL DEVELOPMENT MODULES.\033[0m"
   {
-    composer require drupal/devel
+    composer require drupal/devel drupal/health_check
     drush en devel -y
   } 1> /dev/null
   echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
