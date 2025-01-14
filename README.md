@@ -1,5 +1,5 @@
 # WissKI Base image
-- Base image: drupal:11.0.1-php8.3-apache-bookworm
+- Base image: drupal:11.1.1-php8.3-apache-bookworm
 - WissKI base recipe with version through env
 
 ## Configuration
@@ -10,8 +10,8 @@ This image can be configured using the following environment variables:
 - `DB_HOST`: Hostname where the DBMS is running (e.g. `localhost`)
 - `DB_PORT`: Port on which the DBMS is running
 - `DB_NAME`: Name of the database
-- `DB_USER`: Name of the DB user 
-- `DB_PASSWORD`: Password for `DB_USER` 
+- `DB_USER`: Name of the DB user
+- `DB_PASSWORD`: Password for `DB_USER`
 
 ### Drupal settings
 - `DOMAIN`: Domain of the WissKI (e.g. `localhost`)
