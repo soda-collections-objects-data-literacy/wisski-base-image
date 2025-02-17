@@ -69,7 +69,7 @@ RUN { \
     echo "apc.shm_size=128M"; \
     } >> /usr/local/etc/php/conf.d/99-apcu-custom.ini;
 
-# set memory settings for WissKi
+# set memory settings for WissKI
 RUN { \
     echo 'max_execution_time = 1200'; \
     echo 'max_input_time = 600'; \
@@ -79,6 +79,7 @@ RUN { \
     echo 'upload_max_filesize = 512M'; \
     echo 'max_file_uploads = 50'; \
     echo 'post_max_size = 512M'; \
+    echo 'assert.active = 0'; \
     } >> /usr/local/etc/php/conf.d/99-wisski-recommended.ini;
 
 # Output buffering is not enabled. This may degrade Drupal's performance.
