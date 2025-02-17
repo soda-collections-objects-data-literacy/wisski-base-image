@@ -1,5 +1,7 @@
-FROM drupal:11.0.5-php8.3-apache-bookworm
+ARG DRUPAL_VERSION
+FROM drupal:${DRUPAL_VERSION}
 
+# Metadata
 LABEL org.opencontainers.image.source=https://github.com/soda-collections-objects-data-literacy/wisski-base-image.git
 LABEL org.opencontainers.image.description="Plain Drupal with preinstalled Site and basic WissKI environment with only core components with connection to triplestore provided by env variables."
 
@@ -65,6 +67,35 @@ RUN { \
     echo "apc.enable=1"; \
     echo "apc.shm_size=128M"; \
     } >> /usr/local/etc/php/conf.d/99-apcu-custom.ini;
+
+# set memory settings for WissKi
+RUN { \
+    echo 'max_execution_time = 1200'; \
+    echo 'max_input_time = 600'; \
+    echo 'max_input_nesting_level = 640'; \
+    echo 'max_input_vars = 10000'; \
+    echo 'memory_limit = 512M'; \
+    echo 'upload_max_filesize = 512M'; \
+    echo 'max_file_uploads = 50'; \
+    echo 'post_max_size = 512M'; \
+    } >> /usr/local/etc/php/conf.d/99-wisski-recommended.ini;
+
+# Output buffering is not enabled. This may degrade Drupal's performance.
+# You can enable output buffering by default in your PHP settings.
+
+RUN { \
+    echo 'output_buffering = on'; \
+    } >> /usr/local/etc/php/conf.d/99-drupal-recommended.ini;
+
+# see https://secure.php.net/manual/en/opcache.installation.php
+RUN { \
+    echo 'opcache.memory_consumption=128'; \
+    echo 'opcache.interned_strings_buffer=8'; \
+    echo 'opcache.max_accelerated_files=4000'; \
+    echo 'opcache.revalidate_freq=2'; \
+    echo 'opcache.fast_shutdown=1'; \
+    } >> /usr/local/etc/php/conf.d/99-opcache-recommended.ini;
+
 
 # Install drush
 RUN composer require drush/drush
