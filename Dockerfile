@@ -1,4 +1,5 @@
-ARG DRUPAL_VERSION
+ARG DRUPAL_VERSION=11.1.2-php8.4-apache-bookworm
+
 FROM drupal:${DRUPAL_VERSION}
 
 # Metadata
@@ -102,9 +103,6 @@ RUN composer require drush/drush
 
 # add composer bin to PATH
 RUN ln -s /opt/drupal/vendor/bin/drush /usr/local/bin/drush
-
-# Add ConfigConfigurator
-COPY ConfigConfigurator.php /opt/drupal/ConfigConfigurator.php
 
 # Change ownerships
 RUN chown -R www-data:www-data /var/www/html
