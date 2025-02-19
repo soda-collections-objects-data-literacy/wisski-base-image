@@ -53,8 +53,8 @@ else
   # Install development modules
   echo -e "\033[0;33mINSTALL DEVELOPMENT MODULES.\033[0m"
   {
-    composer require drupal/devel drupal/health_check composer require 'drupal/project_browser:^2.0@alpha'
-    drush en devel health_check project_browsery
+    composer require drupal/devel drupal/health_check 'drupal/project_browser:^2.0@alpha'
+    drush en devel health_check project_browser -y
   } 1> /dev/null
   echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
 
