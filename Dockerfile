@@ -82,9 +82,9 @@ RUN { \
     echo 'assert.active = 0'; \
     } >> /usr/local/etc/php/conf.d/99-wisski-recommended.ini;
 
-# Output buffering is not enabled. This may degrade Drupal's performance.
-# You can enable output buffering by default in your PHP settings.
 
+
+# Enable output buffering
 RUN { \
     echo 'output_buffering = on'; \
     } >> /usr/local/etc/php/conf.d/99-drupal-recommended.ini;
