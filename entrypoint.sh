@@ -20,6 +20,7 @@ echo -e "\n"
 
 # Define the path to the settings.php file
 SETTINGS_FILE="/opt/drupal/web/sites/default/settings.php"
+PRIVATE_FILES_DIR="/var/www/html/sites/default/private-files"
 
 # Check if Drupal is already installed
 if [ -f "$SETTINGS_FILE" ]; then
@@ -41,9 +42,16 @@ else
   {
     echo '$settings["trusted_host_patterns"] = [
       "^".getenv("DRUPAL_TRUSTED_HOST")."$",
-    ];' >> /opt/drupal/web/sites/default/settings.php
+    ];' >> ${SETTINGS_FILE}
   } 1> /dev/null
   echo -e "\033[0;32mTRUSTED HOST SETTINGS SET.\033[0m\n"
+
+  # Set private files directory
+  echo -e "\033[0;33mSETTING PRIVATE FILES DIRECTORY...\033[0m"
+  {
+    echo "\$settings[\"file_private_path\"] = \"$PRIVATE_FILES_DIR\";" >> ${SETTINGS_FILE}
+  } 1> /dev/null
+  echo -e "\033[0;32mPRIVATE FILES DIRECTORY SET.\033[0m\n"
 
   # Lets get dirty with composer
   echo -e "\033[0;33mSET COMPOSER MINIMUM STABILITY.\033[0m"
