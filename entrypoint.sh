@@ -46,6 +46,13 @@ else
   } 1> /dev/null
   echo -e "\033[0;32mTRUSTED HOST SETTINGS SET.\033[0m\n"
 
+  # Create private files directory
+  echo -e "\033[0;33mCREATING PRIVATE FILES DIRECTORY...\033[0m"
+  {
+    mkdir -p ${PRIVATE_FILES_DIR}
+  } 1> /dev/null
+  echo -e "\033[0;32mPRIVATE FILES DIRECTORY SET.\033[0m\n"
+
   # Set private files directory
   echo -e "\033[0;33mSETTING PRIVATE FILES DIRECTORY...\033[0m"
   {
