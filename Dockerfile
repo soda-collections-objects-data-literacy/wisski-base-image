@@ -67,7 +67,7 @@ RUN { \
     echo "apc.enable_cli=1"; \
     echo "apc.enable=1"; \
     echo "apc.shm_size=128M"; \
-    } >> /usr/local/etc/php/conf.d/99-apcu-custom.ini;
+    } >> /usr/local/etc/php/conf.d/zz-apcu-custom.ini;
 
 # set memory settings for WissKI
 RUN { \
@@ -80,14 +80,14 @@ RUN { \
     echo 'max_file_uploads = 50'; \
     echo 'post_max_size = 512M'; \
     echo 'assert.active = 0'; \
-    } >> /usr/local/etc/php/conf.d/99-wisski-recommended.ini;
+    } >> /usr/local/etc/php/conf.d/zz-wisski-recommended.ini;
 
 
 
 # Enable output buffering
 RUN { \
     echo 'output_buffering = on'; \
-    } >> /usr/local/etc/php/conf.d/99-drupal-recommended.ini;
+    } >> /usr/local/etc/php/conf.d/zz-drupal-recommended.ini;
 
 # see https://secure.php.net/manual/en/opcache.installation.php
 RUN { \
@@ -96,7 +96,7 @@ RUN { \
     echo 'opcache.max_accelerated_files=4000'; \
     echo 'opcache.revalidate_freq=2'; \
     echo 'opcache.fast_shutdown=1'; \
-    } >> /usr/local/etc/php/conf.d/99-opcache-recommended.ini;
+    } >> /usr/local/etc/php/conf.d/zz-opcache-recommended.ini;
 
 
 # Install drush
