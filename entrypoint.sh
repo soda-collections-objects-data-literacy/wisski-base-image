@@ -20,7 +20,7 @@ echo -e "\n"
 
 # Define the path to the settings.php file
 SETTINGS_FILE="/opt/drupal/web/sites/default/settings.php"
-PRIVATE_FILES_DIR="/var/www/html/sites/default/private-files"
+PRIVATE_FILES_DIR="/var/private-files"
 
 # Check if Drupal is already installed
 if [ -f "$SETTINGS_FILE" ]; then
