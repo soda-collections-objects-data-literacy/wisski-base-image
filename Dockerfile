@@ -98,6 +98,8 @@ RUN { \
     echo 'opcache.fast_shutdown=1'; \
     } >> /usr/local/etc/php/conf.d/zz-opcache-recommended.ini;
 
+# Create configs directory
+RUN mkdir -p /var/configs
 
 # Install drush
 RUN composer require drush/drush
