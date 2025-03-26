@@ -82,8 +82,6 @@ RUN { \
     echo 'assert.active = 0'; \
     } >> /usr/local/etc/php/conf.d/zz-wisski-recommended.ini;
 
-
-
 # Enable output buffering
 RUN { \
     echo 'output_buffering = on'; \
