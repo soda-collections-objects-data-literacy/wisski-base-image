@@ -71,10 +71,33 @@ else
   # Install development modules
   echo -e "\033[0;33mINSTALL DEVELOPMENT MODULES.\033[0m"
   {
-    composer require drupal/devel drupal/health_check 'drupal/project_browser:^2.0@alpha' 'drupal/automatic_updates:^4.0@alpha'
-    drush en devel health_check project_browser automatic_updates -y
+    composer require drupal/devel drupal/health_check 'drupal/project_browser:^2.0@alpha' 'drupal/automatic_updates:^4.0@alpha' 'drupal/openid_connect:^3.0@alpha'
+    drush en devel health_check project_browser automatic_updates openid_connect -y
   } 1> /dev/null
   echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
+
+  # Set OpenID Connect settings
+  echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
+  {
+    drush config-set openid_connect.settings clients_enabled generic -y
+    drush config-set openid_connect.settings.generic langcode en -y
+    drush config-set openid_connect.settings.generic status true -y
+    drush config-set openid_connect.settings.generic id scs_sso -y
+    drush config-set openid_connect.settings.generic label "SCS SSO" -y
+    drush config-set openid_connect.settings.generic plugin generic -y
+    drush config-set openid_connect.settings.generic settings.client_id ${SITE_NAME} -y
+    drush config-set openid_connect.settings.generic settings.client_secret ${OPENID_CONNECT_CLIENT_SECRET} -y
+    drush config-set openid_connect.settings.generic settings.iss_allowed_domains "*" -y
+    drush config-set openid_connect.settings.generic settings.issuer_url "" -y
+    drush config-set openid_connect.settings.generic settings.authorization_endpoint "https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth" -y
+    drush config-set openid_connect.settings.generic settings.token_endpoint "https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token" -y
+    drush config-set openid_connect.settings.generic settings.userinfo_endpoint "https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo" -y
+    drush config-set openid_connect.settings.generic settings.end_session_endpoint "https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout" -y
+    drush config-set openid_connect.settings.generic settings.scopes.0 openid -y
+    drush config-set openid_connect.settings.generic settings.scopes.1 email -y
+    drush config-set openid_connect.settings.generic settings.scopes.2 groups -y
+  } 1> /dev/null
+  echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
 
   # Add Drupal Recipe Composer plugin
   echo -e "\033[0;33mINSTALL RECIPE COMPOSER PLUGIN.\033[0m"
