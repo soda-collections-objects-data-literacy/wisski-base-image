@@ -140,7 +140,7 @@ else
   echo -e "\033[0;32mDEFAULT TRIPLESTORE ADAPTER INSTALLED.\033[0m\n"
 
   echo -e "\033[0;33mIMPORT WISSKI DEFAULT ONTOLOGY.\033[0m"
-  drush wisski-core:import-ontology --store="default" --ontology_url="https://wiss-ki.eu/ontology/" --reasoning
+  drush wisski-core:import-ontology --store="default" --ontology_url="https://wiss-ki.eu/ontology/current/" --reasoning
   echo -e "\033[0;32mWISSKI DEFAULT ONTOLOGY IMPORTED.\033[0m\n"
 
   for FLAVOUR in ${WISSKI_FLAVOURS}; do
