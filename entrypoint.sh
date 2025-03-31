@@ -95,6 +95,9 @@ else
   --userinfo-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo \
   --end-session-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout \
   --scopes=openid,email,profile
+
+  drush config-set openid_connect.settings user_login_display above
+
   } 1> /dev/null
   echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
 
