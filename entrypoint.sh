@@ -98,6 +98,7 @@ else
 
   drush config-set openid_connect.settings user_login_display above
   drush config-set openid_connect.settings override_registration_settings 1
+  drush config-set --input-format=yaml openid_connect.settings role_mappings.administrator [wisski_admin] -y
 
   } 1> /dev/null
   echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
