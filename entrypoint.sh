@@ -71,7 +71,11 @@ else
   # Install development modules
   echo -e "\033[0;33mINSTALL DEVELOPMENT MODULES.\033[0m"
   {
-    composer require drupal/devel drupal/health_check 'drupal/project_browser:^2.0@alpha' 'drupal/automatic_updates:^4.0@alpha' 'drupal/openid_connect:^3.0@alpha'
+     # Drush command for openid_connect is not implement in main branch yet, so we have to use the fork.
+    # Use the fork of openid_connect with drush commands implementation
+    composer config repositories.openid_connect_fork vcs git@git.drupal.org:issue/openid_connect-3516375.git
+    composer require drupal/devel drupal/health_check 'drupal/project_browser:^2.0@alpha' 'drupal/automatic_updates:^4.0@alpha'
+    composer require drupal/openid_connect:dev-3516375-implement-drush-commands --prefer-source
     drush en devel health_check project_browser automatic_updates openid_connect -y
   } 1> /dev/null
   echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
@@ -79,23 +83,18 @@ else
   # Set OpenID Connect settings
   echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
   {
-    drush config-set openid_connect.settings clients_enabled generic -y
-    drush config-set openid_connect.settings.generic langcode en -y
-    drush config-set openid_connect.settings.generic status true -y
-    drush config-set openid_connect.settings.generic id scs_sso -y
-    drush config-set openid_connect.settings.generic label "SCS SSO" -y
-    drush config-set openid_connect.settings.generic plugin generic -y
-    drush config-set openid_connect.settings.generic settings.client_id ${SITE_NAME} -y
-    drush config-set openid_connect.settings.generic settings.client_secret ${OPENID_CONNECT_CLIENT_SECRET} -y
-    drush config-set openid_connect.settings.generic settings.iss_allowed_domains "*" -y
-    drush config-set openid_connect.settings.generic settings.issuer_url "" -y
-    drush config-set openid_connect.settings.generic settings.authorization_endpoint "https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth" -y
-    drush config-set openid_connect.settings.generic settings.token_endpoint "https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token" -y
-    drush config-set openid_connect.settings.generic settings.userinfo_endpoint "https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo" -y
-    drush config-set openid_connect.settings.generic settings.end_session_endpoint "https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout" -y
-    drush config-set openid_connect.settings.generic settings.scopes.0 openid -y
-    drush config-set openid_connect.settings.generic settings.scopes.1 email -y
-    drush config-set openid_connect.settings.generic settings.scopes.2 groups -y
+
+
+    drush openid-connect:create-client "SCS SSO" "SODA SCS Client" generic \
+  --client-id=${SITE_NAME} \
+  --client-secret=${OPENID_CONNECT_CLIENT_SECRET} \
+  --allowed-domains=* \
+  --use-well-known=0 \
+  --authorization-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth \
+  --token-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token \
+  --userinfo-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo \
+  --end-session-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout \
+  --scopes=openid,email,profile
   } 1> /dev/null
   echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
 
