@@ -73,7 +73,7 @@ else
   {
      # Drush command for openid_connect is not implement in main branch yet, so we have to use the fork.
     # Use the fork of openid_connect with drush commands implementation
-    composer config repositories.openid_connect_fork vcs git@git.drupal.org:issue/openid_connect-3516375.git
+    composer config repositories.openid_connect_fork vcs https://git.drupalcode.org/issue/openid_connect-3516375.git
     composer require drupal/devel drupal/health_check 'drupal/project_browser:^2.0@alpha' 'drupal/automatic_updates:^4.0@alpha'
     composer require drupal/openid_connect:dev-3516375-implement-drush-commands --prefer-source
     drush en devel health_check project_browser automatic_updates openid_connect -y
