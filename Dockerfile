@@ -1,4 +1,4 @@
-ARG DRUPAL_VERSION=11.1.2-php8.3-apache-bookworm
+ARG DRUPAL_VERSION=11.1.6-php8.3-apache-bookworm
 
 FROM drupal:${DRUPAL_VERSION}
 
@@ -79,7 +79,7 @@ RUN { \
     echo 'upload_max_filesize = 512M'; \
     echo 'max_file_uploads = 50'; \
     echo 'post_max_size = 512M'; \
-    echo 'assert.active = 0'; \
+    echo 'zend.assertions=-1 '; \
     } >> /usr/local/etc/php/conf.d/zz-wisski-recommended.ini;
 
 # Enable output buffering
