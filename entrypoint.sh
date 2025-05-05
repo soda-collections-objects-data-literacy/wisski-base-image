@@ -63,6 +63,13 @@ else
   } 1> /dev/null
   echo -e "\033[0;32mPRIVATE FILES DIRECTORY SET.\033[0m\n"
 
+  # Set Package Manager Extension
+  echo -e "\033[0;33mSETTING PACKAGE MANAGER EXTENSION...\033[0m"
+  {
+    echo "\$settings['testing_package_manager'] = TRUE;" >> ${SETTINGS_FILE}
+  } 1> /dev/null
+  echo -e "\033[0;32mPACKAGE MANAGER EXTENSION SET.\033[0m\n"
+
   # Lets get dirty with composer
   echo -e "\033[0;33mSET COMPOSER MINIMUM STABILITY.\033[0m"
   echo -e "\033[0;33mPWD: $(pwd)\033[0m\n"
@@ -98,7 +105,7 @@ else
 
   drush config-set openid_connect.settings user_login_display above
   drush config-set openid_connect.settings override_registration_settings 1
-  drush config-set --input-format=yaml openid_connect.settings role_mappings.administrator [wisski_admin] -y
+  drush config-set --input-format=yaml openid_connect.settings role_mappings.administrator [scs_user] -y
 
   } 1> /dev/null
   echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
@@ -146,6 +153,18 @@ else
   echo -e "\033[0;33mIMPORT WISSKI DEFAULT ONTOLOGY.\033[0m"
   drush wisski-core:import-ontology --store="default" --ontology_url="https://wiss-ki.eu/ontology/current/" --reasoning
   echo -e "\033[0;32mWISSKI DEFAULT ONTOLOGY IMPORTED.\033[0m\n"
+
+  # Apply WissKI Sweet flavour recipe
+  echo -e "\033[0;33mAPPLY WISSKI SWEET RECIPE.\033[0m"
+  {
+    composer unpack soda-collection-objects-data-literacy/wisski_sweet
+    composer require soda-collection-objects-data-literacy/wisski_sweet:dev-main
+    drush recipe ../recipes/wisski_sweet
+    drush cr
+    drush wisski-core:recreate-menus
+    drush cr
+  } 1> /dev/null
+  echo -e "\033[0;32mWISSKI SWEET RECIPE APPLIED.\033[0m\n"
 
   for FLAVOUR in ${WISSKI_FLAVOURS}; do
     # Apply WissKI flavour recipe

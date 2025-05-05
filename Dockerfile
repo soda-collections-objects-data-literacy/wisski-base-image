@@ -71,9 +71,9 @@ RUN { \
 
 # set memory settings for WissKI
 RUN { \
-    echo 'max_execution_time = 1200'; \
-    echo 'max_input_time = 600'; \
-    echo 'max_input_nesting_level = 640'; \
+    echo 'max_execution_time = 300'; \
+    echo 'max_input_time = 300'; \
+    echo 'max_input_nesting_level = 64000'; \
     echo 'max_input_vars = 10000'; \
     echo 'memory_limit = 512M'; \
     echo 'upload_max_filesize = 512M'; \
@@ -89,12 +89,30 @@ RUN { \
 
 # see https://secure.php.net/manual/en/opcache.installation.php
 RUN { \
-    echo 'opcache.memory_consumption=128'; \
-    echo 'opcache.interned_strings_buffer=8'; \
-    echo 'opcache.max_accelerated_files=4000'; \
-    echo 'opcache.revalidate_freq=2'; \
+    echo 'opcache.enable=1'; \
+    echo 'opcache.memory_consumption=256'; \
+    echo 'opcache.interned_strings_buffer=16'; \
+    echo 'opcache.max_accelerated_files=20000'; \
+    echo 'opcache.validate_timestamps=1'; \
+    echo 'opcache.revalidate_freq=60'; \
+    echo 'opcache.save_comments=1'; \
     echo 'opcache.fast_shutdown=1'; \
+    echo 'opcache.enable_file_override=1'; \
+    echo 'opcache.optimization_level=0x7FFEBFFF'; \
     } >> /usr/local/etc/php/conf.d/zz-opcache-recommended.ini;
+
+# see https://secure.php.net/manual/en/opcache.installation.php
+RUN { \
+    echo 'mysqli.allow_persistent = On'; \
+    echo 'mysqli.max_persistent = 100'; \
+    echo 'mysqli.max_links = 150'; \
+    } >> /usr/local/etc/php/conf.d/zz-mysqli-recommended.ini;
+
+RUN { \
+    echo 'session.gc_maxlifetime = 7200'; \
+    echo 'session.gc_probability = 1'; \
+    echo 'session.gc_divisor = 100'; \
+    } >> /usr/local/etc/php/conf.d/zz-session-recommended.ini;
 
 # Create configs directory
 RUN mkdir -p /var/configs
