@@ -87,28 +87,28 @@ else
   } 1> /dev/null
   echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
 
-  # Set OpenID Connect settings
-  echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
-  {
+  if [ "${OPENID_CONNECT_CLIENT_SECRET}" != "" ]; then
+    # Set OpenID Connect settings
+    echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
+    {
+      drush openid-connect:create-client "SCS SSO" "SODA SCS Client" generic \
+    --client-id=${SITE_NAME} \
+    --client-secret=${OPENID_CONNECT_CLIENT_SECRET} \
+    --allowed-domains=* \
+    --use-well-known=0 \
+    --authorization-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth \
+    --token-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token \
+    --userinfo-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo \
+    --end-session-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout \
+    --scopes=openid,email,profile
 
+    drush config-set openid_connect.settings user_login_display above
+    drush config-set openid_connect.settings override_registration_settings 1
+    drush config-set --input-format=yaml openid_connect.settings role_mappings.administrator [scs_user] -y
 
-    drush openid-connect:create-client "SCS SSO" "SODA SCS Client" generic \
-  --client-id=${SITE_NAME} \
-  --client-secret=${OPENID_CONNECT_CLIENT_SECRET} \
-  --allowed-domains=* \
-  --use-well-known=0 \
-  --authorization-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth \
-  --token-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token \
-  --userinfo-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo \
-  --end-session-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout \
-  --scopes=openid,email,profile
-
-  drush config-set openid_connect.settings user_login_display above
-  drush config-set openid_connect.settings override_registration_settings 1
-  drush config-set --input-format=yaml openid_connect.settings role_mappings.administrator [scs_user] -y
-
-  } 1> /dev/null
-  echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
+    } 1> /dev/null
+    echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
+  fi
 
   # Add Drupal Recipe Composer plugin
   echo -e "\033[0;33mINSTALL RECIPE COMPOSER PLUGIN.\033[0m"
