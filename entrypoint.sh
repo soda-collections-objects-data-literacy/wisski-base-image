@@ -87,6 +87,13 @@ else
   } 1> /dev/null
   echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
 
+  # Create WissKI User Role
+  echo -e "\033[0;33mCREATE WISSKI USER ROLE.\033[0m"
+  {
+    drush role:create 'wisski_user' 'WissKI User' -y
+  } 1> /dev/null
+  echo -e "\033[0;32mWISSKI USER GROUP CREATED.\033[0m\n"
+
   if [ "${OPENID_CONNECT_CLIENT_SECRET}" != "" ]; then
     # Set OpenID Connect settings
     echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
@@ -104,7 +111,8 @@ else
 
     drush config-set openid_connect.settings user_login_display above
     drush config-set openid_connect.settings override_registration_settings 1
-    drush config-set --input-format=yaml openid_connect.settings role_mappings.administrator [wisski_admin] -y
+    drush config-set --input-format=yaml openid_connect.settings role_mappings.administrator [${KEYCLOAK_ADMIN_GROUP}] -y
+    drush config-set --input-format=yaml openid_connect.settings role_mappings.wisski_user [${KEYCLOAK_USER_GROUP}] -y
 
     } 1> /dev/null
     echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
