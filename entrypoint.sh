@@ -81,7 +81,7 @@ else
      # Drush command for openid_connect is not implement in main branch yet, so we have to use the fork.
     # Use the fork of openid_connect with drush commands implementation
     composer config repositories.openid_connect_fork vcs https://git.drupalcode.org/issue/openid_connect-3516375.git
-    composer require drupal/devel drupal/health_check 'drupal/project_browser:^2.0@alpha' 'drupal/automatic_updates:^4.0@alpha'
+    composer require 'drupal/automatic_updates:^4.0@alpha' drupal/devel drupal/health_check 'drupal/project_browser:^2.0@alpha' 'drupal/redis:^1.9'
     composer require drupal/openid_connect:dev-3516375-implement-drush-commands --prefer-source
     drush en devel health_check project_browser automatic_updates openid_connect -y
   } 1> /dev/null
@@ -104,7 +104,7 @@ else
 
     drush config-set openid_connect.settings user_login_display above
     drush config-set openid_connect.settings override_registration_settings 1
-    drush config-set --input-format=yaml openid_connect.settings role_mappings.administrator [scs_user] -y
+    drush config-set --input-format=yaml openid_connect.settings role_mappings.administrator [wisski_admin] -y
 
     } 1> /dev/null
     echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
