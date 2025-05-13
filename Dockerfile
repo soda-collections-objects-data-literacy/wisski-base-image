@@ -33,6 +33,7 @@ RUN apt-get update; \
     libvips-tools \
     libzip-dev \
     openjdk-17-jdk \
+    redis-server \
     unzip \
     vim \
     wget;
@@ -47,6 +48,11 @@ RUN	set -eux; \
 # Install apcu
 RUN set -eux; \
     pecl install apcu;
+
+# Redis
+RUN set -eux; \
+    pecl install redis; \
+    docker-php-ext-enable redis;
 
 # Install iipsrv
 RUN set -eux; \
