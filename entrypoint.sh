@@ -35,7 +35,7 @@ else
   { drush si \
     --db-url="${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}" \
     --site-name="${SITE_NAME}" \
-    --account-name="${DRUPAL_USER}" \
+    --account-name="admin" \
     --account-pass="${DRUPAL_PASSWORD}"
   } 1> /dev/null
   echo -e "\033[0;32mDRUPAL SITE \"${SITE_NAME}\" INSTALLED.\033[0m\n"
