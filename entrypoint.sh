@@ -82,11 +82,11 @@ else
     # Use the fork of openid_connect with drush commands implementation
     # Need WissKI User Administration module, to check if keycloak groups are matching.
     composer config repositories.openid_connect_fork vcs https://git.drupalcode.org/issue/openid_connect-3516375.git
-    composer config repositories.soda_wisski_user_administration vcs https://github.com/soda-collections-objects-data-literacy/soda_wisski_user_administration.git
+    composer config repositories.soda_wisski_sso_bouncer vcs https://github.com/soda-collections-objects-data-literacy/soda_wisski_sso_bouncer.git
     composer require 'drupal/automatic_updates:^4.0@alpha' drupal/devel drupal/health_check 'drupal/project_browser:^2.0@alpha' 'drupal/redis:^1.9'
     composer require drupal/openid_connect:dev-3516375-implement-drush-commands --prefer-source
-    composer require soda-collection-objects-data-literacy/soda_wisski_user_administration:main --prefer-source
-    drush en devel health_check project_browser automatic_updates openid_connect soda_wisski_user_administration -y
+    composer require soda-collection-objects-data-literacy/soda_wisski_sso_bouncer:main --prefer-source
+    drush en devel health_check project_browser automatic_updates openid_connect soda_wisski_sso_bouncer -y
   } 1> /dev/null
   echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
 
