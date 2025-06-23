@@ -49,6 +49,11 @@ RUN	set -eux; \
 RUN set -eux; \
     pecl install apcu;
 
+# Install intl
+RUN set -eux; \
+    docker-php-ext-configure intl \
+    && docker-php-ext-install intl;
+
 # Redis
 RUN set -eux; \
     pecl install redis; \
@@ -123,6 +128,12 @@ RUN { \
 # Create configs directory
 RUN mkdir -p /var/configs
 
+# Create private files directory
+RUN mkdir -p /var/private-files
+
+# Create composer home directory for www-data user
+RUN mkdir -p /var/composer-home
+
 # Install drush
 RUN composer require drush/drush
 
@@ -130,9 +141,19 @@ RUN composer require drush/drush
 RUN ln -s /opt/drupal/vendor/bin/drush /usr/local/bin/drush
 
 # Change ownerships
-RUN chown -R www-data:www-data /var/www/html
+RUN chown -R www-data:www-data /opt/drupal; \
+    chown -R www-data:www-data /var/private-files; \
+    chown -R www-data:www-data /var/composer-home; \
+    chmod -R 775 /var/www/html; \
+    chmod -R 775 /var/private-files; \
+    chmod -R 775 /var/composer-home
+
+# Set Composer home directory
+ENV COMPOSER_HOME=/var/composer-home
 
 # Add entrypoint
 COPY entrypoint.sh /entrypoint.sh
+
+USER www-data
 
 ENTRYPOINT ["/entrypoint.sh"]

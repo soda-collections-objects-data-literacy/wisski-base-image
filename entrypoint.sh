@@ -2,6 +2,17 @@
 # Exit on error
 set -e
 
+# Set Environment variables
+
+# Set Composer home directory
+export COMPOSER_HOME=/var/composer-home
+
+# Define the path to the settings.php file
+SETTINGS_FILE="/var/www/html/sites/default/settings.php"
+
+# Define the path to the private files directory
+PRIVATE_FILES_DIR="/var/private-files"
+
 # Install WissKI Environment
 echo -e "\n \n \n"
 echo -e "\033[38;5;208mWW      WW   iii   sss   sss   KK   KK   III\033[0m"
@@ -18,12 +29,9 @@ echo -e "\033[0;32m|THIS INSTALLS WISSKI DEV ENVIRONMENT!|\033[0m"
 echo -e "\033[0;32m+-------------------------------------+\033[0m"
 echo -e "\n"
 
-# Define the path to the settings.php file
-SETTINGS_FILE="/opt/drupal/web/sites/default/settings.php"
+echo "USER: $(whoami)"
+echo "PWD: $(pwd)"
 
-# Define the path to the private files directory
-# NEVER EVER PUT THIS IN THE WEB ROOT!
-PRIVATE_FILES_DIR="/var/private-files"
 
 # Check if Drupal is already installed
 if [ -f "$SETTINGS_FILE" ]; then
@@ -40,6 +48,11 @@ else
   } 1> /dev/null
   echo -e "\033[0;32mDRUPAL SITE \"${SITE_NAME}\" INSTALLED.\033[0m\n"
 
+  # Make settings.php writable for configuration updates
+  echo -e "\033[0;33mMAKING SETTINGS.PHP WRITABLE...\033[0m"
+  chmod 664 ${SETTINGS_FILE}
+  echo -e "\033[0;32mSETTINGS.PHP IS NOW WRITABLE.\033[0m\n"
+
   # Set trusted host settings
   echo -e "\033[0;33mSETTING TRUSTED HOST SETTINGS...\033[0m"
   {
@@ -48,13 +61,6 @@ else
     ];' >> ${SETTINGS_FILE}
   } 1> /dev/null
   echo -e "\033[0;32mTRUSTED HOST SETTINGS SET.\033[0m\n"
-
-  # Create private files directory
-  echo -e "\033[0;33mCREATING PRIVATE FILES DIRECTORY...\033[0m"
-  {
-    mkdir -p ${PRIVATE_FILES_DIR}
-  } 1> /dev/null
-  echo -e "\033[0;32mPRIVATE FILES DIRECTORY SET.\033[0m\n"
 
   # Set private files directory
   echo -e "\033[0;33mSETTING PRIVATE FILES DIRECTORY...\033[0m"
@@ -70,9 +76,15 @@ else
   } 1> /dev/null
   echo -e "\033[0;32mPACKAGE MANAGER EXTENSION SET.\033[0m\n"
 
+  # Restrict permissions of settings.php
+  echo -e "\033[0;33mRESTRICTING PERMISSIONS OF SETTINGS.PHP...\033[0m"
+  {
+    chmod 644 ${SETTINGS_FILE}
+  } 1> /dev/null
+  echo -e "\033[0;32mSETTINGS.PHP CLOSED.\033[0m\n"
+
   # Lets get dirty with composer
   echo -e "\033[0;33mSET COMPOSER MINIMUM STABILITY.\033[0m"
-  echo -e "\033[0;33mPWD: $(pwd)\033[0m\n"
   composer config minimum-stability dev > /dev/null
   echo -e "\033[0;32mCOMPOSER MINIMUM STABILITY SET.\033[0m\n"
   # Install development modules
@@ -82,11 +94,10 @@ else
     # Use the fork of openid_connect with drush commands implementation
     # Need WissKI User Administration module, to check if keycloak groups are matching.
     composer config repositories.openid_connect_fork vcs https://git.drupalcode.org/issue/openid_connect-3516375.git
-    composer config repositories.soda_wisski_sso_bouncer vcs https://github.com/soda-collections-objects-data-literacy/soda_wisski_sso_bouncer.git
-    composer require 'drupal/automatic_updates:^4.0@alpha' drupal/devel drupal/health_check 'drupal/project_browser:^2.0@alpha' 'drupal/redis:^1.9'
+    composer require 'drupal/automatic_updates:^4.0@alpha' drupal/devel drupal/health_check 'drupal/project_browser:^2.0@alpha' 'drupal/redis:^1.9' 'drupal/sso_bouncer:^1.x-dev'
     composer require drupal/openid_connect:dev-3516375-implement-drush-commands --prefer-source
-    composer require soda-collection-objects-data-literacy/soda_wisski_sso_bouncer:dev-main --prefer-source
-    drush en devel health_check project_browser automatic_updates openid_connect soda_wisski_sso_bouncer -y
+    drush en devel health_check project_browser automatic_updates openid_connect sso_bouncer -y
+
   } 1> /dev/null
   echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
 
@@ -119,6 +130,12 @@ else
 
     } 1> /dev/null
     echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
+
+    echo -e "\033[0;33mENABLE SSO BOUNCER.\033[0m"
+    {
+      drush sso_bouncer:enable ${SITE_NAME}
+    } 1> /dev/null
+    echo -e "\033[0;32mSSO BOUNCER ENABLED.\033[0m\n"
   fi
 
   # Add Drupal Recipe Composer plugin
@@ -130,12 +147,12 @@ else
   } 1> /dev/null
   echo -e "\033[0;32mRECIPE COMPOSER PLUGIN INSTALLED.\033[0m\n"
 
-  # Apply WissKI Base recipe
-  echo -e "\033[0;33mAPPLY WISSKI BASE ENVIRONMENT RECIPE.\033[0m"
-    composer unpack soda-collection-objects-data-literacy/wisski_grain_yeast_water
-    composer require soda-collection-objects-data-literacy/wisski_grain_yeast_water:${WISSKI_GRAIN_YEAST_WATER_VERSION}
+  # Apply WissKI Starter recipe
+  echo -e "\033[0;33mAPPLY WISSKI STARTER RECIPE.\033[0m"
+    composer require drupal/wisski_starter:^1.x-dev
+    composer unpack drupal/wisski_starter
     drush cr
-    drush recipe ../recipes/wisski_grain_yeast_water
+    drush recipe ../recipes/wisski_starter
     drush cr
   echo -e "\033[0;32mWISSKI WISSKI BASE ENVIRONMENT RECIPE APPLIED.\033[0m\n"
 
@@ -162,29 +179,29 @@ else
   echo -e "\033[0;32mDEFAULT TRIPLESTORE ADAPTER INSTALLED.\033[0m\n"
 
   echo -e "\033[0;33mIMPORT WISSKI DEFAULT ONTOLOGY.\033[0m"
-  drush wisski-core:import-ontology --store="default" --ontology_url="http://ontologies.sammlungen.io/default/current/" --reasoning
+  drush wisski-core:import-ontology --store="default" --ontology_url="https://wiss-ki.eu/ontology/default/2.0.0/" --reasoning
   echo -e "\033[0;32mWISSKI DEFAULT ONTOLOGY IMPORTED.\033[0m\n"
 
   # Apply WissKI Sweet flavour recipe
-  echo -e "\033[0;33mAPPLY WISSKI SWEET RECIPE.\033[0m"
+  echo -e "\033[0;33mAPPLY WISSKI DATA DEFAULT MODEL RECIPE.\033[0m"
   {
-    composer unpack soda-collection-objects-data-literacy/wisski_sweet
-    composer require soda-collection-objects-data-literacy/wisski_sweet:dev-main
-    drush recipe ../recipes/wisski_sweet
+    composer require drupal/wisski_default_data_model:^1.x-dev
+    composer unpack drupal/wisski_default_data_model
     drush cr
+    drush recipe ../recipes/wisski_default_data_model
     drush wisski-core:recreate-menus
     drush cr
   } 1> /dev/null
-  echo -e "\033[0;32mWISSKI SWEET RECIPE APPLIED.\033[0m\n"
+  echo -e "\033[0;32mWISSKI DEFAULT DATA MODEL RECIPE APPLIED.\033[0m\n"
 
   for FLAVOUR in ${WISSKI_FLAVOURS}; do
     # Apply WissKI flavour recipe
     echo -e "\033[0;33mAPPLY WISSKI ${FLAVOUR} RECIPE.\033[0m"
     {
-      composer unpack soda-collection-objects-data-literacy/wisski_${FLAVOUR}
       composer require soda-collection-objects-data-literacy/wisski_${FLAVOUR}:dev-main
-      drush recipe ../recipes/wisski_${FLAVOUR}
+      composer unpack soda-collection-objects-data-literacy/wisski_${FLAVOUR}
       drush cr
+      drush recipe ../recipes/wisski_${FLAVOUR}
       drush wisski-core:recreate-menus
       drush cr
     } 1> /dev/null
@@ -209,13 +226,7 @@ else
 
   # Drupal requirements
 
-  # Set permissions
-  echo -e "\033[0;33mSET PERMISSIONS.\033[0m"
-  {
-    chown -R www-data:www-data /opt/drupal
-    chmod -R 775 /opt/drupal
-  } 1> /dev/null
-  echo -e "\033[0;32mPERMISSIONS SET.\033[0m\n"
+  # Permissions are already set correctly via Dockerfile
 fi
 echo -e "\033[0;32m+---------------------------+\033[0m"
 echo -e "\033[0;32m|FINISHED INSTALLING DRUPAL.|\033[0m"
