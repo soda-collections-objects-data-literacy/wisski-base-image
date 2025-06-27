@@ -139,18 +139,18 @@ else
   fi
 
   # Add Drupal Recipe Composer plugin
-  echo -e "\033[0;33mINSTALL RECIPE COMPOSER PLUGIN.\033[0m"
-  {
-    composer config repositories.ewdev vcs https://gitlab.ewdev.ca/yonas.legesse/drupal-recipe-unpack.git
-    composer config allow-plugins.ewcomposer/unpack true
-    composer require ewcomposer/unpack:dev-master
-  } 1> /dev/null
-  echo -e "\033[0;32mRECIPE COMPOSER PLUGIN INSTALLED.\033[0m\n"
+  #echo -e "\033[0;33mINSTALL RECIPE COMPOSER PLUGIN.\033[0m"
+  #{
+  #  composer config repositories.ewdev vcs https://gitlab.ewdev.ca/yonas.legesse/drupal-recipe-unpack.git
+  #  composer config allow-plugins.ewcomposer/unpack true
+  #  composer require ewcomposer/unpack:dev-master
+  #} 1> /dev/null
+  #echo -e "\033[0;32mRECIPE COMPOSER PLUGIN INSTALLED.\033[0m\n"
 
   # Apply WissKI Starter recipe
   echo -e "\033[0;33mAPPLY WISSKI STARTER RECIPE.\033[0m"
     composer require drupal/wisski_starter:^1.x-dev
-    composer unpack drupal/wisski_starter
+    #composer unpack drupal/wisski_starter
     drush cr
     drush recipe ../recipes/wisski_starter
     drush cr
@@ -186,7 +186,7 @@ else
   echo -e "\033[0;33mAPPLY WISSKI DATA DEFAULT MODEL RECIPE.\033[0m"
   {
     composer require drupal/wisski_default_data_model:^1.x-dev
-    composer unpack drupal/wisski_default_data_model
+    #composer unpack drupal/wisski_default_data_model
     drush cr
     drush recipe ../recipes/wisski_default_data_model
     drush wisski-core:recreate-menus
@@ -199,7 +199,7 @@ else
     echo -e "\033[0;33mAPPLY WISSKI ${FLAVOUR} RECIPE.\033[0m"
     {
       composer require soda-collection-objects-data-literacy/wisski_${FLAVOUR}:dev-main
-      composer unpack soda-collection-objects-data-literacy/wisski_${FLAVOUR}
+     # composer unpack soda-collection-objects-data-literacy/wisski_${FLAVOUR}
       drush cr
       drush recipe ../recipes/wisski_${FLAVOUR}
       drush wisski-core:recreate-menus
