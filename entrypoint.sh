@@ -87,6 +87,15 @@ else
   echo -e "\033[0;33mSET COMPOSER MINIMUM STABILITY.\033[0m"
   composer config minimum-stability dev > /dev/null
   echo -e "\033[0;32mCOMPOSER MINIMUM STABILITY SET.\033[0m\n"
+
+  # Allow composer to unpack recipes
+  echo -e "\033[0;33mALLOW COMPOSER TO UNPACK RECIPES.\033[0m"
+  {
+    composer config allow-plugins.drupal/core-recipe-unpack true
+    composer require drupal/core-recipe-unpack
+  } 1> /dev/null
+  echo -e "\033[0;32mCOMPOSER ALLOWED TO UNPACK RECIPES.\033[0m\n"
+
   # Install development modules
   echo -e "\033[0;33mINSTALL DEVELOPMENT MODULES.\033[0m"
   {
@@ -94,7 +103,7 @@ else
     # Use the fork of openid_connect with drush commands implementation
     # Need WissKI User Administration module, to check if keycloak groups are matching.
     composer config repositories.openid_connect_fork vcs https://git.drupalcode.org/issue/openid_connect-3516375.git
-    composer require 'drupal/automatic_updates:^4.0@alpha' drupal/devel drupal/health_check 'drupal/project_browser:^2.0@alpha' 'drupal/redis:^1.9' 'drupal/sso_bouncer:^1.x-dev'
+    composer require 'drupal/automatic_updates:^4.0@alpha' drupal/devel drupal/health_check 'drupal/project_browser:^2.0@alpha' 'drupal/redis:^1.9' 'drupal/sso_bouncer:1.x-dev'
     composer require drupal/openid_connect:dev-3516375-implement-drush-commands --prefer-source
     drush en devel health_check project_browser automatic_updates openid_connect sso_bouncer -y
 
@@ -140,7 +149,7 @@ else
 
   # Apply WissKI Starter recipe
   echo -e "\033[0;33mAPPLY WISSKI STARTER RECIPE.\033[0m"
-    composer require drupal/wisski_starter:^1.x-dev
+    composer require 'drupal/wisski_starter:1.x-dev'
     drush cr
     drush recipe ../recipes/wisski_starter
     drush cr
@@ -172,15 +181,15 @@ else
   drush wisski-core:import-ontology --store="default" --ontology_url="https://wiss-ki.eu/ontology/default/2.0.0/" --reasoning
   echo -e "\033[0;32mWISSKI DEFAULT ONTOLOGY IMPORTED.\033[0m\n"
 
-  # Apply WissKI Sweet flavour recipe
+  # Apply WissKI Default Data Model recipe
   echo -e "\033[0;33mAPPLY WISSKI DATA DEFAULT MODEL RECIPE.\033[0m"
-  {
-    composer require drupal/wisski_default_data_model:^1.x-dev
+ # {
+    composer require 'drupal/wisski_default_data_model:1.x-dev'
     drush cr
     drush recipe ../recipes/wisski_default_data_model
     drush wisski-core:recreate-menus
     drush cr
-  } 1> /dev/null
+  #} 1> /dev/null
   echo -e "\033[0;32mWISSKI DEFAULT DATA MODEL RECIPE APPLIED.\033[0m\n"
 
   for FLAVOUR in ${WISSKI_FLAVOURS}; do
@@ -211,6 +220,11 @@ else
       echo -e "\033[0;32mIIIF configs set.\033[0m\n"
     fi
   done
+
+  # Unpack recipes
+  echo -e "\033[0;33mUNPACK RECIPES.\033[0m"
+  composer drupal:recipe-unpack >> /dev/null
+  echo -e "\033[0;32mRECIPES UNPACKED.\033[0m\n"
 
   # Drupal requirements
 
