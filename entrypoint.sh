@@ -184,7 +184,7 @@ else
   # Apply WissKI Default Data Model recipe
   echo -e "\033[0;33mAPPLY WISSKI DATA DEFAULT MODEL RECIPE.\033[0m"
  # {
-    composer require 'drupal/wisski_default_data_model:1.x-dev'
+    composer require 'drupal/wisski_default_data_model:1.0.0-alpha2'
     drush cr
     drush recipe ../recipes/wisski_default_data_model
     drush wisski-core:recreate-menus
