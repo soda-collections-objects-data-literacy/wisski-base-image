@@ -2,6 +2,11 @@
 
 A containerized WissKI (Wissenschaftliche KommunikationsInfrastruktur) environment built on Drupal with integrated triplestore connectivity and semantic web capabilities.
 
+## Prerequisites
+
+- Triplestore with repository (i.e. [OpenGDB](https://github.com/FAU-CDI/open_gdb), [GraphDB](https://graphdb.ontotext.com/) or [Blazegraph](https://blazegraph.com/))
+- Database (i.e. MariaDB)
+
 ## Overview
 
 This Docker image provides a complete WissKI installation with:
