@@ -86,7 +86,7 @@ RUN { \
     echo 'max_input_time = 300'; \
     echo 'max_input_nesting_level = 64000'; \
     echo 'max_input_vars = 10000'; \
-    echo 'memory_limit = 512M'; \
+    echo 'memory_limit = 1G'; \
     echo 'upload_max_filesize = 512M'; \
     echo 'max_file_uploads = 50'; \
     echo 'post_max_size = 512M'; \
