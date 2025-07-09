@@ -85,6 +85,7 @@ else
 
   # Lets get dirty with composer
   echo -e "\033[0;33mSET COMPOSER MINIMUM STABILITY.\033[0m"
+  composer clear-cache
   composer config minimum-stability dev > /dev/null
   echo -e "\033[0;32mCOMPOSER MINIMUM STABILITY SET.\033[0m\n"
 
@@ -102,9 +103,10 @@ else
     # Drush command for openid_connect is not implement in main branch yet, so we have to use the fork.
     # Use the fork of openid_connect with drush commands implementation
     # Need WissKI User Administration module, to check if keycloak groups are matching.
-    composer config repositories.openid_connect_fork vcs https://git.drupalcode.org/issue/openid_connect-3516375.git
+    composer config repositories.openid_connect-3516375 vcs https://git.drupalcode.org/issue/openid_connect-3516375.git
+
     composer require 'drupal/automatic_updates:^4.0@alpha' drupal/devel drupal/health_check 'drupal/project_browser:^2.0@alpha' 'drupal/redis:^1.9' 'drupal/sso_bouncer:1.x-dev'
-    composer require drupal/openid_connect:dev-3516375-implement-drush-commands --prefer-source
+    composer require 'drupal/openid_connect:dev-3516375-implement-drush-commands' --prefer-source
     drush en devel health_check project_browser automatic_updates openid_connect sso_bouncer -y
 
   } 1> /dev/null
@@ -153,7 +155,7 @@ else
     drush cr
     drush recipe ../recipes/wisski_starter
     drush cr
-  echo -e "\033[0;32mWISSKI WISSKI BASE ENVIRONMENT RECIPE APPLIED.\033[0m\n"
+  echo -e "\033[0;32mWISSKI STARTER RECIPE APPLIED.\033[0m\n"
 
   # Install default adapter
   echo -e "\033[0;33mINSTALL DEFAULT TRIPLESTORE ADAPTER.\033[0m"
@@ -184,6 +186,7 @@ else
   # Apply WissKI Default Data Model recipe
   echo -e "\033[0;33mAPPLY WISSKI DATA DEFAULT MODEL RECIPE.\033[0m"
  # {
+    composer config repositories.conditional_fields-3495402 vcs https://git.drupalcode.org/issue/conditional_fields-3495402.git
     composer require 'drupal/wisski_default_data_model:1.x-dev'
     drush cr
     drush recipe ../recipes/wisski_default_data_model
