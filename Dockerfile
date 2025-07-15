@@ -125,6 +125,19 @@ RUN { \
     echo 'session.gc_divisor = 100'; \
     } >> /usr/local/etc/php/conf.d/zz-session-recommended.ini;
 
+# install xdebug if enabled by build tag "WITH_XDEBUG"
+ARG WITH_XDEBUG=
+RUN set -eux; \
+    (([ "$WITH_XDEBUG" = "1" ] && pecl install xdebug-3.4.3 && { \
+        echo 'xdebug.mode=debug'; \
+        echo 'xdebug.start_with_request=trigger'; \
+        echo 'xdebug.client_host=127.0.0.1'; \
+        echo 'xdebug.client_port=9003'; \
+        echo 'xdebug.log=/var/log/xdebug.log'; \
+        echo 'xdebug.idekey=VSCODE'; \
+    } > /usr/local/etc/php/conf.d/zz-xdebug.ini && docker-php-ext-enable xdebug) || true)
+
+
 # Create configs directory
 RUN mkdir -p /var/configs
 
@@ -157,3 +170,4 @@ COPY entrypoint.sh /entrypoint.sh
 USER www-data
 
 ENTRYPOINT ["/entrypoint.sh"]
+
