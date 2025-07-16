@@ -99,7 +99,9 @@ RUN { \
     } >> /usr/local/etc/php/conf.d/zz-drupal-recommended.ini;
 
 # see https://secure.php.net/manual/en/opcache.installation.php
-RUN { \
+ARG WITH_OPCACHE=1
+RUN set -eux; \
+    ([ "$WITH_OPCACHE" = "1" ] && { \
     echo 'opcache.enable=1'; \
     echo 'opcache.memory_consumption=256'; \
     echo 'opcache.interned_strings_buffer=16'; \
@@ -110,7 +112,9 @@ RUN { \
     echo 'opcache.fast_shutdown=1'; \
     echo 'opcache.enable_file_override=1'; \
     echo 'opcache.optimization_level=0x7FFEBFFF'; \
-    } >> /usr/local/etc/php/conf.d/zz-opcache-recommended.ini;
+    } || { \
+    echo 'opcache.enable=0'; \ 
+    }) >> /usr/local/etc/php/conf.d/zz-opcache-recommended.ini;
 
 # see https://secure.php.net/manual/en/opcache.installation.php
 RUN { \

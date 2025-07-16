@@ -145,6 +145,16 @@ cd wisski-base-image
 docker build -t wisski-base-image .
 ```
 
+It can also be built with a debugging variant:
+
+```bash
+git clone <repository-url>
+cd wisski-base-image
+docker build --build-arg WITH_XDEBUG=1 --build-arg WITH_OPCACHE=0 -t wisski-devel-image .
+```
+
+This adds [xbdebug](https://xdebug.org) to the image and disables opcache. 
+
 ### Environment File
 
 Copy and modify the example environment file:
