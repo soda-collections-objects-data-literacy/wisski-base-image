@@ -186,7 +186,6 @@ else
   # Apply WissKI Default Data Model recipe
   echo -e "\033[0;33mAPPLY WISSKI DATA DEFAULT MODEL RECIPE.\033[0m"
  # {
-    composer config repositories.1 git https://git.drupalcode.org/issue/conditional_fields-3495402.git
     composer require 'drupal/wisski_default_data_model:1.0.x-dev'
     drush cr
     drush recipe ../recipes/wisski_default_data_model
