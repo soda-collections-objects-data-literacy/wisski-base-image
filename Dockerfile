@@ -99,7 +99,9 @@ RUN { \
     } >> /usr/local/etc/php/conf.d/zz-drupal-recommended.ini;
 
 # see https://secure.php.net/manual/en/opcache.installation.php
-RUN { \
+ARG WITH_OPCACHE=1
+RUN set -eux; \
+    ([ "$WITH_OPCACHE" = "1" ] && { \
     echo 'opcache.enable=1'; \
     echo 'opcache.memory_consumption=256'; \
     echo 'opcache.interned_strings_buffer=16'; \
@@ -110,7 +112,9 @@ RUN { \
     echo 'opcache.fast_shutdown=1'; \
     echo 'opcache.enable_file_override=1'; \
     echo 'opcache.optimization_level=0x7FFEBFFF'; \
-    } >> /usr/local/etc/php/conf.d/zz-opcache-recommended.ini;
+    } || { \
+    echo 'opcache.enable=0'; \ 
+    }) >> /usr/local/etc/php/conf.d/zz-opcache-recommended.ini;
 
 # see https://secure.php.net/manual/en/opcache.installation.php
 RUN { \
@@ -124,6 +128,19 @@ RUN { \
     echo 'session.gc_probability = 1'; \
     echo 'session.gc_divisor = 100'; \
     } >> /usr/local/etc/php/conf.d/zz-session-recommended.ini;
+
+# install xdebug if enabled by build tag "WITH_XDEBUG"
+ARG WITH_XDEBUG=
+RUN set -eux; \
+    (([ "$WITH_XDEBUG" = "1" ] && pecl install xdebug-3.4.3 && { \
+        echo 'xdebug.mode=debug'; \
+        echo 'xdebug.start_with_request=trigger'; \
+        echo 'xdebug.client_host=127.0.0.1'; \
+        echo 'xdebug.client_port=9003'; \
+        echo 'xdebug.log=/var/log/xdebug.log'; \
+        echo 'xdebug.idekey=VSCODE'; \
+    } > /usr/local/etc/php/conf.d/zz-xdebug.ini && docker-php-ext-enable xdebug) || true)
+
 
 # Create configs directory
 RUN mkdir -p /var/configs
@@ -157,3 +174,4 @@ COPY entrypoint.sh /entrypoint.sh
 USER www-data
 
 ENTRYPOINT ["/entrypoint.sh"]
+
