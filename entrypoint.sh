@@ -229,6 +229,17 @@ else
   composer drupal:recipe-unpack >> /dev/null
   echo -e "\033[0;32mRECIPES UNPACKED.\033[0m\n"
 
+  # Quickfix because dev branch is broken
+  echo -e "\033[0;33mQUICKFIX BECAUSE DEV BRANCH IS BROKEN.\033[0m"
+  {
+  # Go to wisski directory and set git repo to barrels branch.
+  cd web/modules/contrib/wisski
+  git fetch origin barrels
+  git checkout barrels
+  cd -
+  drush cr
+  } 1> /dev/null
+  echo -e "\033[0;32mQUICKFIX BECAUSE DEV BRANCH IS BROKEN.\033[0m\n"
   # Drupal requirements
 
   # Permissions are already set correctly via Dockerfile
