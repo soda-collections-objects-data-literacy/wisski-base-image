@@ -1,4 +1,5 @@
 ARG DRUPAL_VERSION=11.2.2-php8.3-apache-bookworm
+ARG GROUPS
 
 FROM drupal:${DRUPAL_VERSION}
 
@@ -113,7 +114,7 @@ RUN set -eux; \
     echo 'opcache.enable_file_override=1'; \
     echo 'opcache.optimization_level=0x7FFEBFFF'; \
     } || { \
-    echo 'opcache.enable=0'; \ 
+    echo 'opcache.enable=0'; \
     }) >> /usr/local/etc/php/conf.d/zz-opcache-recommended.ini;
 
 # see https://secure.php.net/manual/en/opcache.installation.php
@@ -172,6 +173,13 @@ ENV COMPOSER_HOME=/var/composer-home
 COPY entrypoint.sh /entrypoint.sh
 
 USER www-data
+
+# Set groups
+
+ENV GROUPS=${GROUPS}
+
+# Add groups to www-data user
+RUN if [ -n "${GROUPS}" ]; then usermod -a -G ${GROUPS} www-data; fi
 
 ENTRYPOINT ["/entrypoint.sh"]
 
