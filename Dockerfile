@@ -169,17 +169,16 @@ RUN chown -R www-data:www-data /opt/drupal; \
 # Set Composer home directory
 ENV COMPOSER_HOME=/var/composer-home
 
-# Add entrypoint
-COPY entrypoint.sh /entrypoint.sh
-
-USER www-data
-
 # Set groups
-
 ENV USER_GROUPS=${USER_GROUPS}
 
 # Add groups to www-data user
 RUN if [ -n "${USER_GROUPS}" ]; then usermod -a -G ${USER_GROUPS} www-data; fi
+
+# Add entrypoint
+COPY entrypoint.sh /entrypoint.sh
+
+USER www-data
 
 ENTRYPOINT ["/entrypoint.sh"]
 
