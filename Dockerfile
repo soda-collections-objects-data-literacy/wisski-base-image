@@ -1,5 +1,5 @@
 ARG DRUPAL_VERSION=11.2.2-php8.3-apache-bookworm
-ARG GROUPS
+ARG USER_GROUPS
 
 FROM drupal:${DRUPAL_VERSION}
 
@@ -176,10 +176,10 @@ USER www-data
 
 # Set groups
 
-ENV GROUPS=${GROUPS}
+ENV USER_GROUPS=${USER_GROUPS}
 
 # Add groups to www-data user
-RUN if [ -n "${GROUPS}" ]; then usermod -a -G ${GROUPS} www-data; fi
+RUN if [ -n "${USER_GROUPS}" ]; then usermod -a -G ${USER_GROUPS} www-data; fi
 
 ENTRYPOINT ["/entrypoint.sh"]
 
