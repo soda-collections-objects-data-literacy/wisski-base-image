@@ -1,16 +1,16 @@
 # Database settings
 DB_DRIVER=mysql
 DB_HOST=localhost
-DB_PORT=3306
 DB_NAME=drupal
-DB_USER=drupal
 DB_PASSWORD=change_me
+DB_PORT=3306
+DB_USER=drupal
 
 # Drupal settings
 DOMAIN=localhost
+DRUPAL_PASSWORD=also_change_me
 DRUPAL_TRUSTED_HOST=localhost
 DRUPAL_USER=admin
-DRUPAL_PASSWORD=also_change_me
 SITE_NAME=My WissKI
 
 # WissKI settings
@@ -21,7 +21,12 @@ WISSKI_FLAVOURS=
 # Triplestore settings
 TS_PASSWORD=
 TS_READ_URL=http://public.graph.database/repositories/default
-TS_WRITE_URL=http://public.graph.database/repositories/default/statements
 TS_REPOSITORY=default
-TS_USERNAME=
 TS_TOKEN=
+TS_USERNAME=
+TS_WRITE_URL=http://public.graph.database/repositories/default/statements
+
+# Keycloak settings
+KEYCLOAK_REALM=
+OPENID_CONNECT_CLIENT_SECRET=
+USER_GROUPS=
