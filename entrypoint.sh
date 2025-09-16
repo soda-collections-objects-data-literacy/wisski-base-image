@@ -2,6 +2,11 @@
 # Exit on error
 set -e
 
+# Enable debug mode if DEBUG environment variable is set
+if [ "${DEBUG}" = "true" ]; then
+  set -x
+fi
+
 # Set Environment variables
 
 # Set Composer home directory
@@ -32,21 +37,108 @@ echo -e "\n"
 echo "USER: $(whoami)"
 echo "PWD: $(pwd)"
 
+# Validate required environment variables
+echo -e "\033[0;33mVALIDATING ENVIRONMENT VARIABLES...\033[0m"
+
+REQUIRED_VARS=(
+  "DB_DRIVER"
+  "DB_HOST"
+  "DB_NAME"
+  "DB_PASSWORD"
+  "DB_PORT"
+  "DB_USER"
+  "DRUPAL_PASSWORD"
+  "SITE_NAME"
+  "USER_GROUPS"
+)
+
+MISSING_VARS=()
+
+for var in "${REQUIRED_VARS[@]}"; do
+  if [ -z "${!var}" ]; then
+    MISSING_VARS+=("$var")
+  fi
+done
+
+if [ ${#MISSING_VARS[@]} -ne 0 ]; then
+  echo -e "\033[0;31mERROR: Missing required environment variables:\033[0m"
+  for var in "${MISSING_VARS[@]}"; do
+    echo -e "\033[0;31m  - $var\033[0m"
+  done
+  exit 1
+fi
+
+echo -e "\033[0;32mALL REQUIRED ENVIRONMENT VARIABLES ARE SET.\033[0m\n"
+
+# Set groups
+
+  # Add groups to www-data user
+  echo -e "\033[0;33mADD GROUPS TO WWW-DATA USER.\033[0m"
+  if [ -n "${USER_GROUPS}" ]; then
+    for group in $(echo ${USER_GROUPS} | tr ',' ' '); do
+      groupadd -g ${group} g_${group}
+      echo -e "\033[0;32mGROUP ${group} ADDED.\033[0m"
+      adduser www-data g_${group}
+      echo -e "\033[0;32mWWW-DATA USER ADDED TO GROUP ${group}.\033[0m"
+    done
+  fi
+  echo -e "\033[0;32mGROUPS ADDED TO WWW-DATA USER.\033[0m\n"
+
+
+# Switch to www-data user
+echo -e "\033[0;33mSWITCHING TO WWW-DATA USER.\033[0m"
+#su - www-data
+echo -e "\033[0;32mSWITCHED TO WWW-DATA USER.\033[0m\n"
+
 
 # Check if Drupal is already installed
 if [ -f "$SETTINGS_FILE" ]; then
   echo -e "\033[0;32mDRUPAL IS ALREADY INSTALLED.\033[0m\n"
 else
 
-  # Install the site
+  # Check database connection first
+  echo -e "\033[0;33mCHECKING DATABASE CONNECTION...\033[0m"
+
+  # Wait for database to be ready with timeout
+  DB_READY=false
+  MAX_ATTEMPTS=30
+  ATTEMPT=0
+
+  while [ $ATTEMPT -lt $MAX_ATTEMPTS ] && [ "$DB_READY" = false ]; do
+    if mysql -h"${DB_HOST}" -P"${DB_PORT}" -u"${DB_USER}" -p"${DB_PASSWORD}" -e "SELECT 1;" "${DB_NAME}" &>/dev/null; then
+      DB_READY=true
+      echo -e "\033[0;32mDATABASE CONNECTION SUCCESSFUL.\033[0m"
+    else
+      echo -e "\033[0;33mWaiting for database... (attempt $((ATTEMPT + 1))/$MAX_ATTEMPTS)\033[0m"
+      sleep 2
+      ATTEMPT=$((ATTEMPT + 1))
+    fi
+  done
+
+  if [ "$DB_READY" = false ]; then
+    echo -e "\033[0;31mERROR: Could not connect to database after $MAX_ATTEMPTS attempts.\033[0m"
+    echo -e "\033[0;31mDB_HOST: ${DB_HOST}\033[0m"
+    echo -e "\033[0;31mDB_PORT: ${DB_PORT}\033[0m"
+    echo -e "\033[0;31mDB_USER: ${DB_USER}\033[0m"
+    echo -e "\033[0;31mDB_NAME: ${DB_NAME}\033[0m"
+    exit 1
+  fi
+
+  # Install the site with timeout
   echo -e "\033[0;33mINSTALLING DRUPAL SITE...\033[0m"
-  { drush si \
+
+  if timeout 300 drush si \
     --db-url="${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}" \
     --site-name="${SITE_NAME}" \
     --account-name="admin" \
-    --account-pass="${DRUPAL_PASSWORD}"
-  } 1> /dev/null
-  echo -e "\033[0;32mDRUPAL SITE \"${SITE_NAME}\" INSTALLED.\033[0m\n"
+    --account-pass="${DRUPAL_PASSWORD}" \
+    --yes 2>&1; then
+    echo -e "\033[0;32mDRUPAL SITE \"${SITE_NAME}\" INSTALLED.\033[0m\n"
+  else
+    echo -e "\033[0;31mERROR: Drupal installation failed or timed out after 5 minutes.\033[0m"
+    echo -e "\033[0;31mCheck database connection and credentials.\033[0m"
+    exit 1
+  fi
 
   # Make settings.php writable for configuration updates
   echo -e "\033[0;33mMAKING SETTINGS.PHP WRITABLE...\033[0m"
@@ -133,13 +225,21 @@ else
     --userinfo-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo \
     --end-session-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout \
     --scopes=openid,email,profile
-
-    drush config-set openid_connect.settings user_login_display above
-    drush config-set openid_connect.settings override_registration_settings 1
-    drush config-set --input-format=yaml openid_connect.settings role_mappings.administrator [${KEYCLOAK_ADMIN_GROUP}] -y
-    drush config-set --input-format=yaml openid_connect.settings role_mappings.wisski_user [${KEYCLOAK_USER_GROUP}] -y
-
     } 1> /dev/null
+    echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
+    {
+      drush config-set openid_connect.settings user_login_display above
+      drush config-set openid_connect.settings override_registration_settings 1
+    } 1> /dev/null
+    echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
+
+    echo -e "\033[0;33mSET OPENID CONNECT ROLE MAPPINGS.\033[0m"
+    {
+      drush config-set --input-format=yaml openid_connect.settings role_mappings.administrator [${KEYCLOAK_ADMIN_GROUP}] -y
+      drush config-set --input-format=yaml openid_connect.settings role_mappings.wisski_user [${KEYCLOAK_USER_GROUP}] -y
+    } 1> /dev/null
+    echo -e "\033[0;32mOPENID CONNECT ROLE MAPPINGS SET.\033[0m\n"
+
     echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
 
     echo -e "\033[0;33mENABLE SSO BOUNCER.\033[0m"
@@ -228,13 +328,6 @@ else
   echo -e "\033[0;33mUNPACK RECIPES.\033[0m"
   composer drupal:recipe-unpack >> /dev/null
   echo -e "\033[0;32mRECIPES UNPACKED.\033[0m\n"
-
-  # Drupal requirements
-
-  # Set groups
-
-  # Add groups to www-data user
-  if [ -n "${USER_GROUPS}" ]; then usermod -a -G ${USER_GROUPS} www-data; fi
 
 fi
 echo -e "\033[0;32m+---------------------------+\033[0m"

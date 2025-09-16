@@ -171,7 +171,5 @@ ENV COMPOSER_HOME=/var/composer-home
 # Add entrypoint
 COPY entrypoint.sh /entrypoint.sh
 
-USER www-data
-
 ENTRYPOINT ["/entrypoint.sh"]
 
