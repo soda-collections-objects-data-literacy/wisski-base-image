@@ -168,6 +168,9 @@ RUN chown -R www-data:www-data /opt/drupal; \
 # Set Composer home directory
 ENV COMPOSER_HOME=/var/composer-home
 
+# Set www-data user to use bash
+RUN usermod -s /bin/bash www-data
+
 # Add entrypoint
 COPY entrypoint.sh /entrypoint.sh
 

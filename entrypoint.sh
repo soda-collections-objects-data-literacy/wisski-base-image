@@ -87,7 +87,7 @@ echo -e "\033[0;32mALL REQUIRED ENVIRONMENT VARIABLES ARE SET.\033[0m\n"
 
 # Switch to www-data user
 echo -e "\033[0;33mSWITCHING TO WWW-DATA USER.\033[0m"
-#su - www-data
+su www-data
 echo -e "\033[0;32mSWITCHED TO WWW-DATA USER.\033[0m\n"
 
 
