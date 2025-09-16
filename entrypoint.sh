@@ -136,7 +136,8 @@ else
 
     drush config-set openid_connect.settings user_login_display above
     drush config-set openid_connect.settings override_registration_settings 1
-    drush config-set --input-format=yaml openid_connect.settings role_mappings.administrator [${USER_GROUPS}] -y
+    drush config-set --input-format=yaml openid_connect.settings role_mappings.administrator [${KEYCLOAK_ADMIN_GROUP}] -y
+    drush config-set --input-format=yaml openid_connect.settings role_mappings.wisski_user [${KEYCLOAK_USER_GROUP}] -y
 
     } 1> /dev/null
     echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
@@ -229,6 +230,11 @@ else
   echo -e "\033[0;32mRECIPES UNPACKED.\033[0m\n"
 
   # Drupal requirements
+
+  # Set groups
+
+  # Add groups to www-data user
+  if [ -n "${USER_GROUPS}" ]; then usermod -a -G ${USER_GROUPS} www-data; fi
 
 fi
 echo -e "\033[0;32m+---------------------------+\033[0m"

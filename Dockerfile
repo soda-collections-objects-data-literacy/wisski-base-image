@@ -1,5 +1,4 @@
 ARG DRUPAL_VERSION=11.2.2-php8.3-apache-bookworm
-ARG USER_GROUPS
 
 FROM drupal:${DRUPAL_VERSION}
 
@@ -168,12 +167,6 @@ RUN chown -R www-data:www-data /opt/drupal; \
 
 # Set Composer home directory
 ENV COMPOSER_HOME=/var/composer-home
-
-# Set groups
-ENV USER_GROUPS=${USER_GROUPS}
-
-# Add groups to www-data user
-RUN if [ -n "${USER_GROUPS}" ]; then usermod -a -G ${USER_GROUPS} www-data; fi
 
 # Add entrypoint
 COPY entrypoint.sh /entrypoint.sh
