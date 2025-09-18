@@ -70,7 +70,15 @@ fi
 
 echo -e "\033[0;32mALL REQUIRED ENVIRONMENT VARIABLES ARE SET.\033[0m\n"
 
-# Set groups
+
+
+
+# Check if Drupal is already installed
+if [ -f "$SETTINGS_FILE" ]; then
+  echo -e "\033[0;32mDRUPAL IS ALREADY INSTALLED.\033[0m\n"
+else
+
+  # Set groups
 
   # Add groups to www-data user
   echo -e "\033[0;33mADD GROUPS TO WWW-DATA USER.\033[0m"
@@ -89,12 +97,6 @@ echo -e "\033[0;32mALL REQUIRED ENVIRONMENT VARIABLES ARE SET.\033[0m\n"
 echo -e "\033[0;33mSWITCHING TO WWW-DATA USER.\033[0m"
 su www-data
 echo -e "\033[0;32mSWITCHED TO WWW-DATA USER.\033[0m\n"
-
-
-# Check if Drupal is already installed
-if [ -f "$SETTINGS_FILE" ]; then
-  echo -e "\033[0;32mDRUPAL IS ALREADY INSTALLED.\033[0m\n"
-else
 
   # Check database connection first
   echo -e "\033[0;33mCHECKING DATABASE CONNECTION...\033[0m"
@@ -335,6 +337,9 @@ echo -e "\033[0;32m|FINISHED INSTALLING DRUPAL.|\033[0m"
 echo -e "\033[0;32m+---------------------------+\033[0m"
 
 echo -e "\n"
+
+echo "USER: $(whoami)"
+echo "PWD: $(pwd)"
 
 # Keep the container running
 /usr/sbin/apache2ctl -D FOREGROUND
