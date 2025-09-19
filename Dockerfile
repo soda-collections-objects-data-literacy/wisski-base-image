@@ -1,4 +1,4 @@
-ARG DRUPAL_VERSION=11.2.2-php8.3-apache-bookworm
+ARG DRUPAL_VERSION=11.2.4-php8.3-apache-bookworm
 
 FROM drupal:${DRUPAL_VERSION}
 
@@ -15,11 +15,16 @@ RUN apt-get update; \
     automake \
     default-mysql-client \
     git \
-    iipimage-server \
     iipimage-doc \
+    iipimage-server \
     imagemagick \
+    libaom3 \
     libapache2-mod-fcgid \
+    libavif-dev \
+    libavif15 \
+    libdav1d6 \
     libfreetype6-dev \
+    libgmp-dev \
     libjpeg-dev \
     libjpeg62-turbo \
     libonig-dev \
@@ -38,21 +43,29 @@ RUN apt-get update; \
     vim \
     wget;
 
+# Install apcu
+RUN set -eux; \
+    pecl install apcu;
+
+# Configure and install GD extension with AVIF support
+RUN docker-php-ext-configure gd \
+    --with-freetype \
+    --with-jpeg \
+    --with-webp \
+    --with-avif \
+    && docker-php-ext-install -j$(nproc) gd
+
+# Install intl
+RUN set -eux; \
+    docker-php-ext-configure intl \
+    && docker-php-ext-install intl;
+
 # Upload progress
 RUN	set -eux; \
     git clone https://github.com/php/pecl-php-uploadprogress/ /usr/src/php/ext/uploadprogress/; \
     docker-php-ext-configure uploadprogress; \
     docker-php-ext-install uploadprogress; \
     rm -rf /usr/src/php/ext/uploadprogress;
-
-# Install apcu
-RUN set -eux; \
-    pecl install apcu;
-
-# Install intl
-RUN set -eux; \
-    docker-php-ext-configure intl \
-    && docker-php-ext-install intl;
 
 # Redis
 RUN set -eux; \

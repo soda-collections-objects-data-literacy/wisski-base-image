@@ -70,9 +70,6 @@ fi
 
 echo -e "\033[0;32mALL REQUIRED ENVIRONMENT VARIABLES ARE SET.\033[0m\n"
 
-
-
-
 # Check if Drupal is already installed
 if [ -f "$SETTINGS_FILE" ]; then
   echo -e "\033[0;32mDRUPAL IS ALREADY INSTALLED.\033[0m\n"
@@ -330,6 +327,14 @@ echo -e "\033[0;32mSWITCHED TO WWW-DATA USER.\033[0m\n"
   echo -e "\033[0;33mUNPACK RECIPES.\033[0m"
   composer drupal:recipe-unpack >> /dev/null
   echo -e "\033[0;32mRECIPES UNPACKED.\033[0m\n"
+
+  # Set permissions for web root
+  echo -e "\033[0;33mSET PERMISSIONS FOR WEB ROOT.\033[0m"
+  {
+    chown -R www-data:www-data /var/www/html
+    chmod -R 775 /var/www/html
+  } 1> /dev/null
+  echo -e "\033[0;32mPERMISSIONS FOR WEB ROOT SET.\033[0m\n"
 
 fi
 echo -e "\033[0;32m+---------------------------+\033[0m"
