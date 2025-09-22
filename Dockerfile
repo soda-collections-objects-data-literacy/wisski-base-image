@@ -68,22 +68,24 @@ RUN	set -eux; \
     rm -rf /usr/src/php/ext/uploadprogress;
 
 # Redis
-RUN set -eux; \
-    pecl install redis; \
-    docker-php-ext-enable redis;
+# Not yet used
+#RUN set -eux; \
+#    pecl install redis; \
+#    docker-php-ext-enable redis;
 
 # Install iipsrv
-RUN set -eux; \
-    git clone https://github.com/ruven/iipsrv.git; \
-    cd iipsrv; \
-    ./autogen.sh; \
-    ./configure; \
-    make; \
-    mkdir /fcgi-bin; \
-    cp src/iipsrv.fcgi /fcgi-bin/iipsrv.fcgi
+# Not yet used
+#RUN set -eux; \
+#    git clone https://github.com/ruven/iipsrv.git; \
+#    cd iipsrv; \
+#    ./autogen.sh; \
+#    ./configure; \
+#    make; \
+#    mkdir /fcgi-bin; \
+#    cp src/iipsrv.fcgi /fcgi-bin/iipsrv.fcgi
 
 # Add IIPServer config
-COPY iipsrv.conf /etc/apache2/mods-available/iipsrv.conf
+# COPY iipsrv.conf /etc/apache2/mods-available/iipsrv.conf
 
 # Add php configs
 RUN { \
