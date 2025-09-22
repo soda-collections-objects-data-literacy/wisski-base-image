@@ -75,26 +75,6 @@ if [ -f "$SETTINGS_FILE" ]; then
   echo -e "\033[0;32mDRUPAL IS ALREADY INSTALLED.\033[0m\n"
 else
 
-  # Set groups
-
-  # Add groups to www-data user
-  echo -e "\033[0;33mADD GROUPS TO WWW-DATA USER.\033[0m"
-  if [ -n "${USER_GROUPS}" ]; then
-    for group in $(echo ${USER_GROUPS} | tr ',' ' '); do
-      groupadd -g ${group} g_${group}
-      echo -e "\033[0;32mGROUP ${group} ADDED.\033[0m"
-      adduser www-data g_${group}
-      echo -e "\033[0;32mWWW-DATA USER ADDED TO GROUP ${group}.\033[0m"
-    done
-  fi
-  echo -e "\033[0;32mGROUPS ADDED TO WWW-DATA USER.\033[0m\n"
-
-
-# Switch to www-data user
-echo -e "\033[0;33mSWITCHING TO WWW-DATA USER.\033[0m"
-su www-data
-echo -e "\033[0;32mSWITCHED TO WWW-DATA USER.\033[0m\n"
-
   # Check database connection first
   echo -e "\033[0;33mCHECKING DATABASE CONNECTION...\033[0m"
 
@@ -327,14 +307,6 @@ echo -e "\033[0;32mSWITCHED TO WWW-DATA USER.\033[0m\n"
   echo -e "\033[0;33mUNPACK RECIPES.\033[0m"
   composer drupal:recipe-unpack >> /dev/null
   echo -e "\033[0;32mRECIPES UNPACKED.\033[0m\n"
-
-  # Set permissions for web root
-  echo -e "\033[0;33mSET PERMISSIONS FOR WEB ROOT.\033[0m"
-  {
-    chown -R www-data:www-data /var/www/html
-    chmod -R 775 /var/www/html
-  } 1> /dev/null
-  echo -e "\033[0;32mPERMISSIONS FOR WEB ROOT SET.\033[0m\n"
 
 fi
 echo -e "\033[0;32m+---------------------------+\033[0m"
