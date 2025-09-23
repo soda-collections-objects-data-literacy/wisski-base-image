@@ -75,6 +75,29 @@ if [ -f "$SETTINGS_FILE" ]; then
   echo -e "\033[0;32mDRUPAL IS ALREADY INSTALLED.\033[0m\n"
 else
 
+  # Set groups
+
+  # Add groups to www-data user
+  echo -e "\033[0;33mADD GROUPS TO WWW-DATA USER.\033[0m"
+
+  if [ -n "${USER_GROUPS}" ]; then
+    for group in $(echo ${USER_GROUPS} | tr ',' ' '); do
+      groupadd -g ${group} g_${group}
+      echo -e "\033[0;32mGROUP ${group} ADDED.\033[0m"
+      adduser www-data g_${group}
+      echo -e "\033[0;32mWWW-DATA USER ADDED TO GROUP ${group}.\033[0m"
+    done
+  fi
+
+  echo -e "\033[0;32mGROUPS ADDED TO WWW-DATA USER.\033[0m\n"
+
+  # Switch to www-data user
+  echo -e "\033[0;33mSWITCHING TO WWW-DATA USER.\033[0m"
+  su www-data
+  echo "USER: $(whoami)"  
+  echo "PWD: $(pwd)"
+  echo -e "\033[0;32mSWITCHED TO WWW-DATA USER.\033[0m\n"
+
   # Check database connection first
   echo -e "\033[0;33mCHECKING DATABASE CONNECTION...\033[0m"
 
@@ -308,6 +331,20 @@ else
   composer drupal:recipe-unpack >> /dev/null
   echo -e "\033[0;32mRECIPES UNPACKED.\033[0m\n"
 
+  # change to root user
+  echo -e "\033[0;33mCHANGE TO ROOT USER.\033[0m"
+  su root
+  echo "USER: $(whoami)"
+  echo "PWD: $(pwd)"
+  echo -e "\033[0;32mCHANGED TO ROOT USER.\033[0m\n"
+
+  # Set permissions of web directory
+  echo -e "\033[0;33mSET PERMISSIONS OF WEB DIRECTORY.\033[0m"
+  chown -R www-data:www-data /var/www/html
+  chmod -R 775 /var/www/html
+  echo -e "\033[0;32mPERMISSIONS OF WEB DIRECTORY SET.\033[0m\n"
+  
+
 fi
 echo -e "\033[0;32m+---------------------------+\033[0m"
 echo -e "\033[0;32m|FINISHED INSTALLING DRUPAL.|\033[0m"
@@ -315,8 +352,6 @@ echo -e "\033[0;32m+---------------------------+\033[0m"
 
 echo -e "\n"
 
-echo "USER: $(whoami)"
-echo "PWD: $(pwd)"
 
 # Keep the container running
 /usr/sbin/apache2ctl -D FOREGROUND
