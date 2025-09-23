@@ -340,8 +340,8 @@ else
 
   # Set permissions of web directory
   echo -e "\033[0;33mSET PERMISSIONS OF WEB DIRECTORY.\033[0m"
-  chown -R www-data:www-data /var/www/html
-  chmod -R 775 /var/www/html
+  chown -R www-data:www-data /opt/drupal
+  chmod -R 775 /opt/drupal
   echo -e "\033[0;32mPERMISSIONS OF WEB DIRECTORY SET.\033[0m\n"
   
 
