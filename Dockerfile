@@ -106,6 +106,7 @@ RUN { \
     echo 'max_file_uploads = 50'; \
     echo 'post_max_size = 512M'; \
     echo 'zend.assertions=-1 '; \
+    echo 'assert.active=0'; \
     } >> /usr/local/etc/php/conf.d/zz-wisski-recommended.ini;
 
 # Enable output buffering
