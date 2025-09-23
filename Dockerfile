@@ -186,6 +186,25 @@ ENV COMPOSER_HOME=/var/composer-home
 # Set www-data user to use bash
 RUN usermod -s /bin/bash www-data
 
+# Disable Apache logging
+ARG APACHE_LOGGING=
+RUN (([ "$APACHE_LOGGING" = "false" ] && { \
+    echo 'ErrorLog /dev/null'; \
+    echo 'CustomLog /dev/null combined'; \
+    echo 'LogLevel emerg'; \
+    echo 'TransferLog /dev/null'; \
+    } > /etc/apache2/conf-available/disable-logs.conf && \
+    a2enconf disable-logs) || true)
+
+# Override default site configuration to disable access logs
+RUN (([ "$APACHE_LOGGING" = "false" ] && sed -i 's/CustomLog.*/CustomLog \/dev\/null combined/' /etc/apache2/sites-available/000-default.conf && \
+    sed -i 's/ErrorLog.*/ErrorLog \/dev\/null/' /etc/apache2/sites-available/000-default.conf) || true)
+
+# Disable additional logging in apache2.conf
+RUN (([ "$APACHE_LOGGING" = "false" ] && sed -i 's/LogLevel.*/LogLevel emerg/' /etc/apache2/apache2.conf && \
+    sed -i '/ErrorLog/s/^/#/' /etc/apache2/apache2.conf && \
+    sed -i '/CustomLog/s/^/#/' /etc/apache2/apache2.conf) || true)
+
 # Add entrypoint
 COPY entrypoint.sh /entrypoint.sh
 
