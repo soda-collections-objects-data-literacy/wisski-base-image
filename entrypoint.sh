@@ -71,10 +71,11 @@ fi
 echo -e "\033[0;32mALL REQUIRED ENVIRONMENT VARIABLES ARE SET.\033[0m\n"
 
 # Check if Drupal is already installed
+echo -e "\033[0;33mCHECKING IF DRUPAL IS ALREADY INSTALLED.\033[0m"
 if [ -f "$SETTINGS_FILE" ]; then
   echo -e "\033[0;32mDRUPAL IS ALREADY INSTALLED.\033[0m\n"
 else
-
+  echo -e "\033[0;32mDRUPAL IS NOT INSTALLED.\033[0m\n"
   # Set groups
 
   # Add groups to www-data user
@@ -94,7 +95,7 @@ else
   # Switch to www-data user
   echo -e "\033[0;33mSWITCHING TO WWW-DATA USER.\033[0m"
   su www-data
-  echo "USER: $(whoami)"  
+  echo "USER: $(whoami)"
   echo "PWD: $(pwd)"
   echo -e "\033[0;32mSWITCHED TO WWW-DATA USER.\033[0m\n"
 
@@ -343,7 +344,7 @@ else
   chown -R www-data:www-data /opt/drupal
   chmod -R 775 /opt/drupal
   echo -e "\033[0;32mPERMISSIONS OF WEB DIRECTORY SET.\033[0m\n"
-  
+
 
 fi
 echo -e "\033[0;32m+---------------------------+\033[0m"
