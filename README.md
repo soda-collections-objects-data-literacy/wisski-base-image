@@ -58,6 +58,7 @@ This image can be configured using the following environment variables:
 - `SITE_NAME`: Display name of the site (e.g., `"My WissKI Collection"`)
 - `DRUPAL_USER`: Administrative username (will be created on initial startup)
 - `DRUPAL_PASSWORD`: Password for the administrative user
+- `USER_GROUPS`: List of comma separated GID values that the `www-data` user will be added to
 
 ### WissKI Settings
 - `WISSKI_FLAVOURS`: Space-separated list of WissKI flavours to install (e.g., `"flavour1 flavour2"`)

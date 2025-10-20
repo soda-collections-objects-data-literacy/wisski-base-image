@@ -49,7 +49,6 @@ REQUIRED_VARS=(
   "DB_USER"
   "DRUPAL_PASSWORD"
   "SITE_NAME"
-  "USER_GROUPS"
 )
 
 MISSING_VARS=()
@@ -89,7 +88,6 @@ else
       echo -e "\033[0;32mWWW-DATA USER ADDED TO GROUP ${group}.\033[0m"
     done
   fi
-
   echo -e "\033[0;32mGROUPS ADDED TO WWW-DATA USER.\033[0m\n"
 
   # Switch to www-data user
