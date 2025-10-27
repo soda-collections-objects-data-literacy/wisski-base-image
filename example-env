@@ -17,6 +17,8 @@ USER_GROUPS=
 # WissKI settings
 # For a full list of flavours see: TODO: add the link
 DEFAULT_GRAPH=http://my.graph/contents/
+WISSKI_STARTER_VERSION=1.x-dev
+WISSKI_DEFAULT_DATA_MODEL_VERSION=1.x-dev
 WISSKI_FLAVOURS=
 
 # Triplestore settings

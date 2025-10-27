@@ -252,7 +252,7 @@ else
 
   # Apply WissKI Starter recipe
   echo -e "\033[0;33mAPPLY WISSKI STARTER RECIPE.\033[0m"
-    composer require 'drupal/wisski_starter:^1.0'
+    composer require 'drupal/wisski_starter:${WISSKI_STARTER_VERSION}'
     drush cr
     drush recipe ../recipes/wisski_starter
     drush cr
@@ -288,7 +288,7 @@ else
   echo -e "\033[0;33mAPPLY WISSKI DATA DEFAULT MODEL RECIPE.\033[0m"
  # {
     composer config repositories.1 git https://git.drupalcode.org/issue/conditional_fields-3495402.git
-    composer require 'drupal/wisski_default_data_model:1.0.x-dev'
+    composer require 'drupal/wisski_default_data_model:${WISSKI_DEFAULT_DATA_MODEL_VERSION}'
     drush cr
     drush recipe ../recipes/wisski_default_data_model
     drush wisski-core:recreate-menus
