@@ -134,18 +134,3 @@ fi
 echo -e "\033[0;32m========================================\033[0m"
 echo -e "\033[0;32mSECURE PERMISSIONS SET SUCCESSFULLY!\033[0m"
 echo -e "\033[0;32m========================================\033[0m"
-echo ""
-echo -e "Summary (${MODE} mode):"
-if [ "${MODE}" = "production" ]; then
-  echo "  - Code directories: root:${WEB_GROUP} 755"
-  echo "  - Code files: root:${WEB_GROUP} 644"
-else
-  echo "  - Code directories: ${WEB_USER}:${WEB_GROUP} 755"
-  echo "  - Code files: ${WEB_USER}:${WEB_GROUP} 644"
-fi
-echo "  - settings.php: 444 (read-only for all)"
-echo "  - .htaccess files: 444 (protected)"
-echo "  - files directory: ${WEB_USER}:${WEB_GROUP} 775/664 (writable)"
-echo "  - private files: ${WEB_USER}:${WEB_GROUP} 770/660 (writable, not web accessible)"
-echo ""
-
