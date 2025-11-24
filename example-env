@@ -12,7 +12,7 @@ DRUPAL_PASSWORD=also_change_me
 DRUPAL_TRUSTED_HOST=localhost
 DRUPAL_USER=admin
 SITE_NAME=My WissKI
-USER_GROUPS=
+
 
 # WissKI settings
 # For a full list of flavours see: TODO: add the link
@@ -30,5 +30,8 @@ TS_USERNAME=
 TS_WRITE_URL=http://public.graph.database/repositories/default/statements
 
 # Keycloak settings
-KEYCLOAK_REALM=
 OPENID_CONNECT_CLIENT_SECRET=
+KEYCLOAK_ADMIN_GROUP=
+KEYCLOAK_REALM=
+KEYCLOAK_USER_GROUP=
+USER_GROUPS=
