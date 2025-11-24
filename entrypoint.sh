@@ -324,12 +324,66 @@ EOF
     echo -e "\033[0;32mSSO BOUNCER ENABLED.\033[0m\n"
   fi
 
+<<<<<<< HEAD
   # Apply WissKI Starter recipe.
   if [ -n "${WISSKI_STARTER_VERSION}" ]; then
     echo -e "\033[0;33mAPPLY WISSKI STARTER RECIPE.\033[0m"
       RECIPE_USED=true;
       composer config repositories.wisski vcs https://git.drupalcode.org/project/wisski.git
       composer require "drupal/wisski_starter:${WISSKI_STARTER_VERSION:-1.x-dev}"
+=======
+  # Apply WissKI Starter recipe
+  echo -e "\033[0;33mAPPLY WISSKI STARTER RECIPE.\033[0m"
+    composer require "drupal/wisski_starter:${WISSKI_STARTER_VERSION}"
+    drush cr
+    drush recipe ../recipes/wisski_starter
+    drush cr
+  echo -e "\033[0;32mWISSKI STARTER RECIPE APPLIED.\033[0m\n"
+
+  # Install default adapter
+  echo -e "\033[0;33mINSTALL DEFAULT TRIPLESTORE ADAPTER.\033[0m"
+    drush wisski-salz:create-adapter \
+      --type="sparql11_with_pb" \
+      --adapter_label="Default" \
+      --adapter_machine_name="default" \
+      --description="Default SALZ adapter" \
+      --ts_machine_name=${TS_REPOSITORY} \
+      --ts_user=${TS_USERNAME} \
+      --ts_password=${TS_PASSWORD} \
+      --ts_use_token=1 \
+      --ts_token=${TS_TOKEN} \
+      --writable=1 \
+      --preferred=1  \
+      --read_url=${TS_READ_URL} \
+      --write_url=${TS_WRITE_URL} \
+      --federatable=0 \
+      --default_graph=${DEFAULT_GRAPH} \
+      --same_as="http://www.w3.org/2002/07/owl#sameAs" 1> /dev/null
+    drush cr
+  echo -e "\033[0;32mDEFAULT TRIPLESTORE ADAPTER INSTALLED.\033[0m\n"
+
+  echo -e "\033[0;33mIMPORT WISSKI DEFAULT ONTOLOGY.\033[0m"
+  drush wisski-core:import-ontology --store="default" --ontology_url="https://wiss-ki.eu/ontology/default/2.0.0/" --reasoning
+  echo -e "\033[0;32mWISSKI DEFAULT ONTOLOGY IMPORTED.\033[0m\n"
+
+  # Apply WissKI Default Data Model recipe
+  echo -e "\033[0;33mAPPLY WISSKI DATA DEFAULT MODEL RECIPE.\033[0m"
+ # {
+    composer config repositories.1 git https://git.drupalcode.org/issue/conditional_fields-3495402.git
+    composer require "drupal/wisski_default_data_model:${WISSKI_DEFAULT_DATA_MODEL_VERSION}"
+    drush cr
+    drush recipe ../recipes/wisski_default_data_model
+    drush wisski-core:recreate-menus
+    drush cr
+  #} 1> /dev/null
+  echo -e "\033[0;32mWISSKI DEFAULT DATA MODEL RECIPE APPLIED.\033[0m\n"
+
+  for FLAVOUR in ${WISSKI_FLAVOURS}; do
+    # Apply WissKI flavour recipe
+    echo -e "\033[0;33mAPPLY WISSKI ${FLAVOUR} RECIPE.\033[0m"
+    {
+      composer require soda-collection-objects-data-literacy/wisski_${FLAVOUR}:dev-main
+>>>>>>> a83fee2e6111eb284312b129b0068bddb3adc04e
       drush cr
       drush recipe ../recipes/wisski_starter
       drush cr
