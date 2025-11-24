@@ -14,7 +14,7 @@ fi
 DRUPAL_ROOT="${DRUPAL_ROOT:-/opt/drupal}"
 WEB_ROOT="${WEB_ROOT:-${DRUPAL_ROOT}/web}"
 PRIVATE_FILES_DIR="${PRIVATE_FILES_DIR:-/var/private-files}"
-MODE="${PERMISSIONS_MODE:-development}"
+MODE="${MODE:-production}"
 
 # Determine web user (www-data for Debian/Ubuntu).
 WEB_USER="www-data"
