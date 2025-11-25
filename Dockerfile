@@ -117,8 +117,17 @@ RUN { \
     echo 'upload_max_filesize = 512M'; \
     echo 'max_file_uploads = 50'; \
     echo 'post_max_size = 512M'; \
-    echo 'zend.assertions=-1 '; \
+    echo 'zend.assertions=-1'; \
     } >> /usr/local/etc/php/conf.d/zz-wisski-recommended.ini;
+
+# Disable deprecated assert.* directives (PHP 8.4+).
+RUN { \
+    echo '; Disable deprecated assert.* INI settings for PHP 8.4+ compatibility.'; \
+    echo 'assert.active=0'; \
+    echo 'assert.bail=0'; \
+    echo 'assert.warning=0'; \
+    echo 'error_reporting = E_ALL & ~E_DEPRECATED'; \
+    } >> /usr/local/etc/php/conf.d/zz-assert-disable.ini;
 
 # Enable output buffering
 RUN { \
