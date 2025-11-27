@@ -205,10 +205,10 @@ RUN ln -s /opt/drupal/vendor/bin/drush /usr/local/bin/drush
 RUN chown -R www-data:www-data /opt/drupal; \
     chown -R www-data:www-data /var/private-files; \
     chown -R www-data:www-data /var/composer-home; \
-    find /opt/drupal -type d -exec chmod 755 {} \; \
-    find /opt/drupal -type f -exec chmod 644 {} \; \
-    chmod 770 /var/private-files; \
-    chmod 775 /var/composer-home
+    chmod -R 775 /var/www/html; \
+    chmod -R 775 /var/private-files; \
+    chmod -R 775 /var/composer-home
+
 
 # Set Composer home directory
 ENV COMPOSER_HOME=/var/composer-home
