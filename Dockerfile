@@ -196,7 +196,7 @@ RUN mkdir -p /var/composer-home
 COPY redis.settings.php /var/configs/redis.settings.php
 
 # Install drush
-RUN composer require drush/drush
+RUN composer require 'drush/drush:^13.7'
 
 # add composer bin to PATH
 RUN ln -s /opt/drupal/vendor/bin/drush /usr/local/bin/drush
