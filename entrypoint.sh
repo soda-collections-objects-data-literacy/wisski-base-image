@@ -418,3 +418,6 @@ echo -e "\033[0;32m|FINISHED INSTALLING DRUPAL.|\033[0m"
 echo -e "\033[0;32m+---------------------------+\033[0m"
 
 echo -e "\n"
+
+# Keep the container running.
+/usr/sbin/apache2ctl -D FOREGROUND
