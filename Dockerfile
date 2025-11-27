@@ -201,11 +201,12 @@ RUN composer require drush/drush
 # add composer bin to PATH
 RUN ln -s /opt/drupal/vendor/bin/drush /usr/local/bin/drush
 
-# Set initial ownerships and permissions (secure base).
+# Set initial ownerships and permissions
+# TODO: Make this more secure by using the correct permissions.
 RUN chown -R www-data:www-data /opt/drupal; \
     chown -R www-data:www-data /var/private-files; \
     chown -R www-data:www-data /var/composer-home; \
-    chmod -R 775 /var/www/html; \
+    chmod -R 775 /opt/drupal; \
     chmod -R 775 /var/private-files; \
     chmod -R 775 /var/composer-home
 
