@@ -273,9 +273,25 @@ EOF
     # Need WissKI User Administration module, to check if keycloak groups are matching.
     composer config repositories.openid_connect-3516375 vcs https://git.drupalcode.org/issue/openid_connect-3516375.git
 
-    composer require 'drupal/automatic_updates:^4.0@alpha' drupal/devel drupal/health_check 'drupal/project_browser:^2.0@alpha' 'drupal/redis:^1.10' 'drupal/sso_bouncer:1.x-dev'
-    composer require 'drupal/openid_connect:dev-3516375-implement-drush-commands' --prefer-source
-    drush en devel health_check project_browser automatic_updates openid_connect sso_bouncer redis -y
+    composer require \ 
+      'drupal/automatic_updates:^4.0' \
+      'drupal/devel:^5.5' \
+      'drupal/health_check:^3.1' \
+      'drupal/project_browser:^2.1' \
+      'drupal/redis:^1.10' \
+      'drupal/sso_bouncer:^1.0';
+    composer require \ 
+      'drupal/openid_connect:dev-3516375-implement-drush-commands' \
+      --prefer-source
+    drush en \
+      devel \
+      health_check \
+      project_browser \
+      automatic_updates \
+      openid_connect \
+      sso_bouncer \
+      redis \
+      -y
 
   } 1> /dev/null
   echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
@@ -395,7 +411,7 @@ EOF
   if [ "$RECIPE_USED" = true ]; then
     # Unpack recipes.
     echo -e "\033[0;33mUNPACK RECIPES.\033[0m"
-    composer drupal:recipe-unpack >> /dev/null
+    composer drupal:recipe-unpack
     echo -e "\033[0;32mRECIPES UNPACKED.\033[0m\n"
   fi
 
@@ -419,7 +435,3 @@ echo -e "\033[0;32m|FINISHED INSTALLING DRUPAL.|\033[0m"
 echo -e "\033[0;32m+---------------------------+\033[0m"
 
 echo -e "\n"
-
-
-# Keep the container running.
-/usr/sbin/apache2ctl -D FOREGROUND
