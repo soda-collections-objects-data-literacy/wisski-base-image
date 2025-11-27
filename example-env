@@ -8,6 +8,7 @@ DB_USER=drupal
 
 # Drupal settings
 DOMAIN=localhost
+DRUPAL_LOCALE=en
 DRUPAL_PASSWORD=also_change_me
 DRUPAL_TRUSTED_HOST=localhost
 DRUPAL_USER=admin

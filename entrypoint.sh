@@ -181,6 +181,7 @@ else
     --site-name="${SITE_NAME}" \
     --account-name="admin" \
     --account-pass="${DRUPAL_PASSWORD}" \
+    --locale="${DRUPAL_LOCALE}" \
     --yes 2>&1; then
     echo -e "\033[0;32mDRUPAL SITE \"${SITE_NAME}\" INSTALLED.\033[0m\n"
   else
@@ -406,7 +407,10 @@ EOF
   echo -e "\033[0;32mCHANGED TO ROOT USER.\033[0m\n"
 
   # Set secure permissions following Drupal security guidelines.
-  /usr/local/bin/set-permissions.sh
+  echo -e "\033[0;33mSET SECURE PERMISSIONS.\033[0m"
+  chown -R www-data:www-data /opt/drupal
+  chmod -R 755 /opt/drupal
+  echo -e "\033[0;32mSECURE PERMISSIONS SET.\033[0m\n"
 
 
 fi
