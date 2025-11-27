@@ -279,10 +279,12 @@ EOF
       'drupal/health_check:^3.1' \
       'drupal/project_browser:^2.1' \
       'drupal/redis:^1.10' \
-      'drupal/sso_bouncer:^1.0';
+      'drupal/sso_bouncer:^1.0'
+
     composer require \ 
       'drupal/openid_connect:dev-3516375-implement-drush-commands' \
       --prefer-source
+      
     drush en \
       devel \
       health_check \
