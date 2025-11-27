@@ -267,7 +267,7 @@ EOF
 
   # Install development modules.
   echo -e "\033[0;33mINSTALL DEVELOPMENT MODULES.\033[0m"
-  
+    {
     # Drush command for openid_connect is not implement in main branch yet, so we have to use the fork.
     # Use the fork of openid_connect with drush commands implementation.
     # Need WissKI User Administration module, to check if keycloak groups are matching.
@@ -276,7 +276,7 @@ EOF
     composer require 'drupal/automatic_updates:^4.0' 'drupal/devel:^5.5' 'drupal/health_check:^3.1' 'drupal/project_browser:^2.1' 'drupal/redis:^1.11' 'drupal/sso_bouncer:^1.0'
     composer require 'drupal/openid_connect:dev-3516375-implement-drush-commands' --prefer-source
     drush en devel health_check project_browser automatic_updates openid_connect sso_bouncer redis -y
-
+  } 1> /dev/null
   echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
 
   # Create WissKI User Role.
