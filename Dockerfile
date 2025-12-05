@@ -85,8 +85,11 @@ RUN set -eux; \
     ./autogen.sh; \
     ./configure; \
     make; \
-    mkdir /fcgi-bin; \
+    mkdir -p /fcgi-bin; \
     cp src/iipsrv.fcgi /fcgi-bin/iipsrv.fcgi; \
+    chmod 755 /fcgi-bin/iipsrv.fcgi; \
+    chown www-data:www-data /fcgi-bin/iipsrv.fcgi; \
+    chmod 755 /fcgi-bin; \
     cd /; \
     rm -rf /iipsrv
 
