@@ -201,6 +201,7 @@ else
   {
     echo '$settings["trusted_host_patterns"] = [
       "^".getenv("DRUPAL_TRUSTED_HOST")."$",
+      "^raw\.".getenv("DRUPAL_TRUSTED_HOST")."$",
     ];' >> ${SETTINGS_FILE}
   } 1> /dev/null
   echo -e "\033[0;32mTRUSTED HOST SETTINGS SET.\033[0m\n"
