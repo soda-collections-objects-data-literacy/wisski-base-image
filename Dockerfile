@@ -3,7 +3,7 @@ ARG DRUPAL_VERSION=${DRUPAL_VERSION:-11.2.4-php8.3-fpm-bookworm}
 FROM drupal:${DRUPAL_VERSION}
 
 # Redeclare build arguments for use in build stage
-ARG MODE=development
+ARG MODE=production
 
 # Metadata
 LABEL org.opencontainers.image.source=https://github.com/soda-collections-objects-data-literacy/wisski-base-image.git

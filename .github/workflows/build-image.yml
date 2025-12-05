@@ -1,4 +1,4 @@
-name: Publish WissKI Base Docker Image
+name: Publish WissKI Base Docker Images
 
 on:
   push:
@@ -8,23 +8,31 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: soda-collections-objects-data-literacy/wisski-base-image-production
   PLATFORMS: linux/amd64,linux/arm64
   CONTEXT_DIRECTORY: .
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     permissions:
       packages: write
+    strategy:
+      matrix:
+        mode: [production, development]
+        include:
+          - mode: production
+            image_name: soda-collections-objects-data-literacy/wisski-base-image-production
+          - mode: development
+            image_name: soda-collections-objects-data-literacy/wisski-base-image-development
     steps:
+      - uses: actions/checkout@v4
       - uses: docker/metadata-action@v5
         id: meta
         with:
           images: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            ${{ env.REGISTRY }}/${{ matrix.image_name }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && matrix.mode == 'production' }}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
@@ -38,10 +46,12 @@ jobs:
           registry: ${{ env.REGISTRY }}
       - uses: docker/build-push-action@v6
         with:
+          context: ${{ env.CONTEXT_DIRECTORY }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            MODE=${{ matrix.mode }}
+            DRUPAL_VERSION=11.2.4-php8.3-fpm-bookworm
           platforms: ${{ env.PLATFORMS }}
           pull: true
           push: true
-
-
