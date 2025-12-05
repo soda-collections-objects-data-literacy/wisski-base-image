@@ -4,6 +4,7 @@ set -e
 
 # Enable debug mode if MODE environment variable is set to development.
 if [ "${MODE}" = "development" ]; then
+  echo -e "\033[0;32mDEVELOPMENT MODE ENABLED.\033[0m"
   set -x
 fi
 
