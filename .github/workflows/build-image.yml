@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: soda-collections-objects-data-literacy/wisski-base-image-production
   PLATFORMS: linux/amd64,linux/arm64
   CONTEXT_DIRECTORY: .
 
