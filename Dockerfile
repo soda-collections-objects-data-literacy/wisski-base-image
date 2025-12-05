@@ -1,6 +1,9 @@
-ARG DRUPAL_VERSION=11.2.4-php8.3-apache-bookworm
+ARG DRUPAL_VERSION=${DRUPAL_VERSION:-11.2.4-php8.3-fpm-bookworm}
 
 FROM drupal:${DRUPAL_VERSION}
+
+# Redeclare build arguments for use in build stage
+ARG MODE=development
 
 # Metadata
 LABEL org.opencontainers.image.source=https://github.com/soda-collections-objects-data-literacy/wisski-base-image.git
@@ -19,7 +22,6 @@ RUN apt-get update; \
     iipimage-server \
     imagemagick \
     libaom3 \
-    libapache2-mod-fcgid \
     libavif-dev \
     libavif15 \
     libbrotli-dev \
@@ -40,7 +42,9 @@ RUN apt-get update; \
     libzip-dev \
     netcat-openbsd \
     openjdk-17-jdk \
+    nginx \
     redis-server \
+    sendmail \
     unzip \
     vim \
     wget;
@@ -75,113 +79,75 @@ RUN set -eux; \
     docker-php-ext-enable redis;
 
 # Install iipsrv
-# Not yet used
-#RUN set -eux; \
-#    git clone https://github.com/ruven/iipsrv.git; \
-#    cd iipsrv; \
-#    ./autogen.sh; \
-#    ./configure; \
-#    make; \
-#    mkdir /fcgi-bin; \
-#    cp src/iipsrv.fcgi /fcgi-bin/iipsrv.fcgi
-
-# Add IIPServer config
-# COPY iipsrv.conf /etc/apache2/mods-available/iipsrv.conf
+RUN set -eux; \
+    git clone https://github.com/ruven/iipsrv.git; \
+    cd iipsrv; \
+    ./autogen.sh; \
+    ./configure; \
+    make; \
+    mkdir /fcgi-bin; \
+    cp src/iipsrv.fcgi /fcgi-bin/iipsrv.fcgi; \
+    cd /; \
+    rm -rf /iipsrv
 
 # Add php configs
-RUN { \
-    echo 'extension=apcu.so'; \
-    echo "apc.enable_cli=1"; \
-    echo "apc.enable=1"; \
-    echo "apc.shm_size=256M"; \
-    echo "apc.ttl=7200"; \
-    echo "apc.gc_ttl=3600"; \
-    echo "apc.entries_hint=4096"; \
-    } >> /usr/local/etc/php/conf.d/zz-apcu-custom.ini;
+# Cron + Drush tasks should NOT use APCu → causes stale caches during deployments.
+COPY config/apcu/zz-apcu-custom.ini /usr/local/etc/php/conf.d/zz-apcu-custom.ini
 
 # Redis configuration
 # Note: extension is already enabled by docker-php-ext-enable above
-RUN { \
-    echo 'redis.session.locking_enabled=1'; \
-    echo 'redis.session.lock_retries=-1'; \
-    echo 'redis.session.lock_wait_time=10000'; \
-    } >> /usr/local/etc/php/conf.d/zz-redis-custom.ini;
+# Wait 5 seconds before retrying to acquire the lock (wait forever can freeze ajax)
+COPY config/redis/zz-redis-custom.ini /usr/local/etc/php/conf.d/zz-redis-custom.ini
 
 # set memory settings for WissKI
-RUN { \
-    echo 'max_execution_time = 300'; \
-    echo 'max_input_time = 300'; \
-    echo 'max_input_nesting_level = 64000'; \
-    echo 'max_input_vars = 10000'; \
-    echo 'memory_limit = 1G'; \
-    echo 'upload_max_filesize = 512M'; \
-    echo 'max_file_uploads = 50'; \
-    echo 'post_max_size = 512M'; \
-    echo 'zend.assertions=-1'; \
-    } >> /usr/local/etc/php/conf.d/zz-wisski-recommended.ini;
+COPY config/wisski/zz-wisski-recommended.ini /usr/local/etc/php/conf.d/zz-wisski-recommended.ini
 
 # Disable deprecated assert.* directives (PHP 8.4+).
-RUN { \
-    echo '; Disable deprecated assert.* INI settings for PHP 8.4+ compatibility.'; \
-    echo 'assert.active=0'; \
-    echo 'assert.bail=0'; \
-    echo 'assert.warning=0'; \
-    echo 'error_reporting = E_ALL & ~E_DEPRECATED'; \
-    } >> /usr/local/etc/php/conf.d/zz-assert-disable.ini;
+COPY config/assert/zz-assert-disable.ini /usr/local/etc/php/conf.d/zz-assert-disable.ini
 
 # Enable output buffering
-RUN { \
-    echo 'output_buffering = on'; \
-    } >> /usr/local/etc/php/conf.d/zz-drupal-recommended.ini;
+COPY config/drupal/zz-drupal-recommended.ini /usr/local/etc/php/conf.d/zz-drupal-recommended.ini
 
+# Copy config files to temp location for conditional copying
+COPY config/ /tmp/config/
+
+# Configure opcache
 # see https://secure.php.net/manual/en/opcache.installation.php
-ARG WITH_OPCACHE=1
 RUN set -eux; \
-    ([ "$WITH_OPCACHE" = "1" ] && { \
-    echo 'opcache.enable=1'; \
-    echo 'opcache.memory_consumption=512'; \
-    echo 'opcache.interned_strings_buffer=32'; \
-    echo 'opcache.max_accelerated_files=30000'; \
-    echo 'opcache.validate_timestamps=1'; \
-    echo 'opcache.revalidate_freq=2'; \
-    echo 'opcache.save_comments=1'; \
-    echo 'opcache.enable_file_override=1'; \
-    echo 'opcache.optimization_level=0x7FFEBFFF'; \
-    echo 'opcache.max_wasted_percentage=10'; \
-    echo 'opcache.use_cwd=1'; \
-    echo 'opcache.huge_code_pages=1'; \
-    echo 'opcache.preload_user=www-data'; \
-    echo 'opcache.jit=tracing'; \
-    echo 'opcache.jit_buffer_size=128M'; \
-    } || { \
-    echo 'opcache.enable=0'; \
-    }) >> /usr/local/etc/php/conf.d/zz-opcache-recommended.ini;
+    if [ "$MODE" = "development" ]; then \
+    cp /tmp/config/opcache/zz-opcache-recommended-dev.ini /usr/local/etc/php/conf.d/zz-opcache-recommended.ini; \
+    else \
+    cp /tmp/config/opcache/zz-opcache-recommended-prod.ini /usr/local/etc/php/conf.d/zz-opcache-recommended.ini; \
+    fi
 
+# Configure mysqli
 # see https://secure.php.net/manual/en/opcache.installation.php
-RUN { \
-    echo 'mysqli.allow_persistent = On'; \
-    echo 'mysqli.max_persistent = 100'; \
-    echo 'mysqli.max_links = 150'; \
-    } >> /usr/local/etc/php/conf.d/zz-mysqli-recommended.ini;
+COPY config/mysqli/zz-mysqli-recommended.ini /usr/local/etc/php/conf.d/zz-mysqli-recommended.ini
 
-RUN { \
-    echo 'session.gc_maxlifetime = 7200'; \
-    echo 'session.gc_probability = 1'; \
-    echo 'session.gc_divisor = 100'; \
-    } >> /usr/local/etc/php/conf.d/zz-session-recommended.ini;
+# Configure session
+COPY config/session/zz-session-recommended.ini /usr/local/etc/php/conf.d/zz-session-recommended.ini
 
-# install xdebug if enabled by build tag "WITH_XDEBUG"
-ARG WITH_XDEBUG=
+# Configure xdebug
+RUN mkdir -p /var/log/xdebug && chown www-data:www-data /var/log/xdebug
 RUN set -eux; \
-    (([ "$WITH_XDEBUG" = "1" ] && pecl install xdebug-3.4.3 && { \
-    echo 'xdebug.mode=debug'; \
-    echo 'xdebug.start_with_request=trigger'; \
-    echo 'xdebug.client_host=127.0.0.1'; \
-    echo 'xdebug.client_port=9003'; \
-    echo 'xdebug.log=/var/log/xdebug.log'; \
-    echo 'xdebug.idekey=VSCODE'; \
-    } > /usr/local/etc/php/conf.d/zz-xdebug.ini && docker-php-ext-enable xdebug) || true)
+    (([ "$MODE" = "development" ] && pecl install xdebug-3.4.3 && \
+    cp /tmp/config/xdebug/zz-xdebug.ini /usr/local/etc/php/conf.d/zz-xdebug.ini && \
+    docker-php-ext-enable xdebug) || true)
 
+# Prepare IIPImage log file
+RUN touch /var/log/iipsrv.log && chown www-data:www-data /var/log/iipsrv.log
+
+# Isolated /tmp directory for temporary files
+RUN mkdir -p /var/tmp/drupal \
+    && chown www-data:www-data /var/tmp/drupal
+ENV TMPDIR=/var/tmp/drupal
+
+# Configure PHP-FPM to listen on a UNIX socket
+RUN mkdir -p /run/php && \
+    sed -i 's|listen = 9000|listen = /run/php/php-fpm.sock|' /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo 'listen.owner = www-data' >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo 'listen.group = www-data' >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
+    echo 'listen.mode = 0660' >> /usr/local/etc/php-fpm.d/zz-docker.conf
 
 # Create configs directory
 RUN mkdir -p /var/configs
@@ -193,7 +159,7 @@ RUN mkdir -p /var/private-files
 RUN mkdir -p /var/composer-home
 
 # Copy Redis settings configuration
-COPY redis.settings.php /var/configs/redis.settings.php
+COPY config/redis/redis.settings.php /var/configs/redis.settings.php
 
 # Install drush
 RUN composer require 'drush/drush:^13.7'
@@ -201,108 +167,37 @@ RUN composer require 'drush/drush:^13.7'
 # add composer bin to PATH
 RUN ln -s /opt/drupal/vendor/bin/drush /usr/local/bin/drush
 
-# Set initial ownerships and permissions
-# TODO: Make this more secure by using the correct permissions.
-RUN chown -R www-data:www-data /opt/drupal; \
-    chown -R www-data:www-data /var/private-files; \
-    chown -R www-data:www-data /var/composer-home; \
-    chmod -R 775 /opt/drupal; \
-    chmod -R 775 /var/private-files; \
-    chmod -R 775 /var/composer-home
-
-
 # Set Composer home directory
 ENV COMPOSER_HOME=/var/composer-home
 
 # Set www-data user to use bash
 RUN usermod -s /bin/bash www-data
 
-# Disable Apache logging
-ARG APACHE_LOGGING=false
-RUN (([ "$APACHE_LOGGING" = "false" ] && { \
-    echo 'ErrorLog /dev/null'; \
-    echo 'CustomLog /dev/null combined'; \
-    echo 'LogLevel emerg'; \
-    echo 'TransferLog /dev/null'; \
-    } > /etc/apache2/conf-available/disable-logs.conf && \
-    a2enconf disable-logs) || true)
+# Configure Nginx
+COPY config/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY config/nginx/drupal.conf /etc/nginx/conf.d/drupal.conf
+RUN mkdir -p /etc/nginx/snippets
+COPY config/iipsrv/iipsrv.nginx.conf /etc/nginx/snippets/iipsrv.conf
+RUN rm -f /etc/nginx/conf.d/default.conf && \
+    ln -sf /dev/stdout /var/log/nginx/access.log && \
+    ln -sf /dev/stderr /var/log/nginx/error.log && \
+    mkdir -p /run/nginx
 
-# Override default site configuration to disable access logs
-RUN (([ "$APACHE_LOGGING" = "false" ] && sed -i 's/CustomLog.*/CustomLog \/dev\/null combined/' /etc/apache2/sites-available/000-default.conf && \
-    sed -i 's/ErrorLog.*/ErrorLog \/dev\/null/' /etc/apache2/sites-available/000-default.conf) || true)
+RUN if [ "$MODE" = "production" ]; then \
+    sed -i 's|access_log /var/log/nginx/access.log main;|access_log off;|' /etc/nginx/nginx.conf && \
+    sed -i 's|error_log /var/log/nginx/error.log warn;|error_log off;|' /etc/nginx/nginx.conf; \
+    fi
 
-# Disable additional logging in apache2.conf
-RUN (([ "$APACHE_LOGGING" = "false" ] && sed -i 's/LogLevel.*/LogLevel emerg/' /etc/apache2/apache2.conf && \
-    sed -i '/ErrorLog/s/^/#/' /etc/apache2/apache2.conf && \
-    sed -i '/CustomLog/s/^/#/' /etc/apache2/apache2.conf) || true)
-
-# Enable Apache performance modules
-RUN a2enmod deflate expires headers http2 brotli || true
-
-# Add Apache performance configuration
-RUN { \
-    echo '<IfModule mod_deflate.c>'; \
-    echo '  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript'; \
-    echo '  AddOutputFilterByType DEFLATE application/xml application/xhtml+xml application/rss+xml'; \
-    echo '  AddOutputFilterByType DEFLATE application/javascript application/x-javascript'; \
-    echo '  AddOutputFilterByType DEFLATE application/json'; \
-    echo '  AddOutputFilterByType DEFLATE image/svg+xml'; \
-    echo '  BrowserMatch ^Mozilla/4 gzip-only-text/html'; \
-    echo '  BrowserMatch ^Mozilla/4\.0[678] no-gzip'; \
-    echo '  BrowserMatch \bMSIE !no-gzip !gzip-only-text/html'; \
-    echo '  Header append Vary User-Agent env=!dont-vary'; \
-    echo '  SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png|ico|woff2?)$ no-gzip dont-vary'; \
-    echo '</IfModule>'; \
-    echo ''; \
-    echo '<IfModule mod_expires.c>'; \
-    echo '  ExpiresActive On'; \
-    echo '  ExpiresDefault "access plus 1 month"'; \
-    echo '  ExpiresByType text/html "access plus 0 seconds"'; \
-    echo '  ExpiresByType text/css "access plus 1 year"'; \
-    echo '  ExpiresByType application/javascript "access plus 1 year"'; \
-    echo '  ExpiresByType application/x-javascript "access plus 1 year"'; \
-    echo '  ExpiresByType text/javascript "access plus 1 year"'; \
-    echo '  ExpiresByType image/gif "access plus 1 year"'; \
-    echo '  ExpiresByType image/jpeg "access plus 1 year"'; \
-    echo '  ExpiresByType image/png "access plus 1 year"'; \
-    echo '  ExpiresByType image/svg+xml "access plus 1 year"'; \
-    echo '  ExpiresByType image/x-icon "access plus 1 year"'; \
-    echo '  ExpiresByType image/webp "access plus 1 year"'; \
-    echo '  ExpiresByType font/woff "access plus 1 year"'; \
-    echo '  ExpiresByType font/woff2 "access plus 1 year"'; \
-    echo '  ExpiresByType application/font-woff "access plus 1 year"'; \
-    echo '  ExpiresByType application/font-woff2 "access plus 1 year"'; \
-    echo '</IfModule>'; \
-    echo ''; \
-    echo '<IfModule mod_headers.c>'; \
-    echo '  Header set X-Content-Type-Options "nosniff"'; \
-    echo '  Header set X-Frame-Options "SAMEORIGIN"'; \
-    echo '  Header set X-XSS-Protection "1; mode=block"'; \
-    echo '  <FilesMatch "\.(js|css|xml|gz|html|woff|woff2)$">'; \
-    echo '    Header append Vary: Accept-Encoding'; \
-    echo '  </FilesMatch>'; \
-    echo '  <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|svg|webp|swf|mp3|mp4)$">'; \
-    echo '    Header set Cache-Control "max-age=31536000, public"'; \
-    echo '  </FilesMatch>'; \
-    echo '  <FilesMatch "\.(css|js)$">'; \
-    echo '    Header set Cache-Control "max-age=31536000, public"'; \
-    echo '  </FilesMatch>'; \
-    echo '</IfModule>'; \
-    echo ''; \
-    echo 'KeepAlive On'; \
-    echo 'MaxKeepAliveRequests 100'; \
-    echo 'KeepAliveTimeout 5'; \
-    } > /etc/apache2/conf-available/performance.conf && \
-    a2enconf performance
-
-# Add permission scripts
-COPY set-permissions.sh /usr/local/bin/set-permissions.sh
+# Add permission scripts and set initial ownerships and permissions
+COPY config/drupal/set-permissions.sh /usr/local/bin/set-permissions.sh
 RUN chmod +x /usr/local/bin/set-permissions.sh
+RUN /usr/local/bin/set-permissions.sh
+
 
 # Add entrypoint
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["apache2-foreground"]
+CMD ["nginx","-g","daemon off;"]
 

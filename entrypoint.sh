@@ -2,8 +2,8 @@
 # Exit on error.
 set -e
 
-# Enable debug mode if DEBUG environment variable is set.
-if [ "${DEBUG}" = "true" ]; then
+# Enable debug mode if MODE environment variable is set to development.
+if [ "${MODE}" = "development" ]; then
   set -x
 fi
 
@@ -417,7 +417,38 @@ echo -e "\033[0;32m+---------------------------+\033[0m"
 echo -e "\033[0;32m|FINISHED INSTALLING DRUPAL.|\033[0m"
 echo -e "\033[0;32m+---------------------------+\033[0m"
 
+start_php_fpm() {
+  if pgrep -x php-fpm >/dev/null 2>&1; then
+    echo -e "\033[0;32mPHP-FPM already running.\033[0m"
+    return
+  fi
+  echo -e "\033[0;33mStarting PHP-FPM...\033[0m"
+  php-fpm -D
+  echo -e "\033[0;32mPHP-FPM started.\033[0m"
+}
+
+start_iipsrv() {
+  if pgrep -f iipsrv.fcgi >/dev/null 2>&1; then
+    echo -e "\033[0;32mIIPImage server already running.\033[0m"
+    return
+  fi
+  echo -e "\033[0;33mStarting IIPImage server...\033[0m"
+  export VERBOSITY="1"
+  export LOGFILE="/var/log/iipsrv.log"
+  export MAX_IMAGE_CACHE_SIZE="10"
+  export JPEG_QUALITY="90"
+  export MAX_CVT="5000"
+  export MEMCACHED_SERVERS="localhost"
+  local bindAddress="127.0.0.1"
+  local bindPort="9100"
+  su -s /bin/bash -c "/fcgi-bin/iipsrv.fcgi --bind ${bindAddress} --port ${bindPort} &" www-data
+  echo -e "\033[0;32mIIPImage server started on ${bindAddress}:${bindPort}.\033[0m"
+}
+
 echo -e "\n"
 
-# Keep the container running.
-/usr/sbin/apache2ctl -D FOREGROUND
+start_php_fpm
+start_iipsrv
+
+# Keep the container running with Nginx as the foreground process.
+exec nginx -g "daemon off;"
