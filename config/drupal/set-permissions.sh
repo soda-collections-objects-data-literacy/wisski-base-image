@@ -109,14 +109,17 @@ if [ -d "${WEB_ROOT}/sites/default/files" ]; then
 fi
 
 # Common: Secure private files directory
-echo -e "\033[0;33m6. Securing private files directory (770/660)...\033[0m"
-if [ -d "${PRIVATE_FILES_DIR}" ]; then
-  chown -R ${WEB_USER}:${WEB_GROUP} "${PRIVATE_FILES_DIR}"
-  chmod 770 "${PRIVATE_FILES_DIR}"
-  find "${PRIVATE_FILES_DIR}" -type d -exec chmod 770 {} \;
-  find "${PRIVATE_FILES_DIR}" -type f -exec chmod 660 {} \;
-  echo -e "   - ${PRIVATE_FILES_DIR}: ${WEB_USER}:${WEB_GROUP} 770/660 (not web accessible)"
-fi
+# NOTE: Private files ownership permissions are managed by an external service.
+# Expected permissions for groups to have full access:
+# - Directories: 770 (owner and group: read, write, execute; others: no access)
+# - Files: 770 (owner and group: read, write; others: no access)
+# echo -e "\033[0;33m6. Securing private files directory (770/770)...\033[0m"
+# if [ -d "${PRIVATE_FILES_DIR}" ]; then
+#   chmod 770 "${PRIVATE_FILES_DIR}"
+#   find "${PRIVATE_FILES_DIR}" -type d -exec chmod 770 {} \;
+#   find "${PRIVATE_FILES_DIR}" -type f -exec chmod 770 {} \;
+#   echo -e "   - ${PRIVATE_FILES_DIR}: ${WEB_USER}:${WEB_GROUP} 770/770 (groups have full access)"
+# fi
 
 # Common: Make xdebug log directory writable
 echo -e "\033[0;33m7. Making xdebug log directory writable (775/664)...\033[0m"

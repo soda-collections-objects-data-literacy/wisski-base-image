@@ -407,8 +407,7 @@ EOF
 
   # Set secure permissions following Drupal security guidelines.
   echo -e "\033[0;33mSET SECURE PERMISSIONS.\033[0m"
-  chown -R www-data:www-data /opt/drupal
-  chmod -R 755 /opt/drupal
+  /usr/local/bin/set-permissions.sh
   echo -e "\033[0;32mSECURE PERMISSIONS SET.\033[0m\n"
 
 

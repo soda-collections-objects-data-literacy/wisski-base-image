@@ -191,8 +191,6 @@ RUN if [ "$MODE" = "production" ]; then \
 # Add permission scripts and set initial ownerships and permissions
 COPY config/drupal/set-permissions.sh /usr/local/bin/set-permissions.sh
 RUN chmod +x /usr/local/bin/set-permissions.sh
-RUN /usr/local/bin/set-permissions.sh
-
 
 # Add entrypoint
 COPY entrypoint.sh /entrypoint.sh
