@@ -2,13 +2,13 @@ name: Publish WissKI Dev Docker Image
 
 on:
   push:
-    branches: [main]
+    branches: [development]
     tags:
       - "*.*.*"
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: soda-collections-objects-data-literacy/wisski-dev-image
+  IMAGE_NAME: soda-collections-objects-data-literacy/wisski-base-image-development
   PLATFORMS: linux/amd64,linux/arm64
   CONTEXT_DIRECTORY: .
 
@@ -24,7 +24,7 @@ jobs:
           images: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable={{contains(github.ref_name, 'development')}}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
@@ -41,8 +41,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            WITH_XDEBUG=1
-            WITH_OPCACHE=0
+            MODE=development
+            DRUPAL_VERSION=11.2.4-php8.3-fpm-bookworm
           platforms: ${{ env.PLATFORMS }}
           pull: true
           push: true
