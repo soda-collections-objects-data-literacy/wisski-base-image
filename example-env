@@ -10,7 +10,7 @@ DB_USER=drupal
 DOMAIN=localhost
 DRUPAL_LOCALE=en
 DRUPAL_PASSWORD=also_change_me
-DRUPAL_TRUSTED_HOST=localhost
+DRUPAL_TRUSTED_HOST='"^localhost$","^127\.0\.0\.1$"'
 DRUPAL_USER=admin
 SITE_NAME=My WissKI
 

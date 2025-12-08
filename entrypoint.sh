@@ -198,12 +198,13 @@ else
 
   # Set trusted host settings.
   echo -e "\033[0;33mSETTING TRUSTED HOST SETTINGS...\033[0m"
-  {
-    echo '$settings["trusted_host_patterns"] = [
-      "^".getenv("DRUPAL_TRUSTED_HOST")."$",
-      "^raw\.".getenv("DRUPAL_TRUSTED_HOST")."$",
-    ];' >> ${SETTINGS_FILE}
-  } 1> /dev/null
+  if [ -n "${DRUPAL_TRUSTED_HOST}" ]; then
+    {
+      # Convert DRUPAL_TRUSTED_HOST to PHP array format.
+      # The env var contains: "pattern1","pattern2" - we convert to ["pattern1","pattern2"].
+      echo "\$settings[\"trusted_host_patterns\"] = [${DRUPAL_TRUSTED_HOST}];" >> ${SETTINGS_FILE}
+    } 1> /dev/null
+  fi
   echo -e "\033[0;32mTRUSTED HOST SETTINGS SET.\033[0m\n"
 
   # Set private files directory.
