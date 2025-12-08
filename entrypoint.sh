@@ -75,53 +75,6 @@ echo -e "\033[0;33mCHECKING IF DRUPAL IS ALREADY INSTALLED.\033[0m"
 if [ -f "$SETTINGS_FILE" ]; then
   echo -e "\033[0;32mDRUPAL IS ALREADY INSTALLED.\033[0m\n"
 
-  # Configure Redis for existing installation.
-  if [ -n "${REDIS_HOST}" ]; then
-    echo -e "\033[0;33mCONFIGURING REDIS INTEGRATION.\033[0m"
-
-    # Install Redis module if not already installed.
-    if [ ! -d "/opt/drupal/web/modules/contrib/redis" ]; then
-      echo -e "\033[0;33mInstalling Redis module via Composer...\033[0m"
-      cd /opt/drupal
-      su -s /bin/bash -c "composer require 'drupal/redis:^1.10' --no-interaction" www-data || true
-    fi
-
-    # Add Redis settings include if not already present.
-    if ! grep -q "redis.settings.php" "$SETTINGS_FILE"; then
-      echo -e "\033[0;33mAdding Redis configuration to settings.php...\033[0m"
-      cat >> "$SETTINGS_FILE" << 'EOF'
-
-/**
- * Redis cache backend configuration.
- * Auto-configured by entrypoint.
- */
-if (file_exists('/var/configs/redis.settings.php')) {
-  include '/var/configs/redis.settings.php';
-}
-EOF
-    fi
-
-    # Enable Redis module via Drush if Drupal is bootstrappable.
-    if su -s /bin/bash -c "cd /opt/drupal && drush status --field=bootstrap 2>/dev/null" www-data | grep -q "Successful"; then
-      echo -e "\033[0;33mEnabling Redis module...\033[0m"
-      su -s /bin/bash -c "cd /opt/drupal && drush pm:enable redis -y" www-data 2>/dev/null || true
-
-      # Enable page cache for Varnish.
-      echo -e "\033[0;33mEnabling page cache...\033[0m"
-      CURRENT_CACHE=$(su -s /bin/bash -c "cd /opt/drupal && drush config:get system.performance cache.page.max_age --format=string" www-data 2>/dev/null || echo "0")
-      if [ "$CURRENT_CACHE" = "0" ]; then
-        su -s /bin/bash -c "cd /opt/drupal && drush config:set system.performance cache.page.max_age 300 -y" www-data 2>/dev/null || true
-        echo -e "\033[0;32mPage cache enabled (5 minutes).\033[0m"
-      else
-        echo -e "\033[0;32mPage cache already configured (${CURRENT_CACHE}s).\033[0m"
-      fi
-
-      su -s /bin/bash -c "cd /opt/drupal && drush cr" www-data 2>/dev/null || true
-      echo -e "\033[0;32mRedis integration configured successfully!\033[0m"
-    fi
-    echo -e "\033[0;32mREDIS INTEGRATION CONFIGURED.\033[0m\n"
-  fi
-
 else
   echo -e "\033[0;32mDRUPAL IS NOT INSTALLED.\033[0m\n"
   # Set groups.
@@ -399,6 +352,54 @@ EOF
     echo -e "\033[0;33mUNPACK RECIPES.\033[0m"
     composer drupal:recipe-unpack
     echo -e "\033[0;32mRECIPES UNPACKED.\033[0m\n"
+  fi
+
+
+  # Configure Redis for existing installation.
+  if [ -n "${REDIS_HOST}" ]; then
+    echo -e "\033[0;33mCONFIGURING REDIS INTEGRATION.\033[0m"
+
+    # Install Redis module if not already installed.
+    if [ ! -d "/opt/drupal/web/modules/contrib/redis" ]; then
+      echo -e "\033[0;33mInstalling Redis module via Composer...\033[0m"
+      cd /opt/drupal
+      su -s /bin/bash -c "composer require 'drupal/redis:^1.10' --no-interaction" www-data || true
+    fi
+
+    # Add Redis settings include if not already present.
+    if ! grep -q "redis.settings.php" "$SETTINGS_FILE"; then
+      echo -e "\033[0;33mAdding Redis configuration to settings.php...\033[0m"
+      cat >> "$SETTINGS_FILE" << 'EOF'
+
+/**
+ * Redis cache backend configuration.
+ * Auto-configured by entrypoint.
+ */
+if (file_exists('/var/configs/redis.settings.php')) {
+  include '/var/configs/redis.settings.php';
+}
+EOF
+    fi
+
+    # Enable Redis module via Drush if Drupal is bootstrappable.
+    if su -s /bin/bash -c "cd /opt/drupal && drush status --field=bootstrap 2>/dev/null" www-data | grep -q "Successful"; then
+      echo -e "\033[0;33mEnabling Redis module...\033[0m"
+      su -s /bin/bash -c "cd /opt/drupal && drush pm:enable redis -y" www-data 2>/dev/null || true
+
+      # Enable page cache for Varnish.
+      echo -e "\033[0;33mEnabling page cache...\033[0m"
+      CURRENT_CACHE=$(su -s /bin/bash -c "cd /opt/drupal && drush config:get system.performance cache.page.max_age --format=string" www-data 2>/dev/null || echo "0")
+      if [ "$CURRENT_CACHE" = "0" ]; then
+        su -s /bin/bash -c "cd /opt/drupal && drush config:set system.performance cache.page.max_age 300 -y" www-data 2>/dev/null || true
+        echo -e "\033[0;32mPage cache enabled (5 minutes).\033[0m"
+      else
+        echo -e "\033[0;32mPage cache already configured (${CURRENT_CACHE}s).\033[0m"
+      fi
+
+      su -s /bin/bash -c "cd /opt/drupal && drush cr" www-data 2>/dev/null || true
+      echo -e "\033[0;32mRedis integration configured successfully!\033[0m"
+    fi
+    echo -e "\033[0;32mREDIS INTEGRATION CONFIGURED.\033[0m\n"
   fi
 
   # change to root user.
