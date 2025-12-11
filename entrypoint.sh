@@ -228,7 +228,7 @@ EOF
 
     composer require 'drupal/automatic_updates:^4.0' 'drupal/devel:^5.5' 'drupal/health_check:^3.1' 'drupal/project_browser:^2.1' 'drupal/redis:^1.11' 'drupal/sso_bouncer:^1.0'
     composer require 'drupal/openid_connect:dev-3516375-implement-drush-commands' --prefer-source
-    drush en devel health_check project_browser automatic_updates openid_connect sophron_guesser sso_bouncer redis -y
+    drush en devel health_check project_browser automatic_updates openid_connect sso_bouncer redis -y
   } 1> /dev/null
   echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
 
