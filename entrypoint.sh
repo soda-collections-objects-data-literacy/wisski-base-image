@@ -149,14 +149,13 @@ else
   chmod 664 ${SETTINGS_FILE}
   echo -e "\033[0;32mSETTINGS.PHP IS NOW WRITABLE.\033[0m\n"
 
-  # Set trusted host settings.
-  echo -e "\033[0;33mSETTING TRUSTED HOST SETTINGS...\033[0m"
   if [ -n "${DRUPAL_TRUSTED_HOST}" ]; then
-    {
-      # Convert DRUPAL_TRUSTED_HOST to PHP array format.
-      # The env var contains: "pattern1","pattern2" - we convert to ["pattern1","pattern2"].
-      echo "\$settings[\"trusted_host_patterns\"] = [${DRUPAL_TRUSTED_HOST}];" >> ${SETTINGS_FILE}
-    } 1> /dev/null
+  {
+    # Convert pipe-delimited patterns to PHP array format
+    # Replace | with ","
+    PATTERNS=$(echo "${DRUPAL_TRUSTED_HOST}" | sed 's/|/","/g')
+    echo "\$settings[\"trusted_host_patterns\"] = [\"${PATTERNS}\"];" >> ${SETTINGS_FILE}
+  } 1> /dev/null
   fi
   echo -e "\033[0;32mTRUSTED HOST SETTINGS SET.\033[0m\n"
 
@@ -231,7 +230,7 @@ EOF
 
     composer require 'drupal/automatic_updates:^4.0' 'drupal/devel:^5.5' 'drupal/health_check:^3.1' 'drupal/project_browser:^2.1' 'drupal/redis:^1.11' 'drupal/sso_bouncer:^1.0'
     composer require 'drupal/openid_connect:dev-3516375-implement-drush-commands' --prefer-source
-    drush en devel health_check project_browser automatic_updates openid_connect sso_bouncer redis -y
+    drush en devel health_check project_browser automatic_updates openid_connect sophron_guesser sso_bouncer redis -y
   } 1> /dev/null
   echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
 
