@@ -32,7 +32,7 @@ jobs:
           images: |
             ${{ env.REGISTRY }}/${{ matrix.image_name }}
           tags: |
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' && matrix.mode == 'production' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
@@ -51,7 +51,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             MODE=${{ matrix.mode }}
-            DRUPAL_VERSION=11.2.4-php8.3-fpm-bookworm
+            DRUPAL_VERSION=11.2.10-php8.3-fpm-bookworm
           platforms: ${{ env.PLATFORMS }}
           pull: true
           push: true
