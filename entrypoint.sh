@@ -150,12 +150,10 @@ else
   echo -e "\033[0;32mSETTINGS.PHP IS NOW WRITABLE.\033[0m\n"
 
   if [ -n "${DRUPAL_TRUSTED_HOST}" ]; then
-  {
-    # Convert pipe-delimited patterns to PHP array format
-    # Replace | with ","
+    # Convert pipe-delimited patterns to PHP array format.
+    # Replace | with "," and wrap each pattern in quotes.
     PATTERNS=$(echo "${DRUPAL_TRUSTED_HOST}" | sed 's/|/","/g')
     echo "\$settings[\"trusted_host_patterns\"] = [\"${PATTERNS}\"];" >> ${SETTINGS_FILE}
-  } 1> /dev/null
   fi
   echo -e "\033[0;32mTRUSTED HOST SETTINGS SET.\033[0m\n"
 
