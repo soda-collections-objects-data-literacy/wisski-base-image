@@ -1,4 +1,4 @@
-ARG DRUPAL_VERSION=11.2.4-php8.3-fpm-bookworm
+ARG DRUPAL_VERSION=11.2.10-php8.3-fpm-bookworm
 
 FROM drupal:${DRUPAL_VERSION}
 
