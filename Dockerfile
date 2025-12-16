@@ -161,6 +161,10 @@ RUN mkdir -p /var/private-files
 # Create composer home directory for www-data user
 RUN mkdir -p /var/composer-home
 
+# Ensure Composer cache directory is writable by the runtime user.
+RUN chown -R www-data:www-data /var/composer-home \
+    && chmod -R 775 /var/composer-home
+
 # Copy Redis settings configuration
 COPY config/redis/redis.settings.php /var/configs/redis.settings.php
 
