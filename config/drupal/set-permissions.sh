@@ -130,6 +130,13 @@ if [ -d "/var/log/xdebug" ]; then
   echo -e "   - /var/log/xdebug: ${WEB_USER}:${WEB_GROUP} 775/664"
 fi
 
+# Common: Ensure Composer home directory is writable.
+echo -e "\033[0;33m8. Ensuring Composer home directory is writable (775)...\033[0m"
+mkdir -p "${COMPOSER_HOME:-/var/composer-home}"
+chown -R ${WEB_USER}:${WEB_GROUP} "${COMPOSER_HOME:-/var/composer-home}"
+chmod -R 775 "${COMPOSER_HOME:-/var/composer-home}"
+echo -e "   - ${COMPOSER_HOME:-/var/composer-home}: ${WEB_USER}:${WEB_GROUP} 775"
+
 echo -e "\033[0;32m========================================\033[0m"
 echo -e "\033[0;32mSECURE PERMISSIONS SET SUCCESSFULLY!\033[0m"
 echo -e "\033[0;32m========================================\033[0m"
