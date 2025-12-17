@@ -165,6 +165,9 @@ RUN mkdir -p /var/composer-home
 RUN chown -R www-data:www-data /var/composer-home \
     && chmod -R 775 /var/composer-home
 
+# Disable Git "dubious ownership" checks inside the container.
+RUN git config --system --add safe.directory '*'
+
 # Copy Redis settings configuration
 COPY config/redis/redis.settings.php /var/configs/redis.settings.php
 
