@@ -5,10 +5,6 @@ FROM drupal:${DRUPAL_VERSION}
 # Redeclare build arguments for use in build stage
 ARG MODE=production
 
-# Metadata
-LABEL org.opencontainers.image.source=https://github.com/soda-collections-objects-data-literacy/wisski-base-image.git
-LABEL org.opencontainers.image.description="Plain Drupal with preinstalled Site and basic WissKI environment with only core components with connection to triplestore provided by env variables."
-
 # Install apts
 
 RUN apt-get update; \

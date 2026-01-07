@@ -51,7 +51,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             MODE=${{ matrix.mode }}
-            DRUPAL_VERSION=11.2.10-php8.3-fpm-bookworm
+            DRUPAL_VERSION=11.3.10-php8.3-fpm-bookworm
           platforms: ${{ env.PLATFORMS }}
           pull: true
           push: true
