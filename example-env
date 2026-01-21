@@ -1,3 +1,7 @@
+#General settings
+MODE=development
+USER_GROUPS=
+
 # Database settings
 DB_DRIVER=mysql
 DB_HOST=localhost
@@ -7,27 +11,31 @@ DB_PORT=3306
 DB_USER=drupal
 
 # Drupal settings
-DOMAIN=localhost
+DRUPAL_DOMAIN=localhost
 DRUPAL_LOCALE=en
 DRUPAL_PASSWORD=also_change_me
-DRUPAL_TRUSTED_HOST='"^localhost$","^127\.0\.0\.1$"'
+# When outside /opt/drupal/, ensure existence and permissions
+DRUPAL_PRIVATE_FILES_DIR=/opt/drupal/private_files
+DRUPAL_SITE_NAME=My WissKI
+DRUPAL_TRUSTED_HOST='^localhost$|^127\.0\.0\.1$'
 DRUPAL_USER=admin
-SITE_NAME=My WissKI
+DRUPAL_VERSION=php8.3-fpm-bookworm
+
 
 
 # WissKI settings
 # For a full list of flavours see: TODO: add the link
-DEFAULT_GRAPH=http://my.graph/contents/
+WISSKI_DEFAULT_GRAPH=http://my.graph/contents/
 WISSKI_STARTER_VERSION=1.x-dev
 WISSKI_DEFAULT_DATA_MODEL_VERSION=1.x-dev
 WISSKI_FLAVOURS=
 
 # Triplestore settings
-TS_PASSWORD=
+TS_PASSWORD=ts_password
 TS_READ_URL=http://public.graph.database/repositories/default
 TS_REPOSITORY=default
 TS_TOKEN=
-TS_USERNAME=
+TS_USERNAME=ts_user
 TS_WRITE_URL=http://public.graph.database/repositories/default/statements
 
 # Keycloak settings
@@ -35,4 +43,4 @@ OPENID_CONNECT_CLIENT_SECRET=
 KEYCLOAK_ADMIN_GROUP=
 KEYCLOAK_REALM=
 KEYCLOAK_USER_GROUP=
-USER_GROUPS=
+

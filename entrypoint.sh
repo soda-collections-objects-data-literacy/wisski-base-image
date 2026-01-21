@@ -1,11 +1,11 @@
 #!/bin/bash
-# Exit on error.
+
 set -e
 
 # Enable debug mode if MODE environment variable is set to development.
 if [ "${MODE}" = "development" ]; then
   echo -e "\033[0;32mDEVELOPMENT MODE ENABLED.\033[0m"
-  set -x
+  set -ex
 fi
 
 # Set Environment variables.
@@ -15,9 +15,6 @@ export COMPOSER_HOME=/var/composer-home
 
 # Define the path to the settings.php file.
 SETTINGS_FILE="/var/www/html/sites/default/settings.php"
-
-# Define the path to the private files directory.
-PRIVATE_FILES_DIR="/var/private-files"
 
 # Install WissKI Environment.
 echo -e "\n \n \n"
@@ -48,8 +45,23 @@ REQUIRED_VARS=(
   "DB_PASSWORD"
   "DB_PORT"
   "DB_USER"
+  "DRUPAL_DOMAIN"
+  "DRUPAL_LOCALE"
   "DRUPAL_PASSWORD"
-  "SITE_NAME"
+  "DRUPAL_PRIVATE_FILES_DIR"
+  "DRUPAL_SITE_NAME"
+  "DRUPAL_TRUSTED_HOST"
+  "DRUPAL_USER"
+  "REDIS_HOST"
+  "REDIS_PORT"
+  "TS_REPOSITORY"
+  "TS_USERNAME"
+  "TS_PASSWORD"
+  "TS_READ_URL"
+  "TS_WRITE_URL"
+  "WISSKI_DEFAULT_GRAPH"
+  "WISSKI_STARTER_VERSION"
+  "WISSKI_DEFAULT_DATA_MODEL_VERSION"
 )
 
 MISSING_VARS=()
@@ -92,13 +104,6 @@ else
   fi
   echo -e "\033[0;32mGROUPS ADDED TO WWW-DATA USER.\033[0m\n"
 
-  # Switch to www-data user.
-  echo -e "\033[0;33mSWITCHING TO WWW-DATA USER.\033[0m"
-  su www-data
-  echo "USER: $(whoami)"
-  echo "PWD: $(pwd)"
-  echo -e "\033[0;32mSWITCHED TO WWW-DATA USER.\033[0m\n"
-
   # Check database connection first.
   echo -e "\033[0;33mCHECKING DATABASE CONNECTION...\033[0m"
 
@@ -132,35 +137,35 @@ else
 
   if timeout 300 drush si \
     --db-url="${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}" \
-    --site-name="${SITE_NAME}" \
-    --account-name="admin" \
+    --site-name="${DRUPAL_SITE_NAME}" \
+    --account-name="${DRUPAL_USER}" \
     --account-pass="${DRUPAL_PASSWORD}" \
     --locale="${DRUPAL_LOCALE}" \
     --yes 2>&1; then
-    echo -e "\033[0;32mDRUPAL SITE \"${SITE_NAME}\" INSTALLED.\033[0m\n"
+    echo -e "\033[0;32mDRUPAL SITE \"${DRUPAL_SITE_NAME}\" INSTALLED.\033[0m\n"
   else
     echo -e "\033[0;31mERROR: Drupal installation failed or timed out after 5 minutes.\033[0m"
     echo -e "\033[0;31mCheck database connection and credentials.\033[0m"
     exit 1
   fi
 
-  # Make settings.php writable for configuration updates.
-  echo -e "\033[0;33mMAKING SETTINGS.PHP WRITABLE...\033[0m"
-  chmod 664 ${SETTINGS_FILE}
-  echo -e "\033[0;32mSETTINGS.PHP IS NOW WRITABLE.\033[0m\n"
-
   if [ -n "${DRUPAL_TRUSTED_HOST}" ]; then
-    # Convert pipe-delimited patterns to PHP array format.
-    # Replace | with "," and wrap each pattern in quotes.
-    PATTERNS=$(echo "${DRUPAL_TRUSTED_HOST}" | sed 's/|/","/g')
-    echo "\$settings[\"trusted_host_patterns\"] = [\"${PATTERNS}\"];" >> ${SETTINGS_FILE}
+    # Convert pipe-delimited patterns to PHP array format with double quotes.
+    # Input: "pattern1|pattern2|pattern3" → Output: ["pattern1", "pattern2", "pattern3"]
+    PATTERNS=$(printf '%s' "${DRUPAL_TRUSTED_HOST}" | sed 's/|/", "/g')
+    printf '%s\n' "\$settings['trusted_host_patterns'] = [\"${PATTERNS}\"];" >> "${SETTINGS_FILE}"
   fi
   echo -e "\033[0;32mTRUSTED HOST SETTINGS SET.\033[0m\n"
 
   # Set private files directory.
   echo -e "\033[0;33mSETTING PRIVATE FILES DIRECTORY...\033[0m"
+  # Ensure the private files directory exists with proper permissions and ownership.
+  if [ ! -d "$DRUPAL_PRIVATE_FILES_DIR" ]; then
+    mkdir -p "${DRUPAL_PRIVATE_FILES_DIR}"
+    echo -e "\033[0;32mCreated private files directory: $DRUPAL_PRIVATE_FILES_DIR\033[0m"
+  fi
   {
-    echo "\$settings[\"file_private_path\"] = \"$PRIVATE_FILES_DIR\";" >> ${SETTINGS_FILE}
+    echo "\$settings[\"file_private_path\"] = \"$DRUPAL_PRIVATE_FILES_DIR\";" >> ${SETTINGS_FILE}
   } 1> /dev/null
   echo -e "\033[0;32mPRIVATE FILES DIRECTORY SET.\033[0m\n"
 
@@ -184,9 +189,10 @@ EOF
 
   # Set Package Manager Extension.
   echo -e "\033[0;33mSETTING PACKAGE MANAGER EXTENSION...\033[0m"
-  {
-    echo "\$settings['testing_package_manager'] = TRUE;" >> ${SETTINGS_FILE}
-  } 1> /dev/null
+    cat >> ${SETTINGS_FILE} <<'EOF'
+$settings['testing_package_manager'] = TRUE;
+$settings['package_manager_rsync_path'] = '/usr/bin/rsync';
+EOF
   echo -e "\033[0;32mPACKAGE MANAGER EXTENSION SET.\033[0m\n"
 
   # Enable page cache for Varnish.
@@ -196,13 +202,6 @@ EOF
     echo -e "\033[0;32mPAGE CACHE ENABLED (5 minutes).\033[0m"
   } 1> /dev/null
   echo -e "\033[0;32mPAGE CACHE CONFIGURED.\033[0m\n"
-
-  # Restrict permissions of settings.php.
-  echo -e "\033[0;33mRESTRICTING PERMISSIONS OF SETTINGS.PHP...\033[0m"
-  {
-    chmod 644 ${SETTINGS_FILE}
-  } 1> /dev/null
-  echo -e "\033[0;32mSETTINGS.PHP CLOSED.\033[0m\n"
 
   # Lets get dirty with composer.
   echo -e "\033[0;33mSET COMPOSER MINIMUM STABILITY.\033[0m"
@@ -243,16 +242,7 @@ EOF
     # Set OpenID Connect settings.
     echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
     {
-      drush openid-connect:create-client "SCS SSO" "SODA SCS Client" generic \
-    --client-id=${SITE_NAME} \
-    --client-secret=${OPENID_CONNECT_CLIENT_SECRET} \
-    --allowed-domains=* \
-    --use-well-known=0 \
-    --authorization-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth \
-    --token-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token \
-    --userinfo-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo \
-    --end-session-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout \
-    --scopes=openid,email,profile
+      drush openid-connect:create-client 'SCS SSO' 'SODA SCS Client' generic --client-id=${DRUPAL_SITE_NAME} --client-secret=${OPENID_CONNECT_CLIENT_SECRET} --allowed-domains=* --use-well-known=0 --authorization-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth --token-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token --userinfo-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo --end-session-endpoint=https://auth.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout --scopes=openid,email,profile
     } 1> /dev/null
     echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
     {
@@ -272,7 +262,7 @@ EOF
 
     echo -e "\033[0;33mENABLE SSO BOUNCER.\033[0m"
     {
-      drush sso_bouncer:enable ${SITE_NAME}
+      drush sso_bouncer:enable ${DRUPAL_SITE_NAME}
     } 1> /dev/null
     echo -e "\033[0;32mSSO BOUNCER ENABLED.\033[0m\n"
   fi
@@ -293,28 +283,12 @@ EOF
     RECIPE_USED=true;
     # Install default adapter.
     echo -e "\033[0;33mINSTALL DEFAULT TRIPLESTORE ADAPTER.\033[0m"
-      drush wisski-salz:create-adapter \
-        --type="sparql11_with_pb" \
-        --adapter_label="Default" \
-        --adapter_machine_name="default" \
-        --description="Default SALZ adapter" \
-        --ts_machine_name=${TS_REPOSITORY} \
-        --ts_user=${TS_USERNAME} \
-        --ts_password=${TS_PASSWORD} \
-        --ts_use_token=1 \
-        --ts_token=${TS_TOKEN} \
-        --writable=1 \
-        --preferred=1  \
-        --read_url=${TS_READ_URL} \
-        --write_url=${TS_WRITE_URL} \
-        --federatable=0 \
-        --default_graph=${DEFAULT_GRAPH} \
-        --same_as="http://www.w3.org/2002/07/owl#sameAs" 1> /dev/null
+      drush wisski-salz:create-adapter --type='sparql11_with_pb' --adapter_label='Default' --adapter_machine_name='default' --description='Default SALZ adapter' --ts_machine_name=${TS_REPOSITORY} --ts_user=${TS_USERNAME} --ts_password=${TS_PASSWORD} --ts_use_token=1 --ts_token=${TS_TOKEN} --writable=1 --preferred=1 --read_url=${TS_READ_URL} --write_url=${TS_WRITE_URL} --federatable=0 --default_graph=${WISSKI_DEFAULT_GRAPH} --same_as='http://www.w3.org/2002/07/owl#sameAs' 1> /dev/null
       drush cr
     echo -e "\033[0;32mDEFAULT TRIPLESTORE ADAPTER INSTALLED.\033[0m\n"
 
     echo -e "\033[0;33mIMPORT WISSKI DEFAULT ONTOLOGY.\033[0m"
-    drush wisski-core:import-ontology --store="default" --ontology_url="https://wiss-ki.eu/ontology/default/2.1.0/" --reasoning
+    drush wisski-core:import-ontology --store='default' --ontology_url='https://wiss-ki.eu/ontology/default/2.1.0/' --reasoning
     echo -e "\033[0;32mWISSKI DEFAULT ONTOLOGY IMPORTED.\033[0m\n"
 
     # Apply WissKI Default Data Model recipe.
@@ -360,51 +334,41 @@ EOF
     if [ ! -d "/opt/drupal/web/modules/contrib/redis" ]; then
       echo -e "\033[0;33mInstalling Redis module via Composer...\033[0m"
       cd /opt/drupal
-      su -s /bin/bash -c "composer require 'drupal/redis:^1.10' --no-interaction" www-data || true
+      composer require 'drupal/redis:^1.10' --no-interaction || true
     fi
 
     # Add Redis settings include if not already present.
     if ! grep -q "redis.settings.php" "$SETTINGS_FILE"; then
       echo -e "\033[0;33mAdding Redis configuration to settings.php...\033[0m"
       cat >> "$SETTINGS_FILE" << 'EOF'
-
-/**
- * Redis cache backend configuration.
- * Auto-configured by entrypoint.
- */
-if (file_exists('/var/configs/redis.settings.php')) {
-  include '/var/configs/redis.settings.php';
-}
+      * Redis cache backend configuration.
+      * Auto-configured by entrypoint.
+      if (file_exists('/var/configs/redis.settings.php')) {
+        include '/var/configs/redis.settings.php';
+      }
 EOF
     fi
 
     # Enable Redis module via Drush if Drupal is bootstrappable.
-    if su -s /bin/bash -c "cd /opt/drupal && drush status --field=bootstrap 2>/dev/null" www-data | grep -q "Successful"; then
+    if cd /opt/drupal && drush status --field=bootstrap 2>/dev/null | grep -q "Successful"; then
       echo -e "\033[0;33mEnabling Redis module...\033[0m"
-      su -s /bin/bash -c "cd /opt/drupal && drush pm:enable redis -y" www-data 2>/dev/null || true
+      cd /opt/drupal && drush pm:enable redis -y 2>/dev/null || true
 
       # Enable page cache for Varnish.
       echo -e "\033[0;33mEnabling page cache...\033[0m"
-      CURRENT_CACHE=$(su -s /bin/bash -c "cd /opt/drupal && drush config:get system.performance cache.page.max_age --format=string" www-data 2>/dev/null || echo "0")
+      CURRENT_CACHE=$(cd /opt/drupal && drush config:get system.performance cache.page.max_age --format=string 2>/dev/null || echo "0")
       if [ "$CURRENT_CACHE" = "0" ]; then
-        su -s /bin/bash -c "cd /opt/drupal && drush config:set system.performance cache.page.max_age 300 -y" www-data 2>/dev/null || true
+        cd /opt/drupal && drush config:set system.performance cache.page.max_age 300 -y 2>/dev/null || true
         echo -e "\033[0;32mPage cache enabled (5 minutes).\033[0m"
       else
         echo -e "\033[0;32mPage cache already configured (${CURRENT_CACHE}s).\033[0m"
       fi
 
-      su -s /bin/bash -c "cd /opt/drupal && drush cr" www-data 2>/dev/null || true
+      cd /opt/drupal && drush cr 2>/dev/null || true
       echo -e "\033[0;32mRedis integration configured successfully!\033[0m"
     fi
     echo -e "\033[0;32mREDIS INTEGRATION CONFIGURED.\033[0m\n"
   fi
-
-  # change to root user.
-  echo -e "\033[0;33mCHANGE TO ROOT USER.\033[0m"
-  su root
-  echo "USER: $(whoami)"
-  echo "PWD: $(pwd)"
-  echo -e "\033[0;32mCHANGED TO ROOT USER.\033[0m\n"
 
   # Set secure permissions following Drupal security guidelines.
   echo -e "\033[0;33mSET SECURE PERMISSIONS.\033[0m"

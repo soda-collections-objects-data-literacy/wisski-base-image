@@ -2,6 +2,11 @@
 # Secure file permissions script following Drupal security guidelines.
 # See: https://www.drupal.org/docs/administering-a-drupal-site/security-in-drupal/securing-file-permissions-and-ownership
 #
+# Strategy:
+# 1. Set ownership of entire /opt/drupal to www-data:www-data (even if commands ran as root).
+# 2. Set base permissions to 775/664 (writable by www-data).
+# 3. Lock down sensitive files and directories (settings.php, sites/default) for security.
+#
 # Exit on error.
 set -e
 
@@ -30,6 +35,7 @@ if [ ! -d "${DRUPAL_ROOT}" ]; then
 fi
 
 # Set ownership: www-data owns the entire Drupal tree so it can write where needed.
+# This ensures files created by root during installation are properly owned.
 echo -e "\033[0;33m1. Setting ownership: ${WEB_USER}:${WEB_GROUP} for the entire Drupal tree...\033[0m"
 chown -R ${WEB_USER}:${WEB_GROUP} "${DRUPAL_ROOT}"
 
@@ -62,8 +68,13 @@ if [ -d "${DRUPAL_ROOT}/vendor/bin" ]; then
   echo -e "   - All vendor executables set to 755"
 fi
 
-# Common: Lock down critical configuration files
-echo -e "\033[0;33m3. Locking down critical configuration files (444)...\033[0m"
+# Common: Lock down critical configuration files and sites/default directory
+echo -e "\033[0;33m3. Locking down critical configuration files (444) and sites/default (555)...\033[0m"
+if [ -d "${WEB_ROOT}/sites/default" ]; then
+  chmod 555 "${WEB_ROOT}/sites/default"
+  echo -e "   - sites/default: 555 (read-only)"
+fi
+
 if [ -f "${WEB_ROOT}/sites/default/settings.php" ]; then
   chmod 444 "${WEB_ROOT}/sites/default/settings.php"
   echo -e "   - settings.php: 444 (read-only)"

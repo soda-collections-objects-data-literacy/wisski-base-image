@@ -1,8 +1,9 @@
-ARG DRUPAL_VERSION=11.3.1-php8.3-fpm-bookworm
+# Declare build arguments for use outside of build stage.
+ARG DRUPAL_VERSION=php8.3-fpm-bookworm
 
 FROM drupal:${DRUPAL_VERSION}
 
-# Redeclare build arguments for use in build stage
+# Declare build arguments for use in build stage.
 ARG MODE=production
 
 # Install apts
@@ -40,6 +41,7 @@ RUN apt-get update; \
     openjdk-17-jdk \
     nginx \
     redis-server \
+    rsync \
     sendmail \
     unzip \
     vim \
@@ -157,9 +159,21 @@ RUN mkdir -p /var/private-files
 # Create composer home directory for www-data user
 RUN mkdir -p /var/composer-home
 
+# Ensure configs directory is writable by the runtime user.
+RUN chown -R www-data:www-data /var/configs \
+    && chmod -R 775 /var/configs
+
+# Ensure private files directory is writable by the runtime user.
+RUN chown -R www-data:www-data /var/private-files \
+    && chmod -R 775 /var/private-files
+
 # Ensure Composer cache directory is writable by the runtime user.
 RUN chown -R www-data:www-data /var/composer-home \
     && chmod -R 775 /var/composer-home
+
+# Ensure Drupal root directory is writable by the runtime user.
+RUN chown -R www-data:www-data /opt/drupal \
+    && chmod -R 775 /opt/drupal
 
 # Disable Git "dubious ownership" checks inside the container.
 RUN git config --system --add safe.directory '*'
