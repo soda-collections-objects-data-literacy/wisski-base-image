@@ -50,7 +50,8 @@ REQUIRED_VARS=(
   "DRUPAL_PASSWORD"
   "DRUPAL_PRIVATE_FILES_DIR"
   "DRUPAL_SITE_NAME"
-  "DRUPAL_TRUSTED_HOST"
+  "DRUPAL_PROXY_ADDRESSES"
+  "DRUPAL_TRUSTED_HOSTS"
   "DRUPAL_USER"
   "REDIS_HOST"
   "REDIS_PORT"
@@ -149,10 +150,10 @@ else
     exit 1
   fi
 
-  if [ -n "${DRUPAL_TRUSTED_HOST}" ]; then
+  if [ -n "${DRUPAL_TRUSTED_HOSTS}" ]; then
     # Convert pipe-delimited patterns to PHP array format with double quotes.
     # Input: "pattern1|pattern2|pattern3" → Output: ["pattern1", "pattern2", "pattern3"]
-    PATTERNS=$(printf '%s' "${DRUPAL_TRUSTED_HOST}" | sed 's/|/", "/g')
+    PATTERNS=$(printf '%s' "${DRUPAL_TRUSTED_HOSTS}" | sed 's/|/", "/g')
     printf '%s\n' "\$settings['trusted_host_patterns'] = [\"${PATTERNS}\"];" >> "${SETTINGS_FILE}"
   fi
   echo -e "\033[0;32mTRUSTED HOST SETTINGS SET.\033[0m\n"
@@ -368,6 +369,23 @@ EOF
       echo -e "\033[0;32mRedis integration configured successfully!\033[0m"
     fi
     echo -e "\033[0;32mREDIS INTEGRATION CONFIGURED.\033[0m\n"
+  fi
+
+  # Set proxy settings (if we are in a proxy environment)
+  if [ -n "${DRUPAL_PROXY_ADDRESSES}" ]; then
+    echo -e "\033[0;33mSETTING PROXY SETTINGS.\033[0m"
+    {
+      cat >> "$SETTINGS_FILE" << 'EOF'
+      $settings["reverse_proxy"] = TRUE;
+      $settings["reverse_proxy_trusted_headers"] = \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO;
+      $settings['omit_vary_cookie'] = TRUE;
+EOF
+    ADDRESSES=$(printf '%s' "${DRUPAL_PROXY_ADDRESSES}" | sed 's/|/", "/g')
+    printf '%s\n' "\$settings['reverse_proxy_addresses'] = [\"${ADDRESSES}\"];" >> "${SETTINGS_FILE}"
+    } 1> /dev/null
+    echo -e "\033[0;32mPROXY SETTINGS SET.\033[0m\n"
+  else
+    echo -e "\033[0;33mNO PROXY SETTINGS SET.\033[0m\n"
   fi
 
   # Set secure permissions following Drupal security guidelines.

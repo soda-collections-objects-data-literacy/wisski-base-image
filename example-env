@@ -1,5 +1,6 @@
-#General settings
-MODE=development
+# General settings
+MODE=production
+SERVICE_NAME=wisski-base-stack
 USER_GROUPS=
 
 # Database settings
@@ -14,17 +15,21 @@ DB_USER=drupal
 DRUPAL_DOMAIN=localhost
 DRUPAL_LOCALE=en
 DRUPAL_PASSWORD=also_change_me
-# When outside /opt/drupal/, ensure existence and permissions
-DRUPAL_PRIVATE_FILES_DIR=/opt/drupal/private_files
+# Seperated by | for multiple addresses
+# 172.18.0.0/16|172.19.0.0/16 for docker/traffic routing
+# 10.0.0.0/8 for kubernetes/traffic routing
+DRUPAL_PROXY_ADDRESSES=
 DRUPAL_SITE_NAME=My WissKI
-DRUPAL_TRUSTED_HOST='^localhost$|^127\.0\.0\.1$'
+# Seperated by | for multiple addresses
+DRUPAL_TRUSTED_HOSTS='^localhost$|^127\.0\.0\.1$'
 DRUPAL_USER=admin
-DRUPAL_VERSION=php8.3-fpm-bookworm
 
-
+# Redis settings
+REDIS_HOST=redis
+REDIS_PORT=6379
 
 # WissKI settings
-# For a full list of flavours see: TODO: add the link
+# For a full list of WissKI recipe versions see: https://packagist.org/packages/soda-collection-objects-data-literacy/wisski_recipe_base
 WISSKI_DEFAULT_GRAPH=http://my.graph/contents/
 WISSKI_STARTER_VERSION=1.x-dev
 WISSKI_DEFAULT_DATA_MODEL_VERSION=1.x-dev
@@ -43,4 +48,3 @@ OPENID_CONNECT_CLIENT_SECRET=
 KEYCLOAK_ADMIN_GROUP=
 KEYCLOAK_REALM=
 KEYCLOAK_USER_GROUP=
-
