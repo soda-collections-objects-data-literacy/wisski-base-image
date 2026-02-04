@@ -16,7 +16,7 @@ DRUPAL_DOMAIN=localhost
 DRUPAL_LOCALE=en
 DRUPAL_PASSWORD=also_change_me
 # Seperated by | for multiple addresses
-# 172.18.0.0/16|172.19.0.0/16 for docker/traffic routing
+# '172.18.0.0/16|172.19.0.0/16' for docker/traffic routing
 # 10.0.0.0/8 for kubernetes/traffic routing
 DRUPAL_PROXY_ADDRESSES=
 DRUPAL_SITE_NAME=My WissKI
