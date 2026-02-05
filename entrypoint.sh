@@ -243,7 +243,7 @@ EOF
     # Set OpenID Connect settings.
     echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
     {
-      drush openid-connect:create-client 'SCS SSO' 'SODA SCS Client' generic --client-id=${DRUPAL_SITE_NAME} --client-secret=${OPENID_CONNECT_CLIENT_SECRET} --allowed-domains=* --use-well-known=0 --authorization-endpoint=https://auth.scs.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth --token-endpoint=https://auth.scs.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token --userinfo-endpoint=https://auth.scs.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo --end-session-endpoint=https://auth.scs.sammlungen.io/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout --scopes=openid,email,profile
+      drush openid-connect:create-client 'SCS SSO' 'SODA SCS Client' generic --client-id=${DRUPAL_SITE_NAME} --client-secret=${OPENID_CONNECT_CLIENT_SECRET} --allowed-domains=* --use-well-known=0 --authorization-endpoint=${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth --token-endpoint=${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token --userinfo-endpoint=${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo --end-session-endpoint=${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout --scopes=openid,email,profile
     } 1> /dev/null
     echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
     {
