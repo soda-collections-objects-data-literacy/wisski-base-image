@@ -288,7 +288,7 @@ EOF
     echo -e "\033[0;32mDEFAULT TRIPLESTORE ADAPTER INSTALLED.\033[0m\n"
 
     echo -e "\033[0;33mIMPORT WISSKI DEFAULT ONTOLOGY.\033[0m"
-    drush wisski-core:import-ontology --store='default' --ontology_url='https://wiss-ki.eu/ontology/default/2.1.0/' --reasoning
+    drush wisski-core:import-ontology --store='default' --ontology_url='https://wiss-ki.eu/ontology/default/2.3.0/' --reasoning
     echo -e "\033[0;32mWISSKI DEFAULT ONTOLOGY IMPORTED.\033[0m\n"
 
     # Apply WissKI Default Data Model recipe.
@@ -299,6 +299,17 @@ EOF
       drush recipe ../recipes/wisski_default_data_model
       drush wisski-core:recreate-menus
       drush cr
+      drush language-add de && drush locale-check && drush locale-update
+      drush php-eval "
+        \$source = new \Drupal\Core\Config\FileStorage('/opt/drupal/recipes/wisski_default_data_model/config/language/de');
+        \$langStorage = \Drupal::service('config.storage')->createCollection('language.de');
+        foreach (\$source->listAll() as \$name) {
+          \$langStorage->write(\$name, \$source->read(\$name));
+        }
+        "
+      drush cr
+
+
     echo -e "\033[0;32mWISSKI DEFAULT DATA MODEL RECIPE APPLIED.\033[0m\n"
 
     echo -e "\033[0;33mINSTALL ADDITIONAL LIBRARIES.\033[0m"
