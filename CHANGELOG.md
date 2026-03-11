@@ -1,4 +1,7 @@
 # Changelog
+### 2.1.0
+- Add german language support
+- Use WissKI Ontology 2.3.0
 
 ## 2.0.0
 ### Added
