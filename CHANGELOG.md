@@ -15,8 +15,8 @@
 - Update `example-env` documentation for `DRUPAL_PROXY_ADDRESSES` format.
 
 ## 2.1.0
-- Add german language support
-- Use WissKI Ontology 2.3.0
+### Changed
+- Add proxy implementation and improve environment variable names.
 
 ## 2.0.0
 ### Added
