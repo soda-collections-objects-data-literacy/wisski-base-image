@@ -1,4 +1,8 @@
 # Changelog
+## 2.3.1
+### Fixed
+- Disable provenance attestations in CI build to fix "no matching manifest for linux/arm64/v8" on Apple Silicon. Provenance creates OCI index manifests that GHCR and some Docker clients cannot resolve for arm64.
+
 ## 2.3.0
 ### Added
 - Add German language support with locale config import.

@@ -54,3 +54,4 @@ jobs:
           platforms: ${{ env.PLATFORMS }}
           pull: true
           push: true
+          provenance: false
