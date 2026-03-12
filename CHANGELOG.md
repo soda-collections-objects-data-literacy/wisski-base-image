@@ -1,5 +1,20 @@
 # Changelog
-### 2.1.0
+## 2.3.0
+### Added
+- Add German language support with locale config import.
+### Changed
+- Update WissKI default ontology to 2.3.0.
+- Remove `DRUPAL_PROXY_ADDRESSES` from required environment variables.
+
+## 2.2.0
+### Added
+- Add `KEYCLOAK_URL` environment variable for configurable OpenID Connect auth URL.
+### Changed
+- Use fixed "admin" as default Drupal admin account name instead of `DRUPAL_USER`.
+- Correct OpenID Connect auth URL to use `auth.scs.sammlungen.io` subdomain.
+- Update `example-env` documentation for `DRUPAL_PROXY_ADDRESSES` format.
+
+## 2.1.0
 - Add german language support
 - Use WissKI Ontology 2.3.0
 
