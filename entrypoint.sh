@@ -64,6 +64,25 @@ REQUIRED_VARS=(
   "WISSKI_DEFAULT_DATA_MODEL_VERSION"
 )
 
+# Versions of the modules to install.
+if [ "${MODE}" = "development" ]; then
+  DEVEL_VERSION='5.x-dev'
+  HEALTH_CHECK_VERSION='3.x-dev'
+  OPENID_CONNECT_VERSION='dev-3516375-implement-drush-commands'
+  SSO_BOUNCER_VERSION='1.x-dev'
+  NEXTCLOUD_WEBDAV_MOUNT_VERSION='1.x-dev'
+  REDIS_VERSION='1.x-dev'
+  WISSKI_STARTER_VERSION='1.x-dev'
+  WISSKI_DEFAULT_DATA_MODEL_VERSION='1.x-dev'
+else
+  DEVEL_VERSION='^5.5'
+  HEALTH_CHECK_VERSION='^3.1'
+  NEXTCLOUD_WEBDAV_MOUNT_VERSION='^1.1'
+  OPENID_CONNECT_VERSION='dev-3516375-implement-drush-commands'
+  REDIS_VERSION='^1.11'
+  SSO_BOUNCER_VERSION='^1.0'
+fi
+
 MISSING_VARS=()
 
 for var in "${REQUIRED_VARS[@]}"; do
@@ -220,7 +239,7 @@ EOF
   # Install development modules.
   echo -e "\033[0;33mINSTALL DEVELOPMENT MODULES.\033[0m"
     {
-    composer require 'drupal/devel:^5.5'
+    composer require "drupal/devel:${DEVEL_VERSION}"
     drush en devel -y
   } 1> /dev/null
   echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
@@ -228,7 +247,7 @@ EOF
   # Install health check modules.
   echo -e "\033[0;33mINSTALL HEALTH CHECK MODULES.\033[0m"
   {
-    composer require 'drupal/health_check:^3.1'
+    composer require "drupal/health_check:${HEALTH_CHECK_VERSION}"
     drush en health_check -y
   } 1> /dev/null
   echo -e "\033[0;32mHEALTH CHECK MODULES INSTALLED.\033[0m\n"
@@ -276,21 +295,27 @@ EOF
 
     echo -e "\033[0;33mINSTALL AND ENABLE SSO BOUNCER.\033[0m"
     {
-      composer require 'drupal/sso_bouncer:^1.0'
+      composer require "drupal/sso_bouncer:${SSO_BOUNCER_VERSION}"
       drush en sso_bouncer -y
       drush sso_bouncer:enable ${DRUPAL_SITE_NAME}
     } 1> /dev/null
     echo -e "\033[0;32mSSO BOUNCER ENABLED.\033[0m\n"
+
+  else
+    echo -e "\033[0;33mOPENID CONNECTION SKIPPED\033[0m\n"
   fi
 
   # Install nextcloud webdav mount module.
-  if [ -n "${NEXTCLOUD_BASE_URL}" && -n "${NEXTCLOUD_LOGIN_NAME}" && -n "${NEXTCLOUD_APP_PASSWORD}" ]; then
+  if [[ -n "${NEXTCLOUD_BASE_URL}" && -n "${NEXTCLOUD_LOGIN_NAME}" && -n "${NEXTCLOUD_APP_PASSWORD}" ]]; then
     echo -e "\033[0;33mINSTALL AND ENABLE NEXTCLOUD CLIENT MODULE.\033[0m"
     {
-      composer require 'drupal/nextcloud_webdav_mount:^1.1'
+      composer require "drupal/nextcloud_webdav_mount:${NEXTCLOUD_WEBDAV_MOUNT_VERSION}"
       drush en nextcloud_webdav_mount -y
+      drush nc-config --server-url=${NEXTCLOUD_BASE_URL} --webdav-path=/remote.php/dav/files/{username}/ --operation-mode=sync --sync-direction=bisync --sync-interval=3600 --enable-log=0
     } 1> /dev/null
     echo -e "\033[0;32mNEXTCLOUD MOUNT MODULE INSTALLED.\033[0m\n"
+  else
+    echo -e "\033[0;33mNEXTCLOUD CONNECTION SKIPPED\033[0m\n"
   fi
 
   # Apply WissKI Starter recipe.
@@ -303,7 +328,8 @@ EOF
       drush recipe ../recipes/wisski_starter
       drush cr
     echo -e "\033[0;32mWISSKI STARTER RECIPE APPLIED.\033[0m\n"
-
+  else
+    echo -e "\033[0;33mWISSKI STARTER RECIPE SKIPPED\033[0m\n"
   fi
   if [ -n "${WISSKI_DEFAULT_DATA_MODEL_VERSION}" ]; then
     RECIPE_USED=true;
@@ -352,8 +378,21 @@ EOF
       drush config-set wisski_iip_image.wisski_iiif_settings iiif_server "${DOMAIN}/fcgi-bin/iipsrv.fcgi?IIIF="
       echo -e "\033[0;32mIIIF configs set.\033[0m\n"
     echo -e "\033[0;32mADDITIONAL LIBRARIES INSTALLED.\033[0m\n"
+  else
+    echo -e "\033[0;33mWISSKI DEFAULT DATA MODEL RECIPE SKIPPED\033[0m\n"
 
   fi
+
+  # Set IMCE profiles (after recipes, when IMCE may be installed)
+  echo -e "\033[0;33mSET IMCE PROFILES.\033[0m"
+  {
+    drush config-set imce.settings roles_profiles.authenticated.public member -y
+    drush config-set imce.settings roles_profiles.authenticated.private member -y
+    drush config-set imce.settings roles_profiles.administrator.public admin -y
+    drush config-set imce.settings roles_profiles.administrator.private admin -y
+    drush config-set --input-format=yaml imce.profile.member conf.folders '[{path: "users/user[user:name]", permissions: {all: true}}]' -y
+  } 1> /dev/null
+  echo -e "\033[0;32mIMCE PROFILES SET.\033[0m\n"
 
   if [ "$RECIPE_USED" = true ]; then
     # Unpack recipes.
@@ -373,7 +412,7 @@ EOF
     if [ ! -d "/opt/drupal/web/modules/contrib/redis" ]; then
       echo -e "\033[0;33mInstalling Redis module via Composer...\033[0m"
       cd /opt/drupal
-      composer require 'drupal/redis:^1.11' --no-interaction || true
+      composer require "drupal/redis:${REDIS_VERSION}" --no-interaction || true
       drush en redis -y
       echo -e "\033[0;32mRedis module installed.\033[0m\n"
     fi
@@ -409,6 +448,8 @@ EOF
       echo -e "\033[0;32mRedis integration configured successfully!\033[0m"
     fi
     echo -e "\033[0;32mREDIS INTEGRATION CONFIGURED.\033[0m\n"
+  else
+    echo -e "\033[0;33mREDIS INTEGRATION SKIPPED\033[0m\n"
   fi
 
   # Set proxy settings (if we are in a proxy environment)
