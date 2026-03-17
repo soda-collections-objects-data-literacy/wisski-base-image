@@ -220,16 +220,18 @@ EOF
   # Install development modules.
   echo -e "\033[0;33mINSTALL DEVELOPMENT MODULES.\033[0m"
     {
-    # Drush command for openid_connect is not implement in main branch yet, so we have to use the fork.
-    # Use the fork of openid_connect with drush commands implementation.
-    # Need WissKI User Administration module, to check if keycloak groups are matching.
-    composer config repositories.openid_connect-3516375 vcs https://git.drupalcode.org/issue/openid_connect-3516375.git
-
-    composer require 'drupal/automatic_updates:^4.0' 'drupal/devel:^5.5' 'drupal/health_check:^3.1' 'drupal/project_browser:^2.1' 'drupal/redis:^1.11' 'drupal/sso_bouncer:^1.0'
-    composer require 'drupal/openid_connect:dev-3516375-implement-drush-commands' --prefer-source
-    drush en devel health_check project_browser automatic_updates openid_connect sso_bouncer redis -y
+    composer require 'drupal/devel:^5.5'
+    drush en devel -y
   } 1> /dev/null
   echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
+
+  # Install health check modules.
+  echo -e "\033[0;33mINSTALL HEALTH CHECK MODULES.\033[0m"
+  {
+    composer require 'drupal/health_check:^3.1'
+    drush en health_check -y
+  } 1> /dev/null
+  echo -e "\033[0;32mHEALTH CHECK MODULES INSTALLED.\033[0m\n"
 
   # Create WissKI User Role.
   echo -e "\033[0;33mCREATE WISSKI USER ROLE.\033[0m"
@@ -239,6 +241,18 @@ EOF
   echo -e "\033[0;32mWISSKI USER GROUP CREATED.\033[0m\n"
 
   if [ "${OPENID_CONNECT_CLIENT_SECRET}" != "" ]; then
+    echo -e "\033[0;33mINSTALLING OPENID CONNECT MODULE.\033[0m"
+    {
+      # Drush command for openid_connect is not implement in main branch yet, so we have to use the fork.
+    # Use the fork of openid_connect with drush commands implementation.
+    # Need WissKI User Administration module, to check if keycloak groups are matching.
+    composer config repositories.openid_connect-3516375 vcs https://git.drupalcode.org/issue/openid_connect-3516375.git
+
+    composer require 'drupal/openid_connect:dev-3516375-implement-drush-commands' --prefer-source
+    drush en openid_connect -y
+    } 1> /dev/null
+    echo -e "\033[0;32mOPENID CONNECT MODULE INSTALLED.\033[0m\n"
+
     # Set OpenID Connect settings.
     echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
     {
@@ -260,11 +274,23 @@ EOF
 
     echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
 
-    echo -e "\033[0;33mENABLE SSO BOUNCER.\033[0m"
+    echo -e "\033[0;33mINSTALL AND ENABLE SSO BOUNCER.\033[0m"
     {
+      composer require 'drupal/sso_bouncer:^1.0'
+      drush en sso_bouncer -y
       drush sso_bouncer:enable ${DRUPAL_SITE_NAME}
     } 1> /dev/null
     echo -e "\033[0;32mSSO BOUNCER ENABLED.\033[0m\n"
+  fi
+
+  # Install nextcloud webdav mount module.
+  if [ -n "${NEXTCLOUD_BASE_URL}" && -n "${NEXTCLOUD_LOGIN_NAME}" && -n "${NEXTCLOUD_APP_PASSWORD}" ]; then
+    echo -e "\033[0;33mINSTALL AND ENABLE NEXTCLOUD CLIENT MODULE.\033[0m"
+    {
+      composer require 'drupal/nextcloud_webdav_mount:^1.1'
+      drush en nextcloud_webdav_mount -y
+    } 1> /dev/null
+    echo -e "\033[0;32mNEXTCLOUD MOUNT MODULE INSTALLED.\033[0m\n"
   fi
 
   # Apply WissKI Starter recipe.
@@ -337,6 +363,8 @@ EOF
   fi
 
 
+
+
   # Configure Redis for existing installation.
   if [ -n "${REDIS_HOST}" ]; then
     echo -e "\033[0;33mCONFIGURING REDIS INTEGRATION.\033[0m"
@@ -345,7 +373,9 @@ EOF
     if [ ! -d "/opt/drupal/web/modules/contrib/redis" ]; then
       echo -e "\033[0;33mInstalling Redis module via Composer...\033[0m"
       cd /opt/drupal
-      composer require 'drupal/redis:^1.10' --no-interaction || true
+      composer require 'drupal/redis:^1.11' --no-interaction || true
+      drush en redis -y
+      echo -e "\033[0;32mRedis module installed.\033[0m\n"
     fi
 
     # Add Redis settings include if not already present.

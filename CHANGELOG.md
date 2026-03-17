@@ -1,4 +1,15 @@
 # Changelog
+
+## 2.x
+
+### Added
+- Add Nextcloud WebDAV mount and sync support via environment variables (`NEXTCLOUD_BASE_URL`, `NEXTCLOUD_LOGIN_NAME`, `NEXTCLOUD_APP_PASSWORD`) and service integration.
+
+### Changed
+- Remove shared volume (`scs--shared-data`) dependency; private files now use Nextcloud WebDAV mount instead.
+
+### Fixed
+
 ## 2.3.1
 ### Fixed
 - Disable provenance attestations in CI build to fix "no matching manifest for linux/arm64/v8" on Apple Silicon. Provenance creates OCI index manifests that GHCR and some Docker clients cannot resolve for arm64.
@@ -17,6 +28,14 @@
 - Use fixed "admin" as default Drupal admin account name instead of `DRUPAL_USER`.
 - Correct OpenID Connect auth URL to use `auth.scs.sammlungen.io` subdomain.
 - Update `example-env` documentation for `DRUPAL_PROXY_ADDRESSES` format.
+
+## 2.1.2
+### Changed
+- Use fixed "admin" as default Drupal admin account name instead of `DRUPAL_USER`.
+
+## 2.1.1
+### Changed
+- Correct OpenID Connect auth URL to use `auth.scs.sammlungen.io` subdomain.
 
 ## 2.1.0
 ### Changed
