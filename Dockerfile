@@ -41,7 +41,9 @@ RUN apt-get update; \
     openjdk-17-jdk \
     nginx \
     redis-server \
+    rclone \
     rsync \
+    fuse3 \
     sendmail \
     unzip \
     vim \
