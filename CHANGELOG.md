@@ -3,6 +3,14 @@
 ## 2.x
 
 ### Added
+
+### Changed
+
+### Fixed
+
+## 2.4.0
+
+### Added
 - Add `rclone` and `fuse3` packages to Dockerfile for Nextcloud WebDAV mount support.
 - Add Nextcloud WebDAV mount and sync support via environment variables (`NEXTCLOUD_BASE_URL`, `NEXTCLOUD_LOGIN_NAME`, `NEXTCLOUD_APP_PASSWORD`) and service integration.
 - Add IMCE profile configuration in entrypoint: roles_profiles (authenticated/administrator → member/admin for public/private), member profile folders path `users/user[user:name]` with full permissions.
