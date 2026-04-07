@@ -77,7 +77,7 @@ if [ "${MODE}" = "development" ]; then
 else
   DEVEL_VERSION='^5.5'
   HEALTH_CHECK_VERSION='^3.1'
-  NEXTCLOUD_WEBDAV_MOUNT_VERSION='^1.2'
+  NEXTCLOUD_WEBDAV_MOUNT_VERSION='^1.3'
   OPENID_CONNECT_VERSION='dev-3516375-implement-drush-commands'
   REDIS_VERSION='^1.11'
   SSO_BOUNCER_VERSION='^1.0'
@@ -311,7 +311,7 @@ EOF
     {
       composer require "drupal/nextcloud_webdav_mount:${NEXTCLOUD_WEBDAV_MOUNT_VERSION}"
       drush en nextcloud_webdav_mount -y
-      drush nc-config --server-url=${NEXTCLOUD_BASE_URL} --webdav-path=/remote.php/dav/files/{username}/ --operation-mode=sync --sync-direction=bisync --sync-interval=3600 --enable-log=0
+      drush nc-config --server-url=${NEXTCLOUD_BASE_URL} --webdav-path=/remote.php/dav/files/{username}/ --operation-mode=sync --sync-direction=bisync --remote-path=SCS-Share --sync-interval=3600 --enable-log=0
     } 1> /dev/null
     echo -e "\033[0;32mNEXTCLOUD MOUNT MODULE INSTALLED.\033[0m\n"
   else
