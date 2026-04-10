@@ -8,6 +8,19 @@
 
 ### Fixed
 
+## 2.5.0
+
+### Added
+
+- Home page
+- Menu links for browse and create base entities.
+- Module "Single Entity Sync".
+- Deactivate native WissKI menus find, navigate, and create.
+
+### Changed
+
+### Fixed
+
 ## 2.4.0
 
 ### Added
