@@ -290,6 +290,8 @@ EOF
     echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
     {
       drush config-set openid_connect.settings user_login_display above
+      drush config-set openid_connect.settings redirect_login home
+      drush config-set openid_connect.settings redirect_logout home
       drush config-set openid_connect.settings override_registration_settings 1
     } 1> /dev/null
     echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
