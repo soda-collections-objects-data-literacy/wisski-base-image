@@ -68,10 +68,11 @@ REQUIRED_VARS=(
 if [ "${MODE}" = "development" ]; then
   DEVEL_VERSION='5.x-dev'
   HEALTH_CHECK_VERSION='3.x-dev'
-  OPENID_CONNECT_VERSION='dev-3516375-implement-drush-commands'
-  SSO_BOUNCER_VERSION='1.x-dev'
   NEXTCLOUD_WEBDAV_MOUNT_VERSION='1.x-dev'
+  OPENID_CONNECT_VERSION='dev-3516375-implement-drush-commands'
   REDIS_VERSION='1.x-dev'
+  SINGLE_CONTENT_SYNC_VERSION='1.4.x-dev'
+  SSO_BOUNCER_VERSION='1.x-dev'
   WISSKI_STARTER_VERSION='1.x-dev'
   WISSKI_DEFAULT_DATA_MODEL_VERSION='1.x-dev'
 else
@@ -80,6 +81,7 @@ else
   NEXTCLOUD_WEBDAV_MOUNT_VERSION='^1.4'
   OPENID_CONNECT_VERSION='dev-3516375-implement-drush-commands'
   REDIS_VERSION='^1.11'
+  SINGLE_CONTENT_SYNC_VERSION='^1.4'
   SSO_BOUNCER_VERSION='^1.0'
 fi
 
@@ -236,6 +238,14 @@ EOF
   } 1> /dev/null
   echo -e "\033[0;32mCOMPOSER ALLOWED TO UNPACK RECIPES.\033[0m\n"
 
+  # Install single content sync module.
+  echo -e "\033[0;33mINSTALL SINGLE CONTENT SYNC MODULE.\033[0m"
+  {
+    composer require "drupal/single_content_sync:${SINGLE_CONTENT_SYNC_VERSION}"
+    drush en single_content_sync -y
+  } 1> /dev/null
+  echo -e "\033[0;32mSINGLE CONTENT SYNC MODULE INSTALLED.\033[0m\n"
+
   # Install development modules.
   echo -e "\033[0;33mINSTALL DEVELOPMENT MODULES.\033[0m"
     {
@@ -345,12 +355,15 @@ EOF
 
     # Apply WissKI Default Data Model recipe.
     echo -e "\033[0;33mAPPLY WISSKI DATA DEFAULT MODEL RECIPE.\033[0m"
+      # Use the fork of conditional_fields with drush commands implementation.
       composer config repositories.1 git https://git.drupalcode.org/issue/conditional_fields-3495402.git
+      # Install the wisski_default_data_model module.
       composer require "drupal/wisski_default_data_model:${WISSKI_DEFAULT_DATA_MODEL_VERSION:-1.x-dev}"
       drush cr
       drush recipe ../recipes/wisski_default_data_model
       drush wisski-core:recreate-menus
-      drush cr
+
+      # Add German language and update translations.
       drush language-add de && drush locale-check && drush locale-update
       drush php-eval "
         \$source = new \Drupal\Core\Config\FileStorage('/opt/drupal/recipes/wisski_default_data_model/config/language/de');
@@ -359,8 +372,26 @@ EOF
           \$langStorage->write(\$name, \$source->read(\$name));
         }
         "
-      drush cr
 
+      # Download and set WissKI logo.
+      wget https://wiss-ki.eu/sites/default/files/example/wisski_logo.png -O /opt/drupal/web/sites/default/files/wisski_logo.png
+      # Import example contents.
+      curl -sSL 'https://wiss-ki.eu/example-contents' | curl -sS -w '\n%{http_code}\n' -X POST "${TS_WRITE_URL}" -H "Authorization: Token ${TS_TOKEN}" -H 'Content-Type: application/n-quads' --data-binary @-
+
+      # Import example contents.
+      drush content:import ../recipes/wisski_default_data_model/content/content.zip
+      # Disable WissKI main menu links (menu: main). Config stores encoded keys (dots -> __); use the API.
+      # Create  main  wisski.create_entities | Navigate  main  wisski.browse_entities | Find  main  wisski.search_entities
+      drush php-eval "
+        \$o = \\Drupal::service('menu_link.static.overrides');
+        foreach (['wisski.create_entities', 'wisski.browse_entities', 'wisski.search_entities'] as \$id) {
+          \$o->saveOverride(\$id, ['enabled' => FALSE]);
+        }
+        "
+      # Set front page.
+      drush config:set system.site page.front /home -y
+      # Clear cache.
+      drush cr
 
     echo -e "\033[0;32mWISSKI DEFAULT DATA MODEL RECIPE APPLIED.\033[0m\n"
 
@@ -400,9 +431,6 @@ EOF
     composer drupal:recipe-unpack
     echo -e "\033[0;32mRECIPES UNPACKED.\033[0m\n"
   fi
-
-
-
 
   # Configure Redis for existing installation.
   if [ -n "${REDIS_HOST}" ]; then
