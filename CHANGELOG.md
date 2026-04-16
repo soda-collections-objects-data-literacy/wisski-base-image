@@ -8,6 +8,15 @@
 
 ### Fixed
 
+## 2.6.1
+
+### Added
+
+### Changed
+
+### Fixed
+- Translation import for every WissKI submodule
+
 ## 2.6.0
 
 ### Added
@@ -16,6 +25,7 @@
 - Menu links for browse and create base entities.
 - Module "Single Entity Sync".
 - Deactivate native WissKI menus find, navigate, and create.
+- Set config-set openid login and logout to /home
 
 ### Changed
 

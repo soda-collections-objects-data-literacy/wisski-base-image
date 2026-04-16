@@ -374,6 +374,10 @@ EOF
           \$langStorage->write(\$name, \$source->read(\$name));
         }
         "
+      
+      find /opt/drupal/web/modules/contrib/wisski -name '*.de.po' -type f -print0 | while IFS= read -r -d '' po; do
+        drush locale:import de "$po" --type=not-customized --override=all -y
+      done
 
       # Download and set WissKI logo.
       wget https://wiss-ki.eu/sites/default/files/example/wisski_logo.png -O /opt/drupal/web/sites/default/files/wisski_logo.png
