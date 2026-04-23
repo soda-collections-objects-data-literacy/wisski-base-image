@@ -8,6 +8,16 @@
 
 ### Fixed
 
+## 2.7.0
+
+### Added
+
+### Changed
+
+- Nextcloud Webdav Mount module version to 1.6.0
+
+### Fixed
+
 ## 2.6.1
 
 ### Added
