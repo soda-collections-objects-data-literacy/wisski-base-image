@@ -116,11 +116,19 @@ else
   echo -e "\033[0;33mADD GROUPS TO WWW-DATA USER.\033[0m"
 
   if [ -n "${USER_GROUPS}" ]; then
-    for group in $(echo ${USER_GROUPS} | tr ',' ' '); do
-      groupadd -g ${group} g_${group}
-      echo -e "\033[0;32mGROUP ${group} ADDED.\033[0m"
-      adduser www-data g_${group}
-      echo -e "\033[0;32mWWW-DATA USER ADDED TO GROUP ${group}.\033[0m"
+    for group in $(echo "${USER_GROUPS}" | tr ',' ' '); do
+      if getent group "g_${group}" >/dev/null 2>&1; then
+        echo -e "\033[0;33mGROUP g_${group} ALREADY EXISTS; SKIPPING groupadd.\033[0m"
+      else
+        groupadd -g "${group}" "g_${group}"
+        echo -e "\033[0;32mGROUP ${group} ADDED.\033[0m"
+      fi
+      if id -nG www-data | tr ' ' '\n' | grep -qFx "g_${group}"; then
+        echo -e "\033[0;33mWWW-DATA ALREADY IN GROUP g_${group}; SKIPPING adduser.\033[0m"
+      else
+        adduser www-data "g_${group}"
+        echo -e "\033[0;32mWWW-DATA USER ADDED TO GROUP ${group}.\033[0m"
+      fi
     done
   fi
   echo -e "\033[0;32mGROUPS ADDED TO WWW-DATA USER.\033[0m\n"
