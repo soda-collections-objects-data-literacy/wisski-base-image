@@ -8,6 +8,7 @@
 
 ### Fixed
 
+<<<<<<< HEAD
 ## 2.7.2
 
 ### Added
@@ -17,6 +18,8 @@
 ### Fixed
 - Removed example data cause it breaks ontological schema (Dimensions_Type = also in wisski example contents etc.)
 
+=======
+>>>>>>> e196c8bb8deedd218dcece9d7e67e02ee87cd1be
 ## 2.7.1
 
 ### Added
