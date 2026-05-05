@@ -274,21 +274,6 @@ EOF
   echo -e "\033[0;33mCREATE WISSKI USER ROLE.\033[0m"
   {
     drush role:create 'wisski_user' 'WissKI User' -y
-    drush role:perm:add 'wisski_user' 'access toolbar' -y
-    drush role:perm:add 'wisski_user' 'access navigate' -y
-    drush role:perm:add 'wisski_user' 'access create' -y
-    drush role:perm:add 'wisski_user' 'access find' -y
-    drush role:perm:add 'wisski_user' 'create any wisski content' -y
-    drush role:perm:add 'wisski_user' 'view any wisski content' -y
-    drush role:perm:add 'wisski_user' 'view published wisski content' -y
-    drush role:perm:add 'wisski_user' 'view own unpublished wisski content' -y
-    drush role:perm:add 'wisski_user' 'view other unpublished wisski content' -y
-    drush role:perm:add 'wisski_user' 'view wisski revisions' -y
-    drush role:perm:add 'wisski_user' 'revert wisski revisions' -y
-    drush role:perm:add 'wisski_user' 'edit any wisski content' -y
-    drush role:perm:add 'wisski_user' 'delete any wisski content' -y
-    drush role:perm:add 'wisski_user' 'access wisski manifests' -y
-    drush role:perm:add 'wisski_user' 'wisski_adapter_sparql11_pb.query' -y
   } 1> /dev/null
   echo -e "\033[0;32mWISSKI USER GROUP CREATED.\033[0m\n"
 
@@ -347,6 +332,7 @@ EOF
       composer require "drupal/nextcloud_webdav_mount:${NEXTCLOUD_WEBDAV_MOUNT_VERSION}"
       drush en nextcloud_webdav_mount -y
       drush nc-config --server-url=${NEXTCLOUD_BASE_URL} --webdav-path=/remote.php/dav/files/{username}/ --operation-mode=sync --sync-direction=bisync --remote-path=SCS-Share --sync-interval=3600 --enable-log=0
+
     } 1> /dev/null
     echo -e "\033[0;32mNEXTCLOUD MOUNT MODULE INSTALLED.\033[0m\n"
   else
@@ -375,7 +361,7 @@ EOF
     echo -e "\033[0;32mDEFAULT TRIPLESTORE ADAPTER INSTALLED.\033[0m\n"
 
     echo -e "\033[0;33mIMPORT WISSKI DEFAULT ONTOLOGY.\033[0m"
-    drush wisski-core:import-ontology --store='default' --ontology_url='https://wiss-ki.eu/ontology/default/2.3.0/' --reasoning
+    drush wisski-core:import-ontology --store='default' --ontology_url='https://wiss-ki.eu/ontology/default/2.4.0/' --reasoning
     echo -e "\033[0;32mWISSKI DEFAULT ONTOLOGY IMPORTED.\033[0m\n"
 
     # Apply WissKI Default Data Model recipe.
@@ -387,6 +373,8 @@ EOF
       drush cr
       drush recipe ../recipes/wisski_default_data_model
       drush wisski-core:recreate-menus
+
+      echo -e "\033[0;32mAdd German language and update translations.\033[0m\n"
 
       # Add German language and update translations.
       drush language-add de && drush locale-check && drush locale-update
@@ -402,26 +390,55 @@ EOF
         drush locale:import de "$po" --type=not-customized --override=all -y
       done
 
+      echo -e "\033[0;32mTRANSLATIONS UPDATED.\033[0m\n"
+
       # Download and set WissKI logo.
       #wget https://wiss-ki.eu/sites/default/files/example/wisski_logo.png -O /opt/drupal/web/sites/default/files/wisski_logo.png
       # Import example contents.
       #curl -sSL 'https://wiss-ki.eu/example-contents' | curl -sS -w '\n%{http_code}\n' -X POST "${TS_WRITE_URL}" -H "Authorization: Token ${TS_TOKEN}" -H 'Content-Type: application/n-quads' --data-binary @-
 
       # Import example contents.
-      #drush content:import ../recipes/wisski_default_data_model/content/content.zip
+      drush content:import ../recipes/wisski_default_data_model/content/content.zip
 
       # Disable WissKI main menu links (menu: main). Config stores encoded keys (dots -> __); use the API.
       # Create  main  wisski.create_entities | Navigate  main  wisski.browse_entities | Find  main  wisski.search_entities
+      echo -e "\033[0;33mDISABLE WISSKI MAIN MENU LINKS.\033[0m\n"
       drush php-eval "
         \$o = \\Drupal::service('menu_link.static.overrides');
         foreach (['wisski.create_entities', 'wisski.browse_entities', 'wisski.search_entities'] as \$id) {
           \$o->saveOverride(\$id, ['enabled' => FALSE]);
         }
         "
+      echo -e "\033[0;32mWISSKI MAIN MENU LINKS DISABLED.\033[0m\n"
+
+      echo -e "\033[0;33mSET FRONT PAGE.\033[0m\n"
       # Set front page.
       drush config:set system.site page.front /home -y
+      echo -e "\033[0;32mFRONT PAGE SET.\033[0m\n"
+
+      echo -e "\033[0;33mCLEAR CACHE.\033[0m\n"
       # Clear cache.
       drush cr
+      echo -e "\033[0;32mCACHE CLEARED.\033[0m\n"
+
+      echo -e "\033[0;32mGRANTING WISSKI USER PERMISSIONS.\033[0m\n"
+      # Grant WissKI user permissions.
+        drush role:perm:add 'wisski_user' 'access toolbar' -y
+        drush role:perm:add 'wisski_user' 'access navigate' -y
+        drush role:perm:add 'wisski_user' 'access create' -y
+        drush role:perm:add 'wisski_user' 'access find' -y
+        drush role:perm:add 'wisski_user' 'create any wisski content' -y
+        drush role:perm:add 'wisski_user' 'view any wisski content' -y
+        drush role:perm:add 'wisski_user' 'view published wisski content' -y
+        drush role:perm:add 'wisski_user' 'view own unpublished wisski content' -y
+        drush role:perm:add 'wisski_user' 'view other unpublished wisski content' -y
+        drush role:perm:add 'wisski_user' 'view wisski revisions' -y
+        drush role:perm:add 'wisski_user' 'revert wisski revisions' -y
+        drush role:perm:add 'wisski_user' 'edit any wisski content' -y
+        drush role:perm:add 'wisski_user' 'delete any wisski content' -y
+        drush role:perm:add 'wisski_user' 'access wisski manifests' -y
+        drush role:perm:add 'wisski_user' 'wisski_adapter_sparql11_pb.query' -y
+      echo -e "\033[0;32mWISSKI USER PERMISSIONS GRANTED.\033[0m\n"
 
     echo -e "\033[0;32mWISSKI DEFAULT DATA MODEL RECIPE APPLIED.\033[0m\n"
 
@@ -463,7 +480,7 @@ EOF
     composer drupal:recipe-unpack
     echo -e "\033[0;32mRECIPES UNPACKED.\033[0m\n"
   fi
-
+  
   # Configure Redis for existing installation.
   if [ -n "${REDIS_HOST}" ]; then
     echo -e "\033[0;33mCONFIGURING REDIS INTEGRATION.\033[0m"
