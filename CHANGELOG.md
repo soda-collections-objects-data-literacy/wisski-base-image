@@ -11,7 +11,9 @@
 
 ### Added
 - add specific permissions to wisski_user
+- add front page again
 ### Changed
+- update wisski ontology to 2.4.0
 
 ### Fixed
 
