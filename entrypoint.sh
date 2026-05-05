@@ -274,21 +274,21 @@ EOF
   echo -e "\033[0;33mCREATE WISSKI USER ROLE.\033[0m"
   {
     drush role:create 'wisski_user' 'WissKI User' -y
-    drush role:grant 'wisski_user' 'access toolbar' -y
-    drush role:grant 'wisski_user' 'access navigate' -y
-    drush role:grant 'wisski_user' 'access create' -y
-    drush role:grant 'wisski_user' 'access find' -y
-    drush role:grant 'wisski_user' 'create any wisski content' -y
-    drush role:grant 'wisski_user' 'view any wisski content' -y
-    drush role:grant 'wisski_user' 'view published wisski content' -y
-    drush role:grant 'wisski_user' 'view own unpublished wisski content' -y
-    drush role:grant 'wisski_user' 'view other unpublished wisski content' -y
-    drush role:grant 'wisski_user' 'view wisski revisions' -y
-    drush role:grant 'wisski_user' 'revert wisski revisions' -y
-    drush role:grant 'wisski_user' 'edit any wisski content' -y
-    drush role:grant 'wisski_user' 'delete any wisski content' -y
-    drush role:grant 'wisski_user' 'access wisski manifests' -y
-    drush role:grant 'wisski_user' 'wisski_adapter_sparql11_pb.query' -y
+    drush role:perm:add 'wisski_user' 'access toolbar' -y
+    drush role:perm:add 'wisski_user' 'access navigate' -y
+    drush role:perm:add 'wisski_user' 'access create' -y
+    drush role:perm:add 'wisski_user' 'access find' -y
+    drush role:perm:add 'wisski_user' 'create any wisski content' -y
+    drush role:perm:add 'wisski_user' 'view any wisski content' -y
+    drush role:perm:add 'wisski_user' 'view published wisski content' -y
+    drush role:perm:add 'wisski_user' 'view own unpublished wisski content' -y
+    drush role:perm:add 'wisski_user' 'view other unpublished wisski content' -y
+    drush role:perm:add 'wisski_user' 'view wisski revisions' -y
+    drush role:perm:add 'wisski_user' 'revert wisski revisions' -y
+    drush role:perm:add 'wisski_user' 'edit any wisski content' -y
+    drush role:perm:add 'wisski_user' 'delete any wisski content' -y
+    drush role:perm:add 'wisski_user' 'access wisski manifests' -y
+    drush role:perm:add 'wisski_user' 'wisski_adapter_sparql11_pb.query' -y
   } 1> /dev/null
   echo -e "\033[0;32mWISSKI USER GROUP CREATED.\033[0m\n"
 
