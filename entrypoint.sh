@@ -388,12 +388,13 @@ EOF
       done
 
       # Download and set WissKI logo.
-      wget https://wiss-ki.eu/sites/default/files/example/wisski_logo.png -O /opt/drupal/web/sites/default/files/wisski_logo.png
+      #wget https://wiss-ki.eu/sites/default/files/example/wisski_logo.png -O /opt/drupal/web/sites/default/files/wisski_logo.png
       # Import example contents.
-      curl -sSL 'https://wiss-ki.eu/example-contents' | curl -sS -w '\n%{http_code}\n' -X POST "${TS_WRITE_URL}" -H "Authorization: Token ${TS_TOKEN}" -H 'Content-Type: application/n-quads' --data-binary @-
+      #curl -sSL 'https://wiss-ki.eu/example-contents' | curl -sS -w '\n%{http_code}\n' -X POST "${TS_WRITE_URL}" -H "Authorization: Token ${TS_TOKEN}" -H 'Content-Type: application/n-quads' --data-binary @-
 
       # Import example contents.
-      drush content:import ../recipes/wisski_default_data_model/content/content.zip
+      #drush content:import ../recipes/wisski_default_data_model/content/content.zip
+
       # Disable WissKI main menu links (menu: main). Config stores encoded keys (dots -> __); use the API.
       # Create  main  wisski.create_entities | Navigate  main  wisski.browse_entities | Find  main  wisski.search_entities
       drush php-eval "

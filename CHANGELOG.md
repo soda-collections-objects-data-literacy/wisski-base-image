@@ -8,6 +8,16 @@
 
 ### Fixed
 
+## 2.7.1
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Error when restarting and group exists.
+
 ## 2.7.0
 
 ### Added
