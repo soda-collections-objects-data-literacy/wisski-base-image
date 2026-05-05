@@ -1,5 +1,4 @@
 # Changelog
-
 ## 2.x
 
 ### Added
@@ -8,7 +7,14 @@
 
 ### Fixed
 
-<<<<<<< HEAD
+## 2.8.0
+
+### Added
+- add specific permissions to wisski_user
+### Changed
+
+### Fixed
+
 ## 2.7.2
 
 ### Added
@@ -18,8 +24,6 @@
 ### Fixed
 - Removed example data cause it breaks ontological schema (Dimensions_Type = also in wisski example contents etc.)
 
-=======
->>>>>>> e196c8bb8deedd218dcece9d7e67e02ee87cd1be
 ## 2.7.1
 
 ### Added

@@ -274,6 +274,21 @@ EOF
   echo -e "\033[0;33mCREATE WISSKI USER ROLE.\033[0m"
   {
     drush role:create 'wisski_user' 'WissKI User' -y
+    drush role:grant 'wisski_user' 'access toolbar' -y
+    drush role:grant 'wisski_user' 'access navigate' -y
+    drush role:grant 'wisski_user' 'access create' -y
+    drush role:grant 'wisski_user' 'access find' -y
+    drush role:grant 'wisski_user' 'create any wisski content' -y
+    drush role:grant 'wisski_user' 'view any wisski content' -y
+    drush role:grant 'wisski_user' 'view published wisski content' -y
+    drush role:grant 'wisski_user' 'view own unpublished wisski content' -y
+    drush role:grant 'wisski_user' 'view other unpublished wisski content' -y
+    drush role:grant 'wisski_user' 'view wisski revisions' -y
+    drush role:grant 'wisski_user' 'revert wisski revisions' -y
+    drush role:grant 'wisski_user' 'edit any wisski content' -y
+    drush role:grant 'wisski_user' 'delete any wisski content' -y
+    drush role:grant 'wisski_user' 'access wisski manifests' -y
+    drush role:grant 'wisski_user' 'wisski_adapter_sparql11_pb.query' -y
   } 1> /dev/null
   echo -e "\033[0;32mWISSKI USER GROUP CREATED.\033[0m\n"
 
@@ -436,6 +451,8 @@ EOF
     drush config-set imce.settings roles_profiles.authenticated.private member -y
     drush config-set imce.settings roles_profiles.administrator.public admin -y
     drush config-set imce.settings roles_profiles.administrator.private admin -y
+    drush config-set imce.settings roles_profiles.wisski_user.public member -y
+    drush config-set imce.settings roles_profiles.wisski_user.private member -y
     drush config-set --input-format=yaml imce.profile.member conf.folders '[{path: "users/user[user:name]", permissions: {all: true}}]' -y
   } 1> /dev/null
   echo -e "\033[0;32mIMCE PROFILES SET.\033[0m\n"
