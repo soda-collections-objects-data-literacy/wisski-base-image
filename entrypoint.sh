@@ -103,6 +103,12 @@ fi
 
 echo -e "\033[0;32mALL REQUIRED ENVIRONMENT VARIABLES ARE SET.\033[0m\n"
 
+if [ "${MODE}" = "development" ]; then
+  echo -e "\033[0;33mENVIRONMENT VARIABLES:\033[0m"
+  env | sort
+  echo
+fi
+
 # Check if Drupal is already installed.
 echo -e "\033[0;33mCHECKING IF DRUPAL IS ALREADY INSTALLED.\033[0m"
 if [ -f "$SETTINGS_FILE" ]; then
@@ -453,7 +459,7 @@ EOF
       drush colorbox:dompurify
       echo -e "\033[0;32mDomPurify integration library downloaded.\033[0m\n"
       echo -e "\033[0;33mSet IIIF configs.\033[0m"
-      drush config-set wisski_iip_image.wisski_iiif_settings iiif_server "${DOMAIN}/fcgi-bin/iipsrv.fcgi?IIIF="
+      drush config-set wisski_iip_image.wisski_iiif_settings iiif_server "${DRUPAL_DOMAIN}/fcgi-bin/iipsrv.fcgi?IIIF="
       echo -e "\033[0;32mIIIF configs set.\033[0m\n"
     echo -e "\033[0;32mADDITIONAL LIBRARIES INSTALLED.\033[0m\n"
   else

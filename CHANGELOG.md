@@ -7,6 +7,14 @@
 
 ### Fixed
 
+## 2.9.0
+
+### Added
+- added echo of env vars in development mode.
+### Changed
+
+### Fixed
+
 ## 2.8.1
 
 ### Added
