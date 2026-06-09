@@ -367,7 +367,7 @@ EOF
     echo -e "\033[0;32mDEFAULT TRIPLESTORE ADAPTER INSTALLED.\033[0m\n"
 
     echo -e "\033[0;33mIMPORT WISSKI DEFAULT ONTOLOGY.\033[0m"
-    drush wisski-core:import-ontology --store='default' --ontology_url='https://wiss-ki.eu/ontology/default/2.4.0/' --reasoning
+    drush wisski-core:import-ontology --store='default' --ontology_url='https://wiss-ki.eu/ontology/default/2.5.0/' --reasoning
     echo -e "\033[0;32mWISSKI DEFAULT ONTOLOGY IMPORTED.\033[0m\n"
 
     # Apply WissKI Default Data Model recipe.

@@ -7,6 +7,15 @@
 
 ### Fixed
 
+## 2.10.0
+
+### Added
+
+### Changed
+- Update to WissKI Default Ontology 2.5.0
+
+### Fixed
+
 ## 2.9.0
 
 ### Added
