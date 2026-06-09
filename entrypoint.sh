@@ -581,7 +581,7 @@ start_iipsrv() {
   export MEMCACHED_SERVERS="localhost"
   local bindAddress="127.0.0.1"
   local bindPort="9100"
-  su -s /bin/bash -c "/fcgi-bin/iipsrv.fcgi --bind ${bindAddress} --port ${bindPort} &" www-data
+  su -s /bin/bash -c "/fcgi-bin/iipsrv.fcgi --bind ${bindAddress}:${bindPort} &" www-data
   echo -e "\033[0;32mIIPImage server started on ${bindAddress}:${bindPort}.\033[0m"
 }
 
