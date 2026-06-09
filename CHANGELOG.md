@@ -7,6 +7,15 @@
 
 ### Fixed
 
+## 2.8.1
+
+### Added
+
+### Changed
+
+### Fixed
+- fix wrong port binding of iipsrv by using the combined TCP bind format.
+
 ## 2.8.0
 
 ### Added
