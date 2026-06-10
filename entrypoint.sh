@@ -336,7 +336,7 @@ EOF
     # Set OpenID Connect settings.
     echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
     {
-      drush openid-connect:create-client 'SCS SSO' 'SODA SCS Client' generic --client-id="${DRUPAL_SITE_NAME}" --client-secret="${OPENID_CONNECT_CLIENT_SECRET}" --allowed-domains='*' --use-well-known=0 --authorization-endpoint="${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth" --token-endpoint="${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token" --userinfo-endpoint="${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo" --end-session-endpoint="${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout" --scopes=openid,email,profile
+      drush openid-connect:create-client 'SCS SSO' 'SODA SCS Client' generic --client-id="${DRUPAL_SITE_NAME}" --client-secret="${OPENID_CONNECT_CLIENT_SECRET}" --allowed-domains='*' --use-well-known=0 --authorization-endpoint="${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth" --token-endpoint="${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token" --userinfo-endpoint="${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo" --end-session-endpoint="${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout" --scopes=openid,email,profile --prompt=login
     } 1> /dev/null
     echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
     {
@@ -503,7 +503,7 @@ EOF
       drush colorbox:dompurify
       echo -e "\033[0;32mDomPurify integration library downloaded.\033[0m\n"
       echo -e "\033[0;33mSet IIIF configs.\033[0m"
-      drush config-set wisski_iip_image.wisski_iiif_settings iiif_server "${DRUPAL_DOMAIN}/fcgi-bin/iipsrv.fcgi?IIIF="
+      drush config-set wisski_iip_image.wisski_iiif_settings iiif_server "https://${DRUPAL_DOMAIN}/fcgi-bin/iipsrv.fcgi?IIIF="
       echo -e "\033[0;32mIIIF configs set.\033[0m\n"
     echo -e "\033[0;32mADDITIONAL LIBRARIES INSTALLED.\033[0m\n"
   else
@@ -614,9 +614,24 @@ start_iipsrv() {
   export MEMCACHED_SERVERS="localhost"
   local bindAddress="127.0.0.1"
   local bindPort="9100"
-  su -s /bin/bash -c "/fcgi-bin/iipsrv.fcgi --bind ${bindAddress}:${bindPort} &" www-data
+  su -s /bin/bash www-data -c "exec /fcgi-bin/iipsrv.fcgi --bind ${bindAddress}:${bindPort}" &
   echo -e "\033[0;32mIIPImage server started on ${bindAddress}:${bindPort}.\033[0m"
 }
+
+shutdownServices() {
+  echo -e "\033[0;33mSHUTTING DOWN SERVICES...\033[0m"
+  if [ -n "${nginxPid:-}" ] && kill -0 "${nginxPid}" 2>/dev/null; then
+    nginx -s quit 2>/dev/null || kill -TERM "${nginxPid}" 2>/dev/null || true
+  fi
+  pkill -QUIT php-fpm 2>/dev/null || true
+  pkill -TERM memcached 2>/dev/null || true
+  pkill -TERM -f iipsrv.fcgi 2>/dev/null || true
+  wait 2>/dev/null || true
+  echo -e "\033[0;32mSERVICES STOPPED.\033[0m"
+  exit 0
+}
+
+trap shutdownServices TERM INT
 
 echo -e "\n"
 
@@ -624,5 +639,7 @@ start_php_fpm
 start_memcached
 start_iipsrv
 
-# Keep the container running with Nginx as the foreground process.
-exec nginx -g "daemon off;"
+# Run nginx in the foreground so SIGTERM can drain in-flight requests first.
+nginx -g "daemon off;" &
+nginxPid=$!
+wait "${nginxPid}"
