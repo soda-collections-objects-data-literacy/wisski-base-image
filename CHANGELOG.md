@@ -1,5 +1,14 @@
 # Changelog
+
 ## 2.x
+
+### Added
+
+### Changed
+
+### Fixed
+
+## 2.11.0
 
 ### Added
 - add install marker files (`.wisski-install-complete`, `.wisski-install-in-progress`) so a crashed first install fails loudly on restart instead of being silently treated as installed; existing installations are detected via `settings.php` and migrated automatically.
