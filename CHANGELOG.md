@@ -1,6 +1,13 @@
 # Changelog
 
-## 3.x
+## 3.x 
+### Changed
+
+### Added
+
+### Fixed
+
+## 3.0.0 [2026-06-10]
 
 ### Changed
 - rename Dockerfile build arg `DRUPAL_VERSION` to `DRUPAL_BASE_IMAGE_TAG` to avoid confusion with the upstream Drupal image `ENV DRUPAL_VERSION` (core semver).
