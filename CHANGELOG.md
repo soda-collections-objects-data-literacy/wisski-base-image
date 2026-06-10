@@ -2,10 +2,27 @@
 ## 2.x
 
 ### Added
+- add install marker files (`.wisski-install-complete`, `.wisski-install-in-progress`) so a crashed first install fails loudly on restart instead of being silently treated as installed; existing installations are detected via `settings.php` and migrated automatically.
+- add `HEALTHCHECK` (via health_check module endpoint) and `EXPOSE 80` to Dockerfile.
+- add tini as PID 1 for signal forwarding and zombie reaping.
+- add validation of triplestore credentials (either `TS_TOKEN` or both `TS_USERNAME` and `TS_PASSWORD`) and, when `OPENID_CONNECT_CLIENT_SECRET` is set, of `KEYCLOAK_URL`, `KEYCLOAK_REALM`, `KEYCLOAK_ADMIN_GROUP`, and `KEYCLOAK_USER_GROUP`.
 
 ### Changed
+- pin iipsrv build to release 1.3 (was untagged git master) with `make check`, and add `libwebp-dev` so WebP output and low-latency pass-through mode are compiled in.
+- change triplestore adapter creation to use token authentication only when `TS_TOKEN` is set, falling back to username/password otherwise.
+- change devel module to install and enable only in development mode (was enabled in production).
+- update apt install layer: drop unused packages (`apt-utils`, `iipimage-doc`, `iipimage-server`, `openjdk-17-jdk`, `redis-server`, duplicate `libtiff5-dev`), clean apt lists, and fail the build on `apt-get update` errors.
+- change Dockerfile to consolidate directory creation and recursive chown/chmod into single layers and run the `/opt/drupal` ownership pass once after drush install, reducing image size.
+- change `set-permissions.sh` to use `find ... -exec ... {} +` for much faster permission passes on first boot.
+- change database readiness check to pass the password via `MYSQL_PWD` instead of the command line.
+- quote all variable expansions in drush/composer calls (openid-connect, sso_bouncer, nextcloud, wisski-salz adapter) and `settings.php` appends.
 
 ### Fixed
+- fix invalid PHP fragment that the secondary Redis block could append to `settings.php` (missing comment markers); the block now only installs and enables the Redis module.
+- fix proxy settings append to write unindented, commented PHP to `settings.php`.
+- fix xdebug build step to fail the build on real errors instead of swallowing them with `|| true`, and remove leftover `/tmp/config` from the image.
+- fix unused `OPENID_CONNECT_VERSION` variable (the composer require now uses it) and remove redundant version fallbacks for `WISSKI_STARTER_VERSION` and `WISSKI_DEFAULT_DATA_MODEL_VERSION`.
+- fix iipsrv memcached caching: install `memcached` and `libmemcached-dev` (so iipsrv compiles with memcached support) and start a local memcached in the entrypoint; previously `MEMCACHED_SERVERS` pointed at a server that did not exist.
 
 ## 2.10.0
 

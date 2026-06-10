@@ -40,14 +40,14 @@ echo -e "\033[0;33m1. Setting ownership: ${WEB_USER}:${WEB_GROUP} for the entire
 chown -R ${WEB_USER}:${WEB_GROUP} "${DRUPAL_ROOT}"
 
 echo -e "\033[0;33m2. Setting base permissions (775/664) so www-data can write...\033[0m"
-find "${DRUPAL_ROOT}" -type d -exec chmod 775 {} \;
-find "${DRUPAL_ROOT}" -type f -exec chmod 664 {} \;
+find "${DRUPAL_ROOT}" -type d -exec chmod 775 {} +
+find "${DRUPAL_ROOT}" -type f -exec chmod 664 {} +
 
 # Common: Make vendor/bin executables executable
 echo -e "\033[0;33m2a. Making vendor/bin executables executable (755)...\033[0m"
 if [ -d "${DRUPAL_ROOT}/vendor/bin" ]; then
   # Make all files in vendor/bin executable (these are symlinks or wrappers)
-  find "${DRUPAL_ROOT}/vendor/bin" -type f -exec chmod 755 {} \;
+  find "${DRUPAL_ROOT}/vendor/bin" -type f -exec chmod 755 {} +
   echo -e "   - ${DRUPAL_ROOT}/vendor/bin: executables set to 755"
 
   # Find all actual executable files referenced by vendor/bin symlinks and make them executable
@@ -92,7 +92,7 @@ fi
 
 # Common: Protect .htaccess files
 echo -e "\033[0;33m4. Protecting .htaccess files (444)...\033[0m"
-find "${WEB_ROOT}" -name ".htaccess" -exec chmod 444 {} \;
+find "${WEB_ROOT}" -name ".htaccess" -exec chmod 444 {} +
 
 if [ -f "${WEB_ROOT}/robots.txt" ]; then
   chmod 444 "${WEB_ROOT}/robots.txt"
@@ -102,8 +102,8 @@ fi
 echo -e "\033[0;33m5. Making files directory writable (775/664)...\033[0m"
 if [ -d "${WEB_ROOT}/sites/default/files" ]; then
   chown -R ${WEB_USER}:${WEB_GROUP} "${WEB_ROOT}/sites/default/files"
-  find "${WEB_ROOT}/sites/default/files" -type d -exec chmod 775 {} \;
-  find "${WEB_ROOT}/sites/default/files" -type f -exec chmod 664 {} \;
+  find "${WEB_ROOT}/sites/default/files" -type d -exec chmod 775 {} +
+  find "${WEB_ROOT}/sites/default/files" -type f -exec chmod 664 {} +
   echo -e "   - ${WEB_ROOT}/sites/default/files: 775/664"
 fi
 
@@ -112,7 +112,7 @@ echo -e "\033[0;33m7. Making xdebug log directory writable (775/664)...\033[0m"
 if [ -d "/var/log/xdebug" ]; then
   chown -R ${WEB_USER}:${WEB_GROUP} "/var/log/xdebug"
   chmod 775 "/var/log/xdebug"
-  find "/var/log/xdebug" -type f -exec chmod 664 {} \;
+  find "/var/log/xdebug" -type f -exec chmod 664 {} +
   echo -e "   - /var/log/xdebug: ${WEB_USER}:${WEB_GROUP} 775/664"
 fi
 

@@ -7,16 +7,17 @@ FROM drupal:${DRUPAL_VERSION}
 ARG MODE=production
 
 # Install apts
+# Note: iipsrv is built from source below, Redis and the triplestore run in
+# separate containers, so no iipimage-server, redis-server, or JDK here.
 
-RUN apt-get update; \
+RUN set -eux; \
+    apt-get update; \
     apt-get install -y --no-install-recommends \
-    apt-utils \
     autoconf \
     automake \
     default-mysql-client \
+    fuse3 \
     git \
-    iipimage-doc \
-    iipimage-server \
     imagemagick \
     libaom3 \
     libavif-dev \
@@ -30,24 +31,25 @@ RUN apt-get update; \
     libonig-dev \
     libpng-dev \
     libpng16-16 \
+    libmemcached-dev \
     libpq-dev \
     libtiff-dev \
-    libtiff5-dev \
     libtool \
     libvips-dev \
     libvips-tools \
+    libwebp-dev \
     libzip-dev \
+    memcached \
     netcat-openbsd \
-    openjdk-17-jdk \
     nginx \
-    redis-server \
     rclone \
     rsync \
-    fuse3 \
     sendmail \
+    tini \
     unzip \
     vim \
-    wget;
+    wget; \
+    rm -rf /var/lib/apt/lists/*
 
 # Install apcu
 RUN set -eux; \
@@ -78,13 +80,18 @@ RUN set -eux; \
     pecl install redis-6.1.0; \
     docker-php-ext-enable redis;
 
-# Install iipsrv
+# Install iipsrv from the pinned 1.3 release (reproducible builds, pass-through
+# mode, AVIF/TIFF output). AVIF, WebP, and memcached support are detected at
+# configure time via libavif-dev, libwebp-dev, and libmemcached-dev.
+# See https://iipimage.sourceforge.io/2025/05/iipsrv-1-3.
+ARG IIPSRV_VERSION=iipsrv-1.3
 RUN set -eux; \
-    git clone https://github.com/ruven/iipsrv.git; \
+    git clone --depth 1 --branch "${IIPSRV_VERSION}" https://github.com/ruven/iipsrv.git; \
     cd iipsrv; \
     ./autogen.sh; \
     ./configure; \
     make; \
+    make check; \
     mkdir -p /fcgi-bin; \
     cp src/iipsrv.fcgi /fcgi-bin/iipsrv.fcgi; \
     chmod 755 /fcgi-bin/iipsrv.fcgi; \
@@ -130,12 +137,16 @@ COPY config/mysqli/zz-mysqli-recommended.ini /usr/local/etc/php/conf.d/zz-mysqli
 # Configure session
 COPY config/session/zz-session-recommended.ini /usr/local/etc/php/conf.d/zz-session-recommended.ini
 
-# Configure xdebug
-RUN mkdir -p /var/log/xdebug && chown www-data:www-data /var/log/xdebug
+# Configure xdebug (development mode only); clean up the temporary config copy afterwards.
 RUN set -eux; \
-    (([ "$MODE" = "development" ] && pecl install xdebug-3.4.3 && \
-    cp /tmp/config/xdebug/zz-xdebug.ini /usr/local/etc/php/conf.d/zz-xdebug.ini && \
-    docker-php-ext-enable xdebug) || true)
+    mkdir -p /var/log/xdebug; \
+    chown www-data:www-data /var/log/xdebug; \
+    if [ "$MODE" = "development" ]; then \
+    pecl install xdebug-3.4.3; \
+    cp /tmp/config/xdebug/zz-xdebug.ini /usr/local/etc/php/conf.d/zz-xdebug.ini; \
+    docker-php-ext-enable xdebug; \
+    fi; \
+    rm -rf /tmp/config
 
 # Prepare IIPImage log file
 RUN touch /var/log/iipsrv.log && chown www-data:www-data /var/log/iipsrv.log
@@ -152,30 +163,12 @@ RUN mkdir -p /run/php && \
     echo 'listen.group = www-data' >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
     echo 'listen.mode = 0660' >> /usr/local/etc/php-fpm.d/zz-docker.conf
 
-# Create configs directory
-RUN mkdir -p /var/configs
-
-# Create private files directory
-RUN mkdir -p /var/private-files
-
-# Create composer home directory for www-data user
-RUN mkdir -p /var/composer-home
-
-# Ensure configs directory is writable by the runtime user.
-RUN chown -R www-data:www-data /var/configs \
-    && chmod -R 775 /var/configs
-
-# Ensure private files directory is writable by the runtime user.
-RUN chown -R www-data:www-data /var/private-files \
-    && chmod -R 775 /var/private-files
-
-# Ensure Composer cache directory is writable by the runtime user.
-RUN chown -R www-data:www-data /var/composer-home \
-    && chmod -R 775 /var/composer-home
-
-# Ensure Drupal root directory is writable by the runtime user.
-RUN chown -R www-data:www-data /opt/drupal \
-    && chmod -R 775 /opt/drupal
+# Create configs, private files, and Composer home directories,
+# writable by the runtime user (single layer to avoid image bloat).
+RUN set -eux; \
+    mkdir -p /var/configs /var/private-files /var/composer-home; \
+    chown -R www-data:www-data /var/configs /var/private-files /var/composer-home; \
+    chmod -R 775 /var/configs /var/private-files /var/composer-home
 
 # Disable Git "dubious ownership" checks inside the container.
 RUN git config --system --add safe.directory '*'
@@ -183,11 +176,13 @@ RUN git config --system --add safe.directory '*'
 # Copy Redis settings configuration
 COPY config/redis/redis.settings.php /var/configs/redis.settings.php
 
-# Install drush
-RUN composer require 'drush/drush:^13.7'
-
-# add composer bin to PATH
-RUN ln -s /opt/drupal/vendor/bin/drush /usr/local/bin/drush
+# Install drush, add it to PATH, and make the Drupal root writable by the
+# runtime user (single ownership pass after the last build-time write).
+RUN set -eux; \
+    composer require 'drush/drush:^13.7'; \
+    ln -s /opt/drupal/vendor/bin/drush /usr/local/bin/drush; \
+    chown -R www-data:www-data /opt/drupal; \
+    chmod -R 775 /opt/drupal
 
 # Set Composer home directory
 ENV COMPOSER_HOME=/var/composer-home
@@ -218,6 +213,14 @@ RUN chmod +x /usr/local/bin/set-permissions.sh
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-ENTRYPOINT ["/entrypoint.sh"]
+EXPOSE 80
+
+# Health check via the health_check module endpoint.
+# Long start period: the first boot installs and configures the whole site.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30m --retries=3 \
+    CMD curl -fsS http://localhost/health || exit 1
+
+# Use tini as PID 1 for signal forwarding and zombie reaping.
+ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint.sh"]
 CMD ["nginx","-g","daemon off;"]
 

@@ -16,6 +16,10 @@ export COMPOSER_HOME=/var/composer-home
 # Define the path to the settings.php file.
 SETTINGS_FILE="/var/www/html/sites/default/settings.php"
 
+# Marker files used to gate the install logic across container restarts.
+INSTALL_COMPLETE_FILE="/opt/drupal/.wisski-install-complete"
+INSTALL_IN_PROGRESS_FILE="/opt/drupal/.wisski-install-in-progress"
+
 # Install WissKI Environment.
 echo -e "\n \n \n"
 echo -e "\033[38;5;208mWW      WW   iii   sss   sss   KK   KK   III\033[0m"
@@ -27,9 +31,9 @@ echo -e "\033[38;5;208m  WW  WW     iii   sss   sss   KK  KK    III\033[0m"
 echo -e "\033[38;5;208m  WW  WW     iii   sss   sss   KK   KK   III\033[0m"
 echo -e "\n"
 
-echo -e "\033[0;32m+-------------------------------------+\033[0m"
-echo -e "\033[0;32m|THIS INSTALLS WISSKI DEV ENVIRONMENT!|\033[0m"
-echo -e "\033[0;32m+-------------------------------------+\033[0m"
+echo -e "\033[0;32m+------------------------------+\033[0m"
+echo -e "\033[0;32m|WISSKI ENVIRONMENT ENTRYPOINT.|\033[0m"
+echo -e "\033[0;32m+------------------------------+\033[0m"
 echo -e "\n"
 
 echo "USER: $(whoami)"
@@ -55,14 +59,31 @@ REQUIRED_VARS=(
   "REDIS_HOST"
   "REDIS_PORT"
   "TS_REPOSITORY"
-  "TS_USERNAME"
-  "TS_PASSWORD"
   "TS_READ_URL"
   "TS_WRITE_URL"
   "WISSKI_DEFAULT_GRAPH"
   "WISSKI_STARTER_VERSION"
   "WISSKI_DEFAULT_DATA_MODEL_VERSION"
 )
+
+# Triplestore authentication: either TS_TOKEN or TS_USERNAME and TS_PASSWORD must be set.
+if [ -z "${TS_TOKEN}" ] && { [ -z "${TS_USERNAME}" ] || [ -z "${TS_PASSWORD}" ]; }; then
+  echo -e "\033[0;31mERROR: Triplestore credentials missing: set either TS_TOKEN or both TS_USERNAME and TS_PASSWORD.\033[0m"
+  exit 1
+fi
+
+# Keycloak variables are only required when OpenID Connect is enabled.
+if [ -n "${OPENID_CONNECT_CLIENT_SECRET}" ]; then
+  REQUIRED_VARS+=(
+    "KEYCLOAK_URL"
+    "KEYCLOAK_REALM"
+    "KEYCLOAK_ADMIN_GROUP"
+    "KEYCLOAK_USER_GROUP"
+  )
+fi
+
+# Track whether a recipe was applied (for composer drupal:recipe-unpack).
+RECIPE_USED=false
 
 # Versions of the modules to install.
 if [ "${MODE}" = "development" ]; then
@@ -76,7 +97,6 @@ if [ "${MODE}" = "development" ]; then
   WISSKI_STARTER_VERSION='1.x-dev'
   WISSKI_DEFAULT_DATA_MODEL_VERSION='1.x-dev'
 else
-  DEVEL_VERSION='^5.5'
   HEALTH_CHECK_VERSION='^3.1'
   NEXTCLOUD_WEBDAV_MOUNT_VERSION='^1.6'
   OPENID_CONNECT_VERSION='dev-3516375-implement-drush-commands'
@@ -111,11 +131,23 @@ fi
 
 # Check if Drupal is already installed.
 echo -e "\033[0;33mCHECKING IF DRUPAL IS ALREADY INSTALLED.\033[0m"
-if [ -f "$SETTINGS_FILE" ]; then
+if [ -f "$INSTALL_COMPLETE_FILE" ]; then
   echo -e "\033[0;32mDRUPAL IS ALREADY INSTALLED.\033[0m\n"
+
+elif [ -f "$INSTALL_IN_PROGRESS_FILE" ]; then
+  echo -e "\033[0;31mERROR: A previous installation attempt did not finish.\033[0m"
+  echo -e "\033[0;31mThe site may be half-configured. Wipe the volumes (database and ${INSTALL_IN_PROGRESS_FILE%/*}) to reinstall,\033[0m"
+  echo -e "\033[0;31mor finish the configuration manually and create ${INSTALL_COMPLETE_FILE} (and remove ${INSTALL_IN_PROGRESS_FILE}).\033[0m"
+  exit 1
+
+elif [ -f "$SETTINGS_FILE" ]; then
+  # Legacy installation created before marker files were introduced.
+  echo -e "\033[0;32mDRUPAL IS ALREADY INSTALLED (LEGACY INSTALLATION DETECTED; CREATING MARKER FILE).\033[0m\n"
+  touch "$INSTALL_COMPLETE_FILE"
 
 else
   echo -e "\033[0;32mDRUPAL IS NOT INSTALLED.\033[0m\n"
+  touch "$INSTALL_IN_PROGRESS_FILE"
   # Set groups.
 
   # Add groups to www-data user.
@@ -148,7 +180,8 @@ else
   ATTEMPT=0
 
   while [ $ATTEMPT -lt $MAX_ATTEMPTS ] && [ "$DB_READY" = false ]; do
-    if mysql -h"${DB_HOST}" -P"${DB_PORT}" -u"${DB_USER}" -p"${DB_PASSWORD}" -e "SELECT 1;" "${DB_NAME}" &>/dev/null; then
+    # Pass the password via MYSQL_PWD to keep it out of the process list.
+    if MYSQL_PWD="${DB_PASSWORD}" mysql -h"${DB_HOST}" -P"${DB_PORT}" -u"${DB_USER}" -e "SELECT 1;" "${DB_NAME}" &>/dev/null; then
       DB_READY=true
       echo -e "\033[0;32mDATABASE CONNECTION SUCCESSFUL.\033[0m"
     else
@@ -200,7 +233,7 @@ else
     echo -e "\033[0;32mCreated private files directory: $DRUPAL_PRIVATE_FILES_DIR\033[0m"
   fi
   {
-    echo "\$settings[\"file_private_path\"] = \"$DRUPAL_PRIVATE_FILES_DIR\";" >> ${SETTINGS_FILE}
+    echo "\$settings[\"file_private_path\"] = \"$DRUPAL_PRIVATE_FILES_DIR\";" >> "${SETTINGS_FILE}"
   } 1> /dev/null
   echo -e "\033[0;32mPRIVATE FILES DIRECTORY SET.\033[0m\n"
 
@@ -208,7 +241,7 @@ else
   if [ -n "${REDIS_HOST}" ]; then
     echo -e "\033[0;33mADDING REDIS CONFIGURATION TO SETTINGS.PHP...\033[0m"
     {
-      cat >> ${SETTINGS_FILE} << 'EOF'
+      cat >> "${SETTINGS_FILE}" << 'EOF'
 
 /**
  * Redis cache backend configuration.
@@ -224,7 +257,7 @@ EOF
 
   # Set Package Manager Extension.
   echo -e "\033[0;33mSETTING PACKAGE MANAGER EXTENSION...\033[0m"
-    cat >> ${SETTINGS_FILE} <<'EOF'
+    cat >> "${SETTINGS_FILE}" <<'EOF'
 $settings['testing_package_manager'] = TRUE;
 $settings['package_manager_rsync_path'] = '/usr/bin/rsync';
 EOF
@@ -260,13 +293,17 @@ EOF
   } 1> /dev/null
   echo -e "\033[0;32mSINGLE CONTENT SYNC MODULE INSTALLED.\033[0m\n"
 
-  # Install development modules.
-  echo -e "\033[0;33mINSTALL DEVELOPMENT MODULES.\033[0m"
+  # Install development modules (development mode only; devel must not run in production).
+  if [ "${MODE}" = "development" ]; then
+    echo -e "\033[0;33mINSTALL DEVELOPMENT MODULES.\033[0m"
     {
-    composer require "drupal/devel:${DEVEL_VERSION}"
-    drush en devel -y
-  } 1> /dev/null
-  echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
+      composer require "drupal/devel:${DEVEL_VERSION}"
+      drush en devel -y
+    } 1> /dev/null
+    echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
+  else
+    echo -e "\033[0;33mDEVELOPMENT MODULES SKIPPED\033[0m\n"
+  fi
 
   # Install health check modules.
   echo -e "\033[0;33mINSTALL HEALTH CHECK MODULES.\033[0m"
@@ -291,7 +328,7 @@ EOF
     # Need WissKI User Administration module, to check if keycloak groups are matching.
     composer config repositories.openid_connect-3516375 vcs https://git.drupalcode.org/issue/openid_connect-3516375.git
 
-    composer require 'drupal/openid_connect:dev-3516375-implement-drush-commands' --prefer-source
+    composer require "drupal/openid_connect:${OPENID_CONNECT_VERSION}" --prefer-source
     drush en openid_connect -y
     } 1> /dev/null
     echo -e "\033[0;32mOPENID CONNECT MODULE INSTALLED.\033[0m\n"
@@ -299,7 +336,7 @@ EOF
     # Set OpenID Connect settings.
     echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
     {
-      drush openid-connect:create-client 'SCS SSO' 'SODA SCS Client' generic --client-id=${DRUPAL_SITE_NAME} --client-secret=${OPENID_CONNECT_CLIENT_SECRET} --allowed-domains=* --use-well-known=0 --authorization-endpoint=${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth --token-endpoint=${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token --userinfo-endpoint=${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo --end-session-endpoint=${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout --scopes=openid,email,profile
+      drush openid-connect:create-client 'SCS SSO' 'SODA SCS Client' generic --client-id="${DRUPAL_SITE_NAME}" --client-secret="${OPENID_CONNECT_CLIENT_SECRET}" --allowed-domains='*' --use-well-known=0 --authorization-endpoint="${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth" --token-endpoint="${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token" --userinfo-endpoint="${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo" --end-session-endpoint="${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout" --scopes=openid,email,profile
     } 1> /dev/null
     echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
     {
@@ -312,8 +349,8 @@ EOF
 
     echo -e "\033[0;33mSET OPENID CONNECT ROLE MAPPINGS.\033[0m"
     {
-      drush config-set --input-format=yaml openid_connect.settings role_mappings.administrator [${KEYCLOAK_ADMIN_GROUP}] -y
-      drush config-set --input-format=yaml openid_connect.settings role_mappings.wisski_user [${KEYCLOAK_USER_GROUP}] -y
+      drush config-set --input-format=yaml openid_connect.settings role_mappings.administrator "[${KEYCLOAK_ADMIN_GROUP}]" -y
+      drush config-set --input-format=yaml openid_connect.settings role_mappings.wisski_user "[${KEYCLOAK_USER_GROUP}]" -y
     } 1> /dev/null
     echo -e "\033[0;32mOPENID CONNECT ROLE MAPPINGS SET.\033[0m\n"
 
@@ -323,7 +360,7 @@ EOF
     {
       composer require "drupal/sso_bouncer:${SSO_BOUNCER_VERSION}"
       drush en sso_bouncer -y
-      drush sso_bouncer:enable ${DRUPAL_SITE_NAME}
+      drush sso_bouncer:enable "${DRUPAL_SITE_NAME}"
     } 1> /dev/null
     echo -e "\033[0;32mSSO BOUNCER ENABLED.\033[0m\n"
 
@@ -337,7 +374,7 @@ EOF
     {
       composer require "drupal/nextcloud_webdav_mount:${NEXTCLOUD_WEBDAV_MOUNT_VERSION}"
       drush en nextcloud_webdav_mount -y
-      drush nc-config --server-url=${NEXTCLOUD_BASE_URL} --webdav-path=/remote.php/dav/files/{username}/ --operation-mode=sync --sync-direction=bisync --remote-path=SCS-Share --sync-interval=3600 --enable-log=0
+      drush nc-config --server-url="${NEXTCLOUD_BASE_URL}" --webdav-path='/remote.php/dav/files/{username}/' --operation-mode=sync --sync-direction=bisync --remote-path=SCS-Share --sync-interval=3600 --enable-log=0
 
     } 1> /dev/null
     echo -e "\033[0;32mNEXTCLOUD MOUNT MODULE INSTALLED.\033[0m\n"
@@ -350,7 +387,7 @@ EOF
     echo -e "\033[0;33mAPPLY WISSKI STARTER RECIPE.\033[0m"
       RECIPE_USED=true;
       composer config repositories.wisski vcs https://git.drupalcode.org/project/wisski.git
-      composer require "drupal/wisski_starter:${WISSKI_STARTER_VERSION:-1.x-dev}"
+      composer require "drupal/wisski_starter:${WISSKI_STARTER_VERSION}"
       drush cr
       drush recipe ../recipes/wisski_starter
       drush cr
@@ -362,7 +399,14 @@ EOF
     RECIPE_USED=true;
     # Install default adapter.
     echo -e "\033[0;33mINSTALL DEFAULT TRIPLESTORE ADAPTER.\033[0m"
-      drush wisski-salz:create-adapter --type='sparql11_with_pb' --adapter_label='Default' --adapter_machine_name='default' --description='Default SALZ adapter' --ts_machine_name=${TS_REPOSITORY} --ts_user=${TS_USERNAME} --ts_password=${TS_PASSWORD} --ts_use_token=1 --ts_token=${TS_TOKEN} --writable=1 --preferred=1 --read_url=${TS_READ_URL} --write_url=${TS_WRITE_URL} --federatable=0 --default_graph=${WISSKI_DEFAULT_GRAPH} --same_as='http://www.w3.org/2002/07/owl#sameAs' 1> /dev/null
+      # Use token authentication when TS_TOKEN is set; otherwise username and password.
+      TS_AUTH_ARGS=()
+      if [ -n "${TS_TOKEN}" ]; then
+        TS_AUTH_ARGS+=(--ts_use_token=1 --ts_token="${TS_TOKEN}")
+      else
+        TS_AUTH_ARGS+=(--ts_use_token=0 --ts_user="${TS_USERNAME}" --ts_password="${TS_PASSWORD}")
+      fi
+      drush wisski-salz:create-adapter --type='sparql11_with_pb' --adapter_label='Default' --adapter_machine_name='default' --description='Default SALZ adapter' --ts_machine_name="${TS_REPOSITORY}" "${TS_AUTH_ARGS[@]}" --writable=1 --preferred=1 --read_url="${TS_READ_URL}" --write_url="${TS_WRITE_URL}" --federatable=0 --default_graph="${WISSKI_DEFAULT_GRAPH}" --same_as='http://www.w3.org/2002/07/owl#sameAs' 1> /dev/null
       drush cr
     echo -e "\033[0;32mDEFAULT TRIPLESTORE ADAPTER INSTALLED.\033[0m\n"
 
@@ -373,9 +417,9 @@ EOF
     # Apply WissKI Default Data Model recipe.
     echo -e "\033[0;33mAPPLY WISSKI DATA DEFAULT MODEL RECIPE.\033[0m"
       # Use the fork of conditional_fields with drush commands implementation.
-      composer config repositories.1 git https://git.drupalcode.org/issue/conditional_fields-3495402.git
+      composer config repositories.conditional_fields-3495402 git https://git.drupalcode.org/issue/conditional_fields-3495402.git
       # Install the wisski_default_data_model module.
-      composer require "drupal/wisski_default_data_model:${WISSKI_DEFAULT_DATA_MODEL_VERSION:-1.x-dev}"
+      composer require "drupal/wisski_default_data_model:${WISSKI_DEFAULT_DATA_MODEL_VERSION}"
       drush cr
       drush recipe ../recipes/wisski_default_data_model
       drush wisski-core:recreate-menus
@@ -487,49 +531,14 @@ EOF
     echo -e "\033[0;32mRECIPES UNPACKED.\033[0m\n"
   fi
   
-  # Configure Redis for existing installation.
+  # Install and enable the Redis module (settings.php include was added above).
   if [ -n "${REDIS_HOST}" ]; then
     echo -e "\033[0;33mCONFIGURING REDIS INTEGRATION.\033[0m"
-
-    # Install Redis module if not already installed.
-    if [ ! -d "/opt/drupal/web/modules/contrib/redis" ]; then
-      echo -e "\033[0;33mInstalling Redis module via Composer...\033[0m"
-      cd /opt/drupal
-      composer require "drupal/redis:${REDIS_VERSION}" --no-interaction || true
+    {
+      composer require "drupal/redis:${REDIS_VERSION}" --no-interaction
       drush en redis -y
-      echo -e "\033[0;32mRedis module installed.\033[0m\n"
-    fi
-
-    # Add Redis settings include if not already present.
-    if ! grep -q "redis.settings.php" "$SETTINGS_FILE"; then
-      echo -e "\033[0;33mAdding Redis configuration to settings.php...\033[0m"
-      cat >> "$SETTINGS_FILE" << 'EOF'
-      * Redis cache backend configuration.
-      * Auto-configured by entrypoint.
-      if (file_exists('/var/configs/redis.settings.php')) {
-        include '/var/configs/redis.settings.php';
-      }
-EOF
-    fi
-
-    # Enable Redis module via Drush if Drupal is bootstrappable.
-    if cd /opt/drupal && drush status --field=bootstrap 2>/dev/null | grep -q "Successful"; then
-      echo -e "\033[0;33mEnabling Redis module...\033[0m"
-      cd /opt/drupal && drush pm:enable redis -y 2>/dev/null || true
-
-      # Enable page cache for Varnish.
-      echo -e "\033[0;33mEnabling page cache...\033[0m"
-      CURRENT_CACHE=$(cd /opt/drupal && drush config:get system.performance cache.page.max_age --format=string 2>/dev/null || echo "0")
-      if [ "$CURRENT_CACHE" = "0" ]; then
-        cd /opt/drupal && drush config:set system.performance cache.page.max_age 300 -y 2>/dev/null || true
-        echo -e "\033[0;32mPage cache enabled (5 minutes).\033[0m"
-      else
-        echo -e "\033[0;32mPage cache already configured (${CURRENT_CACHE}s).\033[0m"
-      fi
-
-      cd /opt/drupal && drush cr 2>/dev/null || true
-      echo -e "\033[0;32mRedis integration configured successfully!\033[0m"
-    fi
+      drush cr
+    } 1> /dev/null
     echo -e "\033[0;32mREDIS INTEGRATION CONFIGURED.\033[0m\n"
   else
     echo -e "\033[0;33mREDIS INTEGRATION SKIPPED\033[0m\n"
@@ -540,9 +549,14 @@ EOF
     echo -e "\033[0;33mSETTING PROXY SETTINGS.\033[0m"
     {
       cat >> "$SETTINGS_FILE" << 'EOF'
-      $settings["reverse_proxy"] = TRUE;
-      $settings["reverse_proxy_trusted_headers"] = \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO;
-      $settings['omit_vary_cookie'] = TRUE;
+
+/**
+ * Reverse proxy configuration.
+ * Auto-configured by entrypoint.
+ */
+$settings["reverse_proxy"] = TRUE;
+$settings["reverse_proxy_trusted_headers"] = \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO;
+$settings['omit_vary_cookie'] = TRUE;
 EOF
     ADDRESSES=$(printf '%s' "${DRUPAL_PROXY_ADDRESSES}" | sed 's/|/", "/g')
     printf '%s\n' "\$settings['reverse_proxy_addresses'] = [\"${ADDRESSES}\"];" >> "${SETTINGS_FILE}"
@@ -557,11 +571,14 @@ EOF
   /usr/local/bin/set-permissions.sh
   echo -e "\033[0;32mSECURE PERMISSIONS SET.\033[0m\n"
 
+  # Mark the installation as complete so restarts skip the install logic.
+  rm -f "$INSTALL_IN_PROGRESS_FILE"
+  touch "$INSTALL_COMPLETE_FILE"
 
+  echo -e "\033[0;32m+---------------------------+\033[0m"
+  echo -e "\033[0;32m|FINISHED INSTALLING DRUPAL.|\033[0m"
+  echo -e "\033[0;32m+---------------------------+\033[0m"
 fi
-echo -e "\033[0;32m+---------------------------+\033[0m"
-echo -e "\033[0;32m|FINISHED INSTALLING DRUPAL.|\033[0m"
-echo -e "\033[0;32m+---------------------------+\033[0m"
 
 start_php_fpm() {
   if pgrep -x php-fpm >/dev/null 2>&1; then
@@ -571,6 +588,16 @@ start_php_fpm() {
   echo -e "\033[0;33mStarting PHP-FPM...\033[0m"
   php-fpm -D
   echo -e "\033[0;32mPHP-FPM started.\033[0m"
+}
+
+start_memcached() {
+  if pgrep -x memcached >/dev/null 2>&1; then
+    echo -e "\033[0;32mMemcached already running.\033[0m"
+    return
+  fi
+  echo -e "\033[0;33mStarting memcached...\033[0m"
+  memcached -d -u memcache -l 127.0.0.1 -m 64
+  echo -e "\033[0;32mMemcached started on 127.0.0.1:11211.\033[0m"
 }
 
 start_iipsrv() {
@@ -594,6 +621,7 @@ start_iipsrv() {
 echo -e "\n"
 
 start_php_fpm
+start_memcached
 start_iipsrv
 
 # Keep the container running with Nginx as the foreground process.
