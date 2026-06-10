@@ -3,6 +3,7 @@
 ## 3.x
 
 ### Changed
+- rename Dockerfile build arg `DRUPAL_VERSION` to `DRUPAL_BASE_IMAGE_TAG` to avoid confusion with the upstream Drupal image `ENV DRUPAL_VERSION` (core semver).
 - change CI image tagging: `latest` is published only when building the highest semver git release tag; branch pushes publish an image tag matching the git branch name (e.g. `3.x`, `2.x`).
 - remove duplicate `DRUPAL_VERSION` and `DEFAULT_PACKAGES_VERSION` from CI; branch builds rely on Dockerfile `ARG` defaults, tag builds pass `WISSKI_PACKAGES_VERSION` from the git tag.
 

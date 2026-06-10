@@ -1,10 +1,10 @@
 # Pin the Drupal base image tag deliberately when upgrading core.
-ARG DRUPAL_VERSION=11.3-php8.3-fpm-bookworm
+ARG DRUPAL_BASE_IMAGE_TAG=11.3-php8.3-fpm-bookworm
 
 # -----------------------------------------------------------------------------
 # Builder: compile PHP extensions and iipsrv; toolchain stays in this stage.
 # -----------------------------------------------------------------------------
-FROM drupal:${DRUPAL_VERSION} AS builder
+FROM drupal:${DRUPAL_BASE_IMAGE_TAG} AS builder
 
 ARG MODE=production
 ARG IIPSRV_VERSION=iipsrv-1.3
@@ -91,7 +91,7 @@ RUN set -eux; \
 # -----------------------------------------------------------------------------
 # Runtime: lean image with runtime libraries and compiled artifacts only.
 # -----------------------------------------------------------------------------
-FROM drupal:${DRUPAL_VERSION}
+FROM drupal:${DRUPAL_BASE_IMAGE_TAG}
 
 ARG MODE=production
 # Version of the wisski_base composer manifest in the drupal_packages repo;
