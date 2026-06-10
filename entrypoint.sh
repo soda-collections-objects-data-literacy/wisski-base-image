@@ -296,6 +296,13 @@ EOF
   } 1> /dev/null
   echo -e "\033[0;32mHEALTH CHECK MODULE ENABLED.\033[0m\n"
 
+  # Enable Sophron MIME type guesser (shipped with imagemagick dependency tree).
+  echo -e "\033[0;33mENABLE SOPHRON GUESSER MODULE.\033[0m"
+  {
+    drush en sophron_guesser -y
+  } 1> /dev/null
+  echo -e "\033[0;32mSOPHRON GUESSER MODULE ENABLED.\033[0m\n"
+
   # Create WissKI User Role.
   echo -e "\033[0;33mCREATE WISSKI USER ROLE.\033[0m"
   {

@@ -8,6 +8,7 @@
 - remove duplicate `DRUPAL_VERSION` and `DEFAULT_PACKAGES_VERSION` from CI; branch builds rely on Dockerfile `ARG` defaults, tag builds pass `WISSKI_PACKAGES_VERSION` from the git tag.
 
 ### Added
+- enable `sophron_guesser` on install and on every boot for existing sites so imagemagick uses Sophron MIME type guessing instead of Drupal core defaults.
 - add `WISSKI_PACKAGES_VERSION` build arg: the whole Drupal codebase (core, modules, recipes, drush) is baked at build time from the versioned composer.json/composer.lock in the drupal_packages repo (`wisski_base/<mode>/<version>`); the image version mirrors the manifest version.
 - add automatic `drush updatedb` on boot when the baked package set version differs from the version recorded in the sites volume.
 
