@@ -59,6 +59,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ${{ env.REGISTRY }}
+      - name: Determine packages line
+        id: packages
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            version="${GITHUB_REF#refs/tags/}"
+            major="${version%%.*}"
+            echo "line=${major}.x" >> "$GITHUB_OUTPUT"
+          else
+            echo "line=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          fi
       - uses: docker/build-push-action@v6
         with:
           context: ${{ env.CONTEXT_DIRECTORY }}
@@ -67,6 +77,7 @@ jobs:
           build-args: |
             MODE=${{ matrix.mode }}
             ${{ startsWith(github.ref, 'refs/tags/') && format('WISSKI_PACKAGES_VERSION={0}', github.ref_name) || '' }}
+            ${{ matrix.mode == 'development' && format('WISSKI_PACKAGES_LINE={0}', steps.packages.outputs.line) || '' }}
           platforms: ${{ env.PLATFORMS }}
           pull: true
           push: true

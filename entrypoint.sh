@@ -93,9 +93,10 @@ if [ -n "${OPENID_CONNECT_CLIENT_SECRET}" ]; then
 fi
 
 # Note: module and recipe versions are baked into the image at build time
-# from the drupal_packages composer manifest. WISSKI_STARTER_VERSION and
-# WISSKI_DEFAULT_DATA_MODEL_VERSION only act as flags (non-empty = apply
-# the recipe); they no longer select package versions.
+# from the drupal_packages composer manifest (production: pinned semver + lock;
+# development: floating major line, e.g. 3.x, resolved at build time).
+# WISSKI_STARTER_VERSION and WISSKI_DEFAULT_DATA_MODEL_VERSION only act as
+# flags (non-empty = apply the recipe); they no longer select package versions.
 
 MISSING_VARS=()
 

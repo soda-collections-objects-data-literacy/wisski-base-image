@@ -94,9 +94,10 @@ RUN set -eux; \
 FROM drupal:${DRUPAL_BASE_IMAGE_TAG}
 
 ARG MODE=production
-# Version of the wisski_base composer manifest in the drupal_packages repo;
-# mirrors the image version (one shared number for image and package set).
+# Production: semver manifest path (wisski_base/production/<version>) with lock file.
 ARG WISSKI_PACKAGES_VERSION=3.0.0
+# Development: major-line manifest path (wisski_base/development/<line>), no lock file.
+ARG WISSKI_PACKAGES_LINE=3.x
 
 # Runtime packages only (no autoconf, lib*-dev, or other build toolchain).
 # iipsrv, Redis, and the triplestore run in separate processes/containers.
@@ -215,20 +216,30 @@ RUN git config --system --add safe.directory '*'
 COPY config/redis/redis.settings.php /var/configs/redis.settings.php
 
 # Bake the whole Drupal codebase (core, modules, recipes, drush) from the
-# versioned composer manifest in the drupal_packages repo. The codebase is
-# immutable at runtime; no composer calls happen in the entrypoint.
+# composer manifest in the drupal_packages repo. Production uses a pinned
+# lock file; development resolves the latest compatible packages at build time.
+# The codebase is immutable at runtime; no composer calls happen in the entrypoint.
 RUN set -eux; \
     rm -rf /opt/drupal; \
     mkdir -p /opt/drupal; \
     cd /opt/drupal; \
-    manifestBaseUrl="https://raw.githubusercontent.com/soda-collections-objects-data-literacy/drupal_packages/main/wisski_base/${MODE}/${WISSKI_PACKAGES_VERSION}"; \
+    packagesRepoBaseUrl="https://raw.githubusercontent.com/soda-collections-objects-data-literacy/drupal_packages/main/wisski_base"; \
+    if [ "$MODE" = "development" ]; then \
+    manifestBaseUrl="${packagesRepoBaseUrl}/development/${WISSKI_PACKAGES_LINE}"; \
+    curl -fsSL "${manifestBaseUrl}/composer.json" -o composer.json; \
+    composer update --no-dev --no-interaction --no-progress --optimize-autoloader; \
+    packagesVersion="${WISSKI_PACKAGES_LINE}-$(md5sum composer.lock | cut -d' ' -f1)"; \
+    else \
+    manifestBaseUrl="${packagesRepoBaseUrl}/production/${WISSKI_PACKAGES_VERSION}"; \
     curl -fsSL "${manifestBaseUrl}/composer.json" -o composer.json; \
     curl -fsSL "${manifestBaseUrl}/composer.lock" -o composer.lock; \
     composer install --no-dev --no-interaction --no-progress --optimize-autoloader; \
+    packagesVersion="${WISSKI_PACKAGES_VERSION}"; \
+    fi; \
     composer clear-cache; \
     ln -sf /opt/drupal/vendor/bin/drush /usr/local/bin/drush; \
     ln -sfn /opt/drupal/web /var/www/html; \
-    echo "${WISSKI_PACKAGES_VERSION}" > /opt/drupal/.wisski-packages-version; \
+    echo "${packagesVersion}" > /opt/drupal/.wisski-packages-version; \
     chown -R www-data:www-data /opt/drupal; \
     chmod -R 775 /opt/drupal
 
@@ -238,7 +249,8 @@ RUN set -eux; \
     chown www-data:www-data /opt/drupal/private-files; \
     chmod 775 /opt/drupal/private-files
 
-LABEL org.wisski.packages.version="${WISSKI_PACKAGES_VERSION}"
+LABEL org.wisski.packages.version="${WISSKI_PACKAGES_VERSION}" \
+    org.wisski.packages.line="${WISSKI_PACKAGES_LINE}"
 
 # Set Composer home directory.
 ENV COMPOSER_HOME=/var/composer-home

@@ -2,10 +2,12 @@
 
 ## 3.x 
 ### Changed
+- development images resolve packages from `wisski_base/development/<line>/composer.json` (e.g. `3.x`) via `composer update` without a committed lock file; production still uses semver manifests with lock files under `wisski_base/production/<version>/`.
+- add `WISSKI_PACKAGES_LINE` build arg for development builds; CI derives the line from the git branch name or major version of release tags.
 
-### Added
-
-### Fixed
+### Files Modified
+- `Dockerfile`: split production (`composer install` + lock) and development (`composer update`, lock hash in `.wisski-packages-version`) manifest resolution.
+- `.github/workflows/build-image.yml`: pass `WISSKI_PACKAGES_LINE` for development matrix builds.
 
 ## 3.0.0 [2026-06-10]
 
