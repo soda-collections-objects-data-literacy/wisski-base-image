@@ -3,6 +3,16 @@
 ## 3.x
 
 ### Added
+- add `WISSKI_PACKAGES_VERSION` build arg: the whole Drupal codebase (core, modules, recipes, drush) is baked at build time from the versioned composer.json/composer.lock in the drupal_packages repo (`wisski_base/<mode>/<version>`); the image version mirrors the manifest version.
+- add automatic `drush updatedb` on boot when the baked package set version differs from the version recorded in the sites volume.
+
+### Changed
+- change codebase to immutable: remove all runtime composer calls from the entrypoint (`composer require`, recipe-unpack, minimum-stability); modules are only enabled via `drush en` and recipes applied from the baked `recipes/` directory. `WISSKI_STARTER_VERSION` and `WISSKI_DEFAULT_DATA_MODEL_VERSION` now act as apply flags only.
+- change volume layout (breaking): only `web/sites` and private files persist; the `drupal-root` volume of 2.x is no longer compatible (fresh installs, or manually migrate `web/sites` and private files into the new volumes).
+- move private files outside the web root to `/opt/drupal/private-files` (default for `DRUPAL_PRIVATE_FILES_DIR`); replaces `/var/private-files`.
+- move install marker files into the sites volume so they survive container recreation.
+- move `USER_GROUPS` group setup out of the install-once gate so groups are re-created on every boot (`/etc/group` is ephemeral).
+- remove `testing_package_manager` and `package_manager_rsync_path` settings (instances do not manage packages).
 - add graceful shutdown in entrypoint: trap SIGTERM/SIGINT, quit nginx, then stop php-fpm (SIGQUIT), memcached, and iipsrv before exit.
 - add `STOPSIGNAL SIGTERM` and explicit `curl` package for the health check in the runtime image.
 

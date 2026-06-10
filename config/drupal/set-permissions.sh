@@ -18,7 +18,7 @@ fi
 # Configuration.
 DRUPAL_ROOT="${DRUPAL_ROOT:-/opt/drupal}"
 WEB_ROOT="${WEB_ROOT:-${DRUPAL_ROOT}/web}"
-PRIVATE_FILES_DIR="${PRIVATE_FILES_DIR:-/var/private-files}"
+PRIVATE_FILES_DIR="${PRIVATE_FILES_DIR:-${DRUPAL_PRIVATE_FILES_DIR:-/opt/drupal/private-files}}"
 
 # Determine web user (www-data for Debian/Ubuntu).
 WEB_USER="www-data"
@@ -105,6 +105,15 @@ if [ -d "${WEB_ROOT}/sites/default/files" ]; then
   find "${WEB_ROOT}/sites/default/files" -type d -exec chmod 775 {} +
   find "${WEB_ROOT}/sites/default/files" -type f -exec chmod 664 {} +
   echo -e "   - ${WEB_ROOT}/sites/default/files: 775/664"
+fi
+
+# Common: Make private files directory writable (lives outside the web root).
+echo -e "\033[0;33m6. Making private files directory writable (775/664)...\033[0m"
+if [ -d "${PRIVATE_FILES_DIR}" ]; then
+  chown -R ${WEB_USER}:${WEB_GROUP} "${PRIVATE_FILES_DIR}"
+  find "${PRIVATE_FILES_DIR}" -type d -exec chmod 775 {} +
+  find "${PRIVATE_FILES_DIR}" -type f -exec chmod 664 {} +
+  echo -e "   - ${PRIVATE_FILES_DIR}: 775/664"
 fi
 
 # Common: Make xdebug log directory writable

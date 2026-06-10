@@ -17,8 +17,18 @@ export COMPOSER_HOME=/var/composer-home
 SETTINGS_FILE="/var/www/html/sites/default/settings.php"
 
 # Marker files used to gate the install logic across container restarts.
-INSTALL_COMPLETE_FILE="/opt/drupal/.wisski-install-complete"
-INSTALL_IN_PROGRESS_FILE="/opt/drupal/.wisski-install-in-progress"
+# They live in the sites volume because the rest of /opt/drupal is an
+# immutable, baked-in codebase that does not persist across recreations.
+INSTALL_COMPLETE_FILE="/opt/drupal/web/sites/.wisski-install-complete"
+INSTALL_IN_PROGRESS_FILE="/opt/drupal/web/sites/.wisski-install-in-progress"
+
+# Package set version baked into the image and the version the sites volume
+# was last updated to (used to trigger drush updatedb on image upgrades).
+IMAGE_PACKAGES_VERSION_FILE="/opt/drupal/.wisski-packages-version"
+SITE_PACKAGES_VERSION_FILE="/opt/drupal/web/sites/.wisski-packages-version"
+
+# Private files live outside the web root and are mounted as a volume.
+DRUPAL_PRIVATE_FILES_DIR="${DRUPAL_PRIVATE_FILES_DIR:-/opt/drupal/private-files}"
 
 # Install WissKI Environment.
 echo -e "\n \n \n"
@@ -82,28 +92,10 @@ if [ -n "${OPENID_CONNECT_CLIENT_SECRET}" ]; then
   )
 fi
 
-# Track whether a recipe was applied (for composer drupal:recipe-unpack).
-RECIPE_USED=false
-
-# Versions of the modules to install.
-if [ "${MODE}" = "development" ]; then
-  DEVEL_VERSION='5.x-dev'
-  HEALTH_CHECK_VERSION='3.x-dev'
-  NEXTCLOUD_WEBDAV_MOUNT_VERSION='1.x-dev'
-  OPENID_CONNECT_VERSION='dev-3516375-implement-drush-commands'
-  REDIS_VERSION='1.x-dev'
-  SINGLE_CONTENT_SYNC_VERSION='1.4.x-dev'
-  SSO_BOUNCER_VERSION='1.x-dev'
-  WISSKI_STARTER_VERSION='1.x-dev'
-  WISSKI_DEFAULT_DATA_MODEL_VERSION='1.x-dev'
-else
-  HEALTH_CHECK_VERSION='^3.1'
-  NEXTCLOUD_WEBDAV_MOUNT_VERSION='^1.6'
-  OPENID_CONNECT_VERSION='dev-3516375-implement-drush-commands'
-  REDIS_VERSION='^1.11'
-  SINGLE_CONTENT_SYNC_VERSION='^1.4'
-  SSO_BOUNCER_VERSION='^1.0'
-fi
+# Note: module and recipe versions are baked into the image at build time
+# from the drupal_packages composer manifest. WISSKI_STARTER_VERSION and
+# WISSKI_DEFAULT_DATA_MODEL_VERSION only act as flags (non-empty = apply
+# the recipe); they no longer select package versions.
 
 MISSING_VARS=()
 
@@ -129,10 +121,48 @@ if [ "${MODE}" = "development" ]; then
   echo
 fi
 
+# Add groups to www-data user on every boot: /etc/group lives in the
+# ephemeral container layer and does not survive container recreation.
+echo -e "\033[0;33mADD GROUPS TO WWW-DATA USER.\033[0m"
+if [ -n "${USER_GROUPS}" ]; then
+  for group in $(echo "${USER_GROUPS}" | tr ',' ' '); do
+    if getent group "g_${group}" >/dev/null 2>&1; then
+      echo -e "\033[0;33mGROUP g_${group} ALREADY EXISTS; SKIPPING groupadd.\033[0m"
+    else
+      groupadd -g "${group}" "g_${group}"
+      echo -e "\033[0;32mGROUP ${group} ADDED.\033[0m"
+    fi
+    if id -nG www-data | tr ' ' '\n' | grep -qFx "g_${group}"; then
+      echo -e "\033[0;33mWWW-DATA ALREADY IN GROUP g_${group}; SKIPPING adduser.\033[0m"
+    else
+      adduser www-data "g_${group}"
+      echo -e "\033[0;32mWWW-DATA USER ADDED TO GROUP ${group}.\033[0m"
+    fi
+  done
+fi
+echo -e "\033[0;32mGROUPS ADDED TO WWW-DATA USER.\033[0m\n"
+
+# Ensure the volume mounts are writable by the runtime user.
+chown www-data:www-data /opt/drupal/web/sites /opt/drupal/private-files 2>/dev/null || true
+mkdir -p "${DRUPAL_PRIVATE_FILES_DIR}"
+chown www-data:www-data "${DRUPAL_PRIVATE_FILES_DIR}"
+
 # Check if Drupal is already installed.
 echo -e "\033[0;33mCHECKING IF DRUPAL IS ALREADY INSTALLED.\033[0m"
 if [ -f "$INSTALL_COMPLETE_FILE" ]; then
   echo -e "\033[0;32mDRUPAL IS ALREADY INSTALLED.\033[0m\n"
+
+  # Run database updates when the image ships a newer package set than the
+  # one the site was installed or last updated with.
+  imagePackagesVersion="$(cat "${IMAGE_PACKAGES_VERSION_FILE}" 2>/dev/null || echo "unknown")"
+  sitePackagesVersion="$(cat "${SITE_PACKAGES_VERSION_FILE}" 2>/dev/null || echo "unknown")"
+  if [ "${imagePackagesVersion}" != "${sitePackagesVersion}" ]; then
+    echo -e "\033[0;33mPACKAGE SET CHANGED (${sitePackagesVersion} -> ${imagePackagesVersion}); RUNNING DATABASE UPDATES...\033[0m"
+    drush updatedb -y
+    drush cr
+    echo "${imagePackagesVersion}" > "${SITE_PACKAGES_VERSION_FILE}"
+    echo -e "\033[0;32mDATABASE UPDATES APPLIED.\033[0m\n"
+  fi
 
 elif [ -f "$INSTALL_IN_PROGRESS_FILE" ]; then
   echo -e "\033[0;31mERROR: A previous installation attempt did not finish.\033[0m"
@@ -148,28 +178,6 @@ elif [ -f "$SETTINGS_FILE" ]; then
 else
   echo -e "\033[0;32mDRUPAL IS NOT INSTALLED.\033[0m\n"
   touch "$INSTALL_IN_PROGRESS_FILE"
-  # Set groups.
-
-  # Add groups to www-data user.
-  echo -e "\033[0;33mADD GROUPS TO WWW-DATA USER.\033[0m"
-
-  if [ -n "${USER_GROUPS}" ]; then
-    for group in $(echo "${USER_GROUPS}" | tr ',' ' '); do
-      if getent group "g_${group}" >/dev/null 2>&1; then
-        echo -e "\033[0;33mGROUP g_${group} ALREADY EXISTS; SKIPPING groupadd.\033[0m"
-      else
-        groupadd -g "${group}" "g_${group}"
-        echo -e "\033[0;32mGROUP ${group} ADDED.\033[0m"
-      fi
-      if id -nG www-data | tr ' ' '\n' | grep -qFx "g_${group}"; then
-        echo -e "\033[0;33mWWW-DATA ALREADY IN GROUP g_${group}; SKIPPING adduser.\033[0m"
-      else
-        adduser www-data "g_${group}"
-        echo -e "\033[0;32mWWW-DATA USER ADDED TO GROUP ${group}.\033[0m"
-      fi
-    done
-  fi
-  echo -e "\033[0;32mGROUPS ADDED TO WWW-DATA USER.\033[0m\n"
 
   # Check database connection first.
   echo -e "\033[0;33mCHECKING DATABASE CONNECTION...\033[0m"
@@ -255,14 +263,6 @@ EOF
     echo -e "\033[0;32mREDIS CONFIGURATION ADDED TO SETTINGS.PHP.\033[0m\n"
   fi
 
-  # Set Package Manager Extension.
-  echo -e "\033[0;33mSETTING PACKAGE MANAGER EXTENSION...\033[0m"
-    cat >> "${SETTINGS_FILE}" <<'EOF'
-$settings['testing_package_manager'] = TRUE;
-$settings['package_manager_rsync_path'] = '/usr/bin/rsync';
-EOF
-  echo -e "\033[0;32mPACKAGE MANAGER EXTENSION SET.\033[0m\n"
-
   # Enable page cache for Varnish.
   echo -e "\033[0;33mENABLING PAGE CACHE FOR VARNISH...\033[0m"
   {
@@ -271,47 +271,30 @@ EOF
   } 1> /dev/null
   echo -e "\033[0;32mPAGE CACHE CONFIGURED.\033[0m\n"
 
-  # Lets get dirty with composer.
-  echo -e "\033[0;33mSET COMPOSER MINIMUM STABILITY.\033[0m"
-  composer clear-cache
-  composer config minimum-stability dev > /dev/null
-  echo -e "\033[0;32mCOMPOSER MINIMUM STABILITY SET.\033[0m\n"
-
-  # Allow composer to unpack recipes.
-  echo -e "\033[0;33mALLOW COMPOSER TO UNPACK RECIPES.\033[0m"
+  # Enable single content sync module (shipped in the image).
+  echo -e "\033[0;33mENABLE SINGLE CONTENT SYNC MODULE.\033[0m"
   {
-    composer config allow-plugins.drupal/core-recipe-unpack true
-    composer require drupal/core-recipe-unpack
-  } 1> /dev/null
-  echo -e "\033[0;32mCOMPOSER ALLOWED TO UNPACK RECIPES.\033[0m\n"
-
-  # Install single content sync module.
-  echo -e "\033[0;33mINSTALL SINGLE CONTENT SYNC MODULE.\033[0m"
-  {
-    composer require "drupal/single_content_sync:${SINGLE_CONTENT_SYNC_VERSION}"
     drush en single_content_sync -y
   } 1> /dev/null
-  echo -e "\033[0;32mSINGLE CONTENT SYNC MODULE INSTALLED.\033[0m\n"
+  echo -e "\033[0;32mSINGLE CONTENT SYNC MODULE ENABLED.\033[0m\n"
 
-  # Install development modules (development mode only; devel must not run in production).
+  # Enable development modules (development mode only; devel must not run in production).
   if [ "${MODE}" = "development" ]; then
-    echo -e "\033[0;33mINSTALL DEVELOPMENT MODULES.\033[0m"
+    echo -e "\033[0;33mENABLE DEVELOPMENT MODULES.\033[0m"
     {
-      composer require "drupal/devel:${DEVEL_VERSION}"
       drush en devel -y
     } 1> /dev/null
-    echo -e "\033[0;32mDEVELOPMENT MODULES INSTALLED.\033[0m\n"
+    echo -e "\033[0;32mDEVELOPMENT MODULES ENABLED.\033[0m\n"
   else
     echo -e "\033[0;33mDEVELOPMENT MODULES SKIPPED\033[0m\n"
   fi
 
-  # Install health check modules.
-  echo -e "\033[0;33mINSTALL HEALTH CHECK MODULES.\033[0m"
+  # Enable health check module (shipped in the image).
+  echo -e "\033[0;33mENABLE HEALTH CHECK MODULE.\033[0m"
   {
-    composer require "drupal/health_check:${HEALTH_CHECK_VERSION}"
     drush en health_check -y
   } 1> /dev/null
-  echo -e "\033[0;32mHEALTH CHECK MODULES INSTALLED.\033[0m\n"
+  echo -e "\033[0;32mHEALTH CHECK MODULE ENABLED.\033[0m\n"
 
   # Create WissKI User Role.
   echo -e "\033[0;33mCREATE WISSKI USER ROLE.\033[0m"
@@ -321,17 +304,12 @@ EOF
   echo -e "\033[0;32mWISSKI USER GROUP CREATED.\033[0m\n"
 
   if [ "${OPENID_CONNECT_CLIENT_SECRET}" != "" ]; then
-    echo -e "\033[0;33mINSTALLING OPENID CONNECT MODULE.\033[0m"
+    echo -e "\033[0;33mENABLING OPENID CONNECT MODULE.\033[0m"
     {
-      # Drush command for openid_connect is not implement in main branch yet, so we have to use the fork.
-    # Use the fork of openid_connect with drush commands implementation.
-    # Need WissKI User Administration module, to check if keycloak groups are matching.
-    composer config repositories.openid_connect-3516375 vcs https://git.drupalcode.org/issue/openid_connect-3516375.git
-
-    composer require "drupal/openid_connect:${OPENID_CONNECT_VERSION}" --prefer-source
-    drush en openid_connect -y
+      # The image ships the openid_connect fork with drush commands implementation.
+      drush en openid_connect -y
     } 1> /dev/null
-    echo -e "\033[0;32mOPENID CONNECT MODULE INSTALLED.\033[0m\n"
+    echo -e "\033[0;32mOPENID CONNECT MODULE ENABLED.\033[0m\n"
 
     # Set OpenID Connect settings.
     echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
@@ -356,9 +334,8 @@ EOF
 
     echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
 
-    echo -e "\033[0;33mINSTALL AND ENABLE SSO BOUNCER.\033[0m"
+    echo -e "\033[0;33mENABLE SSO BOUNCER.\033[0m"
     {
-      composer require "drupal/sso_bouncer:${SSO_BOUNCER_VERSION}"
       drush en sso_bouncer -y
       drush sso_bouncer:enable "${DRUPAL_SITE_NAME}"
     } 1> /dev/null
@@ -368,26 +345,22 @@ EOF
     echo -e "\033[0;33mOPENID CONNECTION SKIPPED\033[0m\n"
   fi
 
-  # Install nextcloud webdav mount module.
+  # Enable nextcloud webdav mount module (shipped in the image).
   if [[ -n "${NEXTCLOUD_BASE_URL}" && -n "${NEXTCLOUD_LOGIN_NAME}" && -n "${NEXTCLOUD_APP_PASSWORD}" ]]; then
-    echo -e "\033[0;33mINSTALL AND ENABLE NEXTCLOUD CLIENT MODULE.\033[0m"
+    echo -e "\033[0;33mENABLE NEXTCLOUD CLIENT MODULE.\033[0m"
     {
-      composer require "drupal/nextcloud_webdav_mount:${NEXTCLOUD_WEBDAV_MOUNT_VERSION}"
       drush en nextcloud_webdav_mount -y
       drush nc-config --server-url="${NEXTCLOUD_BASE_URL}" --webdav-path='/remote.php/dav/files/{username}/' --operation-mode=sync --sync-direction=bisync --remote-path=SCS-Share --sync-interval=3600 --enable-log=0
 
     } 1> /dev/null
-    echo -e "\033[0;32mNEXTCLOUD MOUNT MODULE INSTALLED.\033[0m\n"
+    echo -e "\033[0;32mNEXTCLOUD MOUNT MODULE ENABLED.\033[0m\n"
   else
     echo -e "\033[0;33mNEXTCLOUD CONNECTION SKIPPED\033[0m\n"
   fi
 
-  # Apply WissKI Starter recipe.
+  # Apply WissKI Starter recipe (recipe package is shipped in the image).
   if [ -n "${WISSKI_STARTER_VERSION}" ]; then
     echo -e "\033[0;33mAPPLY WISSKI STARTER RECIPE.\033[0m"
-      RECIPE_USED=true;
-      composer config repositories.wisski vcs https://git.drupalcode.org/project/wisski.git
-      composer require "drupal/wisski_starter:${WISSKI_STARTER_VERSION}"
       drush cr
       drush recipe ../recipes/wisski_starter
       drush cr
@@ -396,7 +369,6 @@ EOF
     echo -e "\033[0;33mWISSKI STARTER RECIPE SKIPPED\033[0m\n"
   fi
   if [ -n "${WISSKI_DEFAULT_DATA_MODEL_VERSION}" ]; then
-    RECIPE_USED=true;
     # Install default adapter.
     echo -e "\033[0;33mINSTALL DEFAULT TRIPLESTORE ADAPTER.\033[0m"
       # Use token authentication when TS_TOKEN is set; otherwise username and password.
@@ -414,12 +386,8 @@ EOF
     drush wisski-core:import-ontology --store='default' --ontology_url='https://wiss-ki.eu/ontology/default/2.5.0/' --reasoning
     echo -e "\033[0;32mWISSKI DEFAULT ONTOLOGY IMPORTED.\033[0m\n"
 
-    # Apply WissKI Default Data Model recipe.
+    # Apply WissKI Default Data Model recipe (recipe package is shipped in the image).
     echo -e "\033[0;33mAPPLY WISSKI DATA DEFAULT MODEL RECIPE.\033[0m"
-      # Use the fork of conditional_fields with drush commands implementation.
-      composer config repositories.conditional_fields-3495402 git https://git.drupalcode.org/issue/conditional_fields-3495402.git
-      # Install the wisski_default_data_model module.
-      composer require "drupal/wisski_default_data_model:${WISSKI_DEFAULT_DATA_MODEL_VERSION}"
       drush cr
       drush recipe ../recipes/wisski_default_data_model
       drush wisski-core:recreate-menus
@@ -524,18 +492,10 @@ EOF
   } 1> /dev/null
   echo -e "\033[0;32mIMCE PROFILES SET.\033[0m\n"
 
-  if [ "$RECIPE_USED" = true ]; then
-    # Unpack recipes.
-    echo -e "\033[0;33mUNPACK RECIPES.\033[0m"
-    composer drupal:recipe-unpack
-    echo -e "\033[0;32mRECIPES UNPACKED.\033[0m\n"
-  fi
-  
-  # Install and enable the Redis module (settings.php include was added above).
+  # Enable the Redis module (settings.php include was added above).
   if [ -n "${REDIS_HOST}" ]; then
     echo -e "\033[0;33mCONFIGURING REDIS INTEGRATION.\033[0m"
     {
-      composer require "drupal/redis:${REDIS_VERSION}" --no-interaction
       drush en redis -y
       drush cr
     } 1> /dev/null
@@ -570,6 +530,9 @@ EOF
   echo -e "\033[0;33mSET SECURE PERMISSIONS.\033[0m"
   /usr/local/bin/set-permissions.sh
   echo -e "\033[0;32mSECURE PERMISSIONS SET.\033[0m\n"
+
+  # Record the package set version the site was installed with.
+  cat "${IMAGE_PACKAGES_VERSION_FILE}" > "${SITE_PACKAGES_VERSION_FILE}" 2>/dev/null || true
 
   # Mark the installation as complete so restarts skip the install logic.
   rm -f "$INSTALL_IN_PROGRESS_FILE"

@@ -11,6 +11,10 @@ env:
   PLATFORMS: linux/amd64,linux/arm64
   CONTEXT_DIRECTORY: .
   DRUPAL_VERSION: 11.3-php8.3-fpm-bookworm
+  # Default wisski_base manifest version (drupal_packages repo) for branch
+  # builds; tag builds use the tag itself (image version mirrors the
+  # manifest version, so the folder must exist before tagging).
+  DEFAULT_PACKAGES_VERSION: 3.0.0
 
 jobs:
   build:
@@ -53,6 +57,7 @@ jobs:
           build-args: |
             MODE=${{ matrix.mode }}
             DRUPAL_VERSION=${{ env.DRUPAL_VERSION }}
+            WISSKI_PACKAGES_VERSION=${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || env.DEFAULT_PACKAGES_VERSION }}
           platforms: ${{ env.PLATFORMS }}
           pull: true
           push: true

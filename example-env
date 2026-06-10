@@ -2,6 +2,9 @@
 MODE=production
 SERVICE_NAME=wisski-base-stack
 USER_GROUPS=
+# Image version; mirrors the wisski_base manifest version in the
+# drupal_packages repo (module and recipe versions are baked into the image).
+WISSKI_BASE_IMAGE_VERSION=latest
 
 # Database settings
 DB_DRIVER=mysql
@@ -19,6 +22,8 @@ DRUPAL_PASSWORD=also_change_me
 # '172.18.0.0/16|172.19.0.0/16' for docker/traffic routing
 # 10.0.0.0/8 for kubernetes/traffic routing
 DRUPAL_PROXY_ADDRESSES=
+# Private files live outside the web root and persist in a volume.
+DRUPAL_PRIVATE_FILES_DIR=/opt/drupal/private-files
 DRUPAL_SITE_NAME=My WissKI
 # Seperated by | for multiple addresses
 DRUPAL_TRUSTED_HOSTS='^localhost$|^127\.0\.0\.1$'
@@ -29,10 +34,12 @@ REDIS_HOST=redis
 REDIS_PORT=6379
 
 # WissKI settings
-# For a full list of WissKI recipe versions see: https://packagist.org/packages/soda-collection-objects-data-literacy/wisski_recipe_base
+# Recipe versions are baked into the image (see drupal_packages wisski_base
+# manifest); the *_VERSION variables only act as flags: non-empty = apply
+# the recipe on first install.
 WISSKI_DEFAULT_GRAPH=http://my.graph/contents/
-WISSKI_STARTER_VERSION=1.x-dev
-WISSKI_DEFAULT_DATA_MODEL_VERSION=1.x-dev
+WISSKI_STARTER_VERSION=true
+WISSKI_DEFAULT_DATA_MODEL_VERSION=true
 WISSKI_FLAVOURS=
 
 # Triplestore settings

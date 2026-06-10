@@ -94,6 +94,9 @@ RUN set -eux; \
 FROM drupal:${DRUPAL_VERSION}
 
 ARG MODE=production
+# Version of the wisski_base composer manifest in the drupal_packages repo;
+# mirrors the image version (one shared number for image and package set).
+ARG WISSKI_PACKAGES_VERSION=3.0.0
 
 # Runtime packages only (no autoconf, lib*-dev, or other build toolchain).
 # iipsrv, Redis, and the triplestore run in separate processes/containers.
@@ -198,12 +201,12 @@ RUN mkdir -p /run/php && \
     echo 'listen.group = www-data' >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
     echo 'listen.mode = 0660' >> /usr/local/etc/php-fpm.d/zz-docker.conf
 
-# Create configs, private files, and Composer home directories,
+# Create configs and Composer home directories,
 # writable by the runtime user (single layer to avoid image bloat).
 RUN set -eux; \
-    mkdir -p /var/configs /var/private-files /var/composer-home /fcgi-bin; \
-    chown -R www-data:www-data /var/configs /var/private-files /var/composer-home; \
-    chmod -R 775 /var/configs /var/private-files /var/composer-home
+    mkdir -p /var/configs /var/composer-home /fcgi-bin; \
+    chown -R www-data:www-data /var/configs /var/composer-home; \
+    chmod -R 775 /var/configs /var/composer-home
 
 # Disable Git "dubious ownership" checks inside the container.
 RUN git config --system --add safe.directory '*'
@@ -211,13 +214,31 @@ RUN git config --system --add safe.directory '*'
 # Copy Redis settings configuration.
 COPY config/redis/redis.settings.php /var/configs/redis.settings.php
 
-# Install drush, add it to PATH, and make the Drupal root writable by the
-# runtime user (single ownership pass after the last build-time write).
+# Bake the whole Drupal codebase (core, modules, recipes, drush) from the
+# versioned composer manifest in the drupal_packages repo. The codebase is
+# immutable at runtime; no composer calls happen in the entrypoint.
 RUN set -eux; \
-    composer require 'drush/drush:^13.7'; \
-    ln -s /opt/drupal/vendor/bin/drush /usr/local/bin/drush; \
+    rm -rf /opt/drupal; \
+    mkdir -p /opt/drupal; \
+    cd /opt/drupal; \
+    manifestBaseUrl="https://raw.githubusercontent.com/soda-collections-objects-data-literacy/drupal_packages/main/wisski_base/${MODE}/${WISSKI_PACKAGES_VERSION}"; \
+    curl -fsSL "${manifestBaseUrl}/composer.json" -o composer.json; \
+    curl -fsSL "${manifestBaseUrl}/composer.lock" -o composer.lock; \
+    composer install --no-dev --no-interaction --no-progress --optimize-autoloader; \
+    composer clear-cache; \
+    ln -sf /opt/drupal/vendor/bin/drush /usr/local/bin/drush; \
+    ln -sfn /opt/drupal/web /var/www/html; \
+    echo "${WISSKI_PACKAGES_VERSION}" > /opt/drupal/.wisski-packages-version; \
     chown -R www-data:www-data /opt/drupal; \
     chmod -R 775 /opt/drupal
+
+# Persistent private files live outside the web root (mounted as a volume).
+RUN set -eux; \
+    mkdir -p /opt/drupal/private-files; \
+    chown www-data:www-data /opt/drupal/private-files; \
+    chmod 775 /opt/drupal/private-files
+
+LABEL org.wisski.packages.version="${WISSKI_PACKAGES_VERSION}"
 
 # Set Composer home directory.
 ENV COMPOSER_HOME=/var/composer-home
