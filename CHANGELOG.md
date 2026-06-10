@@ -16,6 +16,7 @@
 - change `set-permissions.sh` to use `find ... -exec ... {} +` for much faster permission passes on first boot.
 - change database readiness check to pass the password via `MYSQL_PWD` instead of the command line.
 - quote all variable expansions in drush/composer calls (openid-connect, sso_bouncer, nextcloud, wisski-salz adapter) and `settings.php` appends.
+- latest image tag set from 2.x
 
 ### Fixed
 - fix invalid PHP fragment that the secondary Redis block could append to `settings.php` (missing comment markers); the block now only installs and enables the Redis module.
