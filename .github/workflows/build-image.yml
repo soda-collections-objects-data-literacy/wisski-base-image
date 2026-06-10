@@ -47,7 +47,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ matrix.image_name }}
           tags: |
             type=raw,value=latest,enable=${{ steps.release.outputs.is_latest == 'true' }}
-            type=raw,value=dev,enable=${{ github.ref == 'refs/heads/3.x' }}
+            type=raw,value=${{ github.ref_name }},enable=${{ startsWith(github.ref, 'refs/heads/') }}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
