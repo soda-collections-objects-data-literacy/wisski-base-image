@@ -95,7 +95,7 @@ FROM drupal:${DRUPAL_BASE_IMAGE_TAG}
 
 ARG MODE=production
 # Production: semver manifest path (wisski_base/production/<version>) with lock file.
-ARG WISSKI_PACKAGES_VERSION=3.0.0
+ARG WISSKI_PACKAGES_VERSION=3.1.0
 # Development: major-line manifest path (wisski_base/development/<line>), no lock file.
 ARG WISSKI_PACKAGES_LINE=3.x
 
