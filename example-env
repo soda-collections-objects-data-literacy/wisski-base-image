@@ -18,10 +18,11 @@ DB_USER=drupal
 DRUPAL_DOMAIN=localhost
 DRUPAL_LOCALE=en
 DRUPAL_PASSWORD=also_change_me
-# Seperated by | for multiple addresses
-# '172.18.0.0/16|172.19.0.0/16' for docker/traffic routing
-# 10.0.0.0/8 for kubernetes/traffic routing
-DRUPAL_PROXY_ADDRESSES=
+# Reverse proxy (only needed behind Traefik or similar TLS-terminating edge):
+#   (unset)|none  - no reverse proxy settings (default; use for dockerWissKI / local dev)
+#   auto          - detect Docker network CIDRs from container interfaces
+#   or pipe-separated CIDRs, e.g. 172.20.0.0/16|192.168.64.0/20
+# DRUPAL_PROXY_ADDRESSES=
 # Private files live outside the web root and persist in a volume.
 DRUPAL_PRIVATE_FILES_DIR=/opt/drupal/private-files
 DRUPAL_SITE_NAME=My WissKI

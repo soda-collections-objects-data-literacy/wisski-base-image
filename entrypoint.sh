@@ -15,6 +15,7 @@ export COMPOSER_HOME=/var/composer-home
 
 # Define the path to the settings.php file.
 SETTINGS_FILE="/var/www/html/sites/default/settings.php"
+export SETTINGS_FILE
 
 # Marker files used to gate the install logic across container restarts.
 # They live in the sites volume because the rest of /opt/drupal is an
@@ -165,6 +166,8 @@ if [ -f "$INSTALL_COMPLETE_FILE" ]; then
     echo -e "\033[0;32mDATABASE UPDATES APPLIED.\033[0m\n"
   fi
 
+  /usr/local/bin/sync-reverse-proxy.sh
+
 elif [ -f "$INSTALL_IN_PROGRESS_FILE" ]; then
   echo -e "\033[0;31mERROR: A previous installation attempt did not finish.\033[0m"
   echo -e "\033[0;31mThe site may be half-configured. Wipe the volumes (database and ${INSTALL_IN_PROGRESS_FILE%/*}) to reinstall,\033[0m"
@@ -175,6 +178,7 @@ elif [ -f "$SETTINGS_FILE" ]; then
   # Legacy installation created before marker files were introduced.
   echo -e "\033[0;32mDRUPAL IS ALREADY INSTALLED (LEGACY INSTALLATION DETECTED; CREATING MARKER FILE).\033[0m\n"
   touch "$INSTALL_COMPLETE_FILE"
+  /usr/local/bin/sync-reverse-proxy.sh
 
 else
   echo -e "\033[0;32mDRUPAL IS NOT INSTALLED.\033[0m\n"
@@ -512,27 +516,7 @@ EOF
     echo -e "\033[0;33mREDIS INTEGRATION SKIPPED\033[0m\n"
   fi
 
-  # Set proxy settings (if we are in a proxy environment)
-  if [ -n "${DRUPAL_PROXY_ADDRESSES}" ]; then
-    echo -e "\033[0;33mSETTING PROXY SETTINGS.\033[0m"
-    {
-      cat >> "$SETTINGS_FILE" << 'EOF'
-
-/**
- * Reverse proxy configuration.
- * Auto-configured by entrypoint.
- */
-$settings["reverse_proxy"] = TRUE;
-$settings["reverse_proxy_trusted_headers"] = \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO;
-$settings['omit_vary_cookie'] = TRUE;
-EOF
-    ADDRESSES=$(printf '%s' "${DRUPAL_PROXY_ADDRESSES}" | sed 's/|/", "/g')
-    printf '%s\n' "\$settings['reverse_proxy_addresses'] = [\"${ADDRESSES}\"];" >> "${SETTINGS_FILE}"
-    } 1> /dev/null
-    echo -e "\033[0;32mPROXY SETTINGS SET.\033[0m\n"
-  else
-    echo -e "\033[0;33mNO PROXY SETTINGS SET.\033[0m\n"
-  fi
+  /usr/local/bin/sync-reverse-proxy.sh
 
   # Set secure permissions following Drupal security guidelines.
   echo -e "\033[0;33mSET SECURE PERMISSIONS.\033[0m"

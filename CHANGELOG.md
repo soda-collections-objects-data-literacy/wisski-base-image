@@ -1,7 +1,13 @@
 # Changelog
 
 ## 3.x 
+### Added
+- reverse proxy: optional `DRUPAL_PROXY_ADDRESSES=auto` detects trusted proxy CIDRs from container network interfaces on install and on every boot (syncs `settings.php` for existing sites).
+- `config/drupal/sync-reverse-proxy.sh` and `config/drupal/lib/reverse-proxy.py` (installed to `/usr/local/bin/` and `/usr/local/lib/wisski/`); entrypoint delegates to the script.
+
 ### Changed
+- reverse proxy is opt-in: unset/`none` skips configuration (default in the image); stacks behind Traefik set `DRUPAL_PROXY_ADDRESSES=auto` explicitly (e.g. wisski-base-stack).
+- `none` removes an existing reverse proxy block from `settings.php` on boot.
 - development images resolve packages from `wisski_base/development/<line>/composer.json` (e.g. `3.x`) via `composer update` without a committed lock file; production still uses semver manifests with lock files under `wisski_base/production/<version>/`.
 - add `WISSKI_PACKAGES_LINE` build arg for development builds; CI derives the line from the git branch name or major version of release tags.
 

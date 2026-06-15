@@ -95,7 +95,7 @@ FROM drupal:${DRUPAL_BASE_IMAGE_TAG}
 
 ARG MODE=production
 # Production: semver manifest path (wisski_base/production/<version>) with lock file.
-ARG WISSKI_PACKAGES_VERSION=3.1.0
+ARG WISSKI_PACKAGES_VERSION=3.1.1
 # Development: major-line manifest path (wisski_base/development/<line>), no lock file.
 ARG WISSKI_PACKAGES_LINE=3.x
 
@@ -275,7 +275,9 @@ RUN if [ "$MODE" = "production" ]; then \
 
 # Add permission scripts and set initial ownerships and permissions.
 COPY config/drupal/set-permissions.sh /usr/local/bin/set-permissions.sh
-RUN chmod +x /usr/local/bin/set-permissions.sh
+COPY config/drupal/sync-reverse-proxy.sh /usr/local/bin/sync-reverse-proxy.sh
+COPY config/drupal/lib/reverse-proxy.py /usr/local/lib/wisski/reverse-proxy.py
+RUN chmod +x /usr/local/bin/set-permissions.sh /usr/local/bin/sync-reverse-proxy.sh /usr/local/lib/wisski/reverse-proxy.py
 
 # Add entrypoint.
 COPY entrypoint.sh /entrypoint.sh
