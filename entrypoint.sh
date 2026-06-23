@@ -402,7 +402,6 @@ EOF
     echo -e "\033[0;33mAPPLY WISSKI DATA DEFAULT MODEL RECIPE.\033[0m"
       drush cr
       drush recipe ../recipes/wisski_default_data_model
-      drush wisski-core:recreate-menus
 
       echo -e "\033[0;32mAdd German language and update translations.\033[0m\n"
 
@@ -420,6 +419,8 @@ EOF
         drush locale:import de "$po" --type=not-customized --override=all -y
       done
 
+      echo -e "\033[0;33mRECREATE WISSKI MAIN MENU.\033[0m\n"
+        drush wisski-core:recreate-menus    
       echo -e "\033[0;32mTRANSLATIONS UPDATED.\033[0m\n"
 
       # Download and set WissKI logo.
@@ -427,12 +428,16 @@ EOF
       # Import example contents.
       #curl -sSL 'https://wiss-ki.eu/example-contents' | curl -sS -w '\n%{http_code}\n' -X POST "${TS_WRITE_URL}" -H "Authorization: Token ${TS_TOKEN}" -H 'Content-Type: application/n-quads' --data-binary @-
 
-      # Import example contents.
-      drush content:import ../recipes/wisski_default_data_model/content/content.zip
 
+      echo -e "\033[0;33mImport start page and default menu items.\033[0m\n"
+      # Import example contents.
+      drush config:set single_content_sync.settings site_uuid_check 0 -y
+      drush content:import ../recipes/wisski_default_data_model/content/content.zip
+      echo -e "\033[0;32mSTART PAGE AND DEFAULT MENU ITEMS IMPORTED.\033[0m\n"
+
+      echo -e "\033[0;33mISABLE WISSKI MAIN MENU LINKS.\033[0m\n"
       # Disable WissKI main menu links (menu: main). Config stores encoded keys (dots -> __); use the API.
       # Create  main  wisski.create_entities | Navigate  main  wisski.browse_entities | Find  main  wisski.search_entities
-      echo -e "\033[0;33mDISABLE WISSKI MAIN MENU LINKS.\033[0m\n"
       drush php-eval "
         \$o = \\Drupal::service('menu_link.static.overrides');
         foreach (['wisski.create_entities', 'wisski.browse_entities', 'wisski.search_entities'] as \$id) {

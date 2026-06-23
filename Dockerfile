@@ -228,7 +228,7 @@ RUN set -eux; \
     manifestBaseUrl="${packagesRepoBaseUrl}/development/${WISSKI_PACKAGES_LINE}"; \
     curl -fsSL "${manifestBaseUrl}/composer.json" -o composer.json; \
     composer update --no-dev --no-interaction --no-progress --optimize-autoloader; \
-    packagesVersion="${WISSKI_PACKAGES_LINE}-$(md5sum composer.lock | cut -d' ' -f1)"; \
+    packagesVersion="${WISSKI_PACKAGES_LINE}-$(md5sum vendor/composer/installed.json | cut -d' ' -f1)"; \
     else \
     manifestBaseUrl="${packagesRepoBaseUrl}/production/${WISSKI_PACKAGES_VERSION}"; \
     curl -fsSL "${manifestBaseUrl}/composer.json" -o composer.json; \
