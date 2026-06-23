@@ -1,6 +1,26 @@
 # Changelog
 
-## 3.x 
+## 3.2.1
+### Changed
+- new druapl package version 3.2.1
+
+## 3.2.0
+
+### Changed
+- development builds record package set version from `installed.json` hash (not `composer.lock`) in `.wisski-packages-version`, since dev manifests have no lock file.
+- install recipe flow: run `wisski-core:recreate-menus` after locale and translation import (not before); import start page and default menu items after menu recreation.
+
+### Files Modified
+- `Dockerfile`: hash `vendor/composer/installed.json` for development `.wisski-packages-version`.
+- `entrypoint.sh`: reorder menu recreation, content import, and menu-link disable steps in the default data model recipe.
+
+## 3.1.2 [2026-06-17]
+
+### Changed
+- bump baked package manifest to `wisski_base/production/3.1.2`.
+
+## 3.1.1 [2026-06-15]
+
 ### Added
 - reverse proxy: optional `DRUPAL_PROXY_ADDRESSES=auto` detects trusted proxy CIDRs from container network interfaces on install and on every boot (syncs `settings.php` for existing sites).
 - `config/drupal/sync-reverse-proxy.sh` and `config/drupal/lib/reverse-proxy.py` (installed to `/usr/local/bin/` and `/usr/local/lib/wisski/`); entrypoint delegates to the script.
@@ -8,12 +28,26 @@
 ### Changed
 - reverse proxy is opt-in: unset/`none` skips configuration (default in the image); stacks behind Traefik set `DRUPAL_PROXY_ADDRESSES=auto` explicitly (e.g. wisski-base-stack).
 - `none` removes an existing reverse proxy block from `settings.php` on boot.
-- development images resolve packages from `wisski_base/development/<line>/composer.json` (e.g. `3.x`) via `composer update` without a committed lock file; production still uses semver manifests with lock files under `wisski_base/production/<version>/`.
-- add `WISSKI_PACKAGES_LINE` build arg for development builds; CI derives the line from the git branch name or major version of release tags.
+- replace inline reverse-proxy heredoc in `entrypoint.sh` with `sync-reverse-proxy.sh` (also runs on boot for existing sites).
+- bump baked package manifest to `wisski_base/production/3.1.1`.
 
 ### Files Modified
-- `Dockerfile`: split production (`composer install` + lock) and development (`composer update`, installed.json hash in `.wisski-packages-version`) manifest resolution.
+- `Dockerfile`: install reverse-proxy scripts; default `WISSKI_PACKAGES_VERSION=3.1.1`.
+- `config/drupal/sync-reverse-proxy.sh`, `config/drupal/lib/reverse-proxy.py`: new.
+- `entrypoint.sh`: call `sync-reverse-proxy.sh` on install and boot; remove legacy inline proxy block.
+- `example-env`: document `DRUPAL_PROXY_ADDRESSES` values (`none`, `auto`, explicit CIDRs).
+
+## 3.1.0 [2026-06-14]
+
+### Changed
+- development images resolve packages from `wisski_base/development/<line>/composer.json` (e.g. `3.x`) via `composer update` without a committed lock file; production still uses semver manifests with lock files under `wisski_base/production/<version>/`.
+- add `WISSKI_PACKAGES_LINE` build arg for development builds; CI derives the line from the git branch name or major version of release tags.
+- bump baked package manifest to `wisski_base/production/3.1.0`.
+
+### Files Modified
+- `Dockerfile`: split production (`composer install` + lock) and development (`composer update`, lock hash in `.wisski-packages-version`) manifest resolution.
 - `.github/workflows/build-image.yml`: pass `WISSKI_PACKAGES_LINE` for development matrix builds.
+- `entrypoint.sh`: clarify comments for production vs development manifest resolution.
 
 ## 3.0.0 [2026-06-10]
 
