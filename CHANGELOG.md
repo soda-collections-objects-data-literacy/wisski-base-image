@@ -6,9 +6,9 @@
 - development images install the DFG 3D Viewer library from the `1.x` branch zip in the JS library repository; production images use the latest GitLab release.
 
 ### Changed
-- new Drupal package version 3.3.0 (with dfg 3d viewer).
 - move IIIF server config (`wisski_iip_image.wisski_iiif_settings`) earlier in the default data model recipe flow (before additional library setup).
 - remove runtime `drush` library downloads from the entrypoint; libraries are part of the immutable baked codebase.
+- enable `dfg_3dviewer` before running `drush dfg-3dviewer:configure` in the default data model recipe.
 
 ### Files Modified
 - `Dockerfile`: download and unpack Mirador, Colorbox, DOMPurify, and DFG 3D Viewer libraries after the composer bake step.
