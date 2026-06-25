@@ -435,7 +435,7 @@ EOF
       drush content:import ../recipes/wisski_default_data_model/content/content.zip
       echo -e "\033[0;32mSTART PAGE AND DEFAULT MENU ITEMS IMPORTED.\033[0m\n"
 
-      echo -e "\033[0;33mISABLE WISSKI MAIN MENU LINKS.\033[0m\n"
+      echo -e "\033[0;33mDISABLE WISSKI MAIN MENU LINKS.\033[0m\n"
       # Disable WissKI main menu links (menu: main). Config stores encoded keys (dots -> __); use the API.
       # Create  main  wisski.create_entities | Navigate  main  wisski.browse_entities | Find  main  wisski.search_entities
       drush php-eval "
@@ -450,6 +450,27 @@ EOF
       # Set front page.
       drush config:set system.site page.front /home -y
       echo -e "\033[0;32mFRONT PAGE SET.\033[0m\n"
+
+      # Set DFG 3D Viewer settings.
+      echo -e "\033[0;33mSET DFG 3D VIEWER SETTINGS.\033[0m\n"
+      drush dfg-3dviewer:configure \
+        --main-url=https://${DRUPAL_DOMAIN} \
+        --container=DFG_3DViewer \
+        --entitybundle=bd3d7baa74856d141bcff7b4193fa128 \
+        --viewer-file-upload=fbf95bddee5160d515b982b3fd2e05f7 \
+        --viewer-file-name=faa602a0be629324806aef22892cdbe5 \
+        --lightweight=1 \
+        --scale-container-x=1 \
+        --scale-container-y=1.4 \
+        --base-module-path=/libraries/dfg-3dviewer/assets \
+        --entity-id-uri='/wisski/navigate/(.*)/view' \
+        --view-entity-path=/wisski/navigate/ \
+        --attribute-id=wisski_id
+      echo -e "\033[0;32mDFG 3D VIEWER SETTINGS SET.\033[0m\n"
+
+      echo -e "\033[0;33mSet IIIF configs.\033[0m"
+      drush config-set wisski_iip_image.wisski_iiif_settings iiif_server "https://${DRUPAL_DOMAIN}/fcgi-bin/iipsrv.fcgi?IIIF="
+      echo -e "\033[0;32mIIIF configs set.\033[0m\n"
 
       echo -e "\033[0;33mCLEAR CACHE.\033[0m\n"
       # Clear cache.
@@ -477,20 +498,6 @@ EOF
 
     echo -e "\033[0;32mWISSKI DEFAULT DATA MODEL RECIPE APPLIED.\033[0m\n"
 
-    echo -e "\033[0;33mINSTALL ADDITIONAL LIBRARIES.\033[0m"
-      echo -e "\033[0;33mDownload Mirador integration library.\033[0m"
-      drush wisski-mirador:wisski-mirador-integration
-      echo -e "\033[0;32mMirador integration library downloaded.\033[0m\n"
-      echo -e "\033[0;33mDownload Colorbox integration library.\033[0m"
-      drush colorbox:plugin
-      echo -e "\033[0;32mColorbox integration library downloaded.\033[0m\n"
-      echo -e "\033[0;33mDownload DomPurify integration library.\033[0m"
-      drush colorbox:dompurify
-      echo -e "\033[0;32mDomPurify integration library downloaded.\033[0m\n"
-      echo -e "\033[0;33mSet IIIF configs.\033[0m"
-      drush config-set wisski_iip_image.wisski_iiif_settings iiif_server "https://${DRUPAL_DOMAIN}/fcgi-bin/iipsrv.fcgi?IIIF="
-      echo -e "\033[0;32mIIIF configs set.\033[0m\n"
-    echo -e "\033[0;32mADDITIONAL LIBRARIES INSTALLED.\033[0m\n"
   else
     echo -e "\033[0;33mWISSKI DEFAULT DATA MODEL RECIPE SKIPPED\033[0m\n"
 
