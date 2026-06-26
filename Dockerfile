@@ -243,7 +243,7 @@ RUN set -eux; \
     chown -R www-data:www-data /opt/drupal; \
     chmod -R 775 /opt/drupal
 
-# JS libraries for WissKI and DFG 3D Viewer (mirrors drush download commands).
+# JS libraries for WissKI and DLF AIM 3D Viewer (mirrors drush download commands).
 RUN set -eux; \
     curl -fsSL "https://github.com/rnsrk/wisski-mirador-integration/archive/main.zip" -o /tmp/wisski-mirador-integration.zip; \
     mkdir -p /opt/drupal/web/libraries/wisski-mirador-integration; \
@@ -260,17 +260,11 @@ RUN set -eux; \
     unzip -qo /tmp/dompurify.zip -d /tmp; \
     cp -a /tmp/DOMPurify-main/dist /opt/drupal/web/libraries/dompurify/; \
     rm -rf /tmp/dompurify.zip /tmp/DOMPurify-main; \
-    if [ "$MODE" = "development" ]; then \
-    git clone --depth 1 --branch 1.x "https://gitlab.nasarek.dev/rnsrk/dfg_3dviewer_js_library.git" /tmp/dfg_3dviewer_js_library; \
-    mkdir -p /opt/drupal/web/libraries/dfg-3dviewer; \
-    unzip -o /tmp/dfg_3dviewer_js_library/dfg-3dviewer-library.zip -d /opt/drupal/web/libraries/dfg-3dviewer; \
-    rm -rf /tmp/dfg_3dviewer_js_library; \
-    else \
-    curl -fsSL "https://gitlab.nasarek.dev/rnsrk/dfg_3dviewer_js_library/-/releases/permalink/latest/downloads/dfg-3dviewer-library.zip" -o /tmp/dfg-3dviewer-library.zip; \
-    mkdir -p /opt/drupal/web/libraries/dfg-3dviewer; \
-    unzip -o /tmp/dfg-3dviewer-library.zip -d /opt/drupal/web/libraries/dfg-3dviewer; \
-    rm /tmp/dfg-3dviewer-library.zip; \
-    fi; \
+    curl -fsSL "https://github.com/thedworak/dfg_3dviewer/archive/standalone.zip" -o /tmp/dlf_aim_3d_viewer.zip; \
+    mkdir -p /opt/drupal/web/libraries/dlf_aim_3d_viewer; \
+    unzip -qo /tmp/dlf_aim_3d_viewer.zip -d /tmp; \
+    cp -a /tmp/dfg_3dviewer-standalone/. /opt/drupal/web/libraries/dlf_aim_3d_viewer/; \
+    rm -rf /tmp/dlf_aim_3d_viewer.zip /tmp/dfg_3dviewer-standalone; \
     chown -R www-data:www-data /opt/drupal/web/libraries
 
 # Persistent private files live outside the web root (mounted as a volume).

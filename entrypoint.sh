@@ -402,6 +402,10 @@ EOF
     echo -e "\033[0;33mAPPLY WISSKI DATA DEFAULT MODEL RECIPE.\033[0m"
       drush cr
       drush recipe ../recipes/wisski_default_data_model
+      echo -e "\033[0;33mCLEAR CACHE.\033[0m\n"
+      # Clear cache.
+      drush cr
+      echo -e "\033[0;32mCACHE CLEARED.\033[0m\n"
 
       echo -e "\033[0;32mAdd German language and update translations.\033[0m\n"
 
@@ -451,22 +455,22 @@ EOF
       drush config:set system.site page.front /home -y
       echo -e "\033[0;32mFRONT PAGE SET.\033[0m\n"
 
-      # Set DFG 3D Viewer settings.
-      echo -e "\033[0;33mSET DFG 3D VIEWER SETTINGS.\033[0m\n"
-      drush dfg-3dviewer:configure \
+      # Set DLF AIM 3D Viewer settings.
+      echo -e "\033[0;33mSET DLF AIM 3D VIEWER SETTINGS.\033[0m\n"
+      drush dlf_aim_3d_viewer:configure \
         --main-url=https://${DRUPAL_DOMAIN} \
-        --container=DFG_3DViewer \
+        --container=DLF_AIM_3DViewer \
         --entitybundle=bd3d7baa74856d141bcff7b4193fa128 \
         --viewer-file-upload=fbf95bddee5160d515b982b3fd2e05f7 \
         --viewer-file-name=faa602a0be629324806aef22892cdbe5 \
         --lightweight=1 \
         --scale-container-x=1 \
         --scale-container-y=1.4 \
-        --base-module-path=/libraries/dfg-3dviewer/assets \
+        --base-module-path=/libraries/dlf_aim_3d_viewer/dist/drupal/main/assets \
         --entity-id-uri='/wisski/navigate/(.*)/view' \
         --view-entity-path=/wisski/navigate/ \
         --attribute-id=wisski_id
-      echo -e "\033[0;32mDFG 3D VIEWER SETTINGS SET.\033[0m\n"
+      echo -e "\033[0;32mDLF AIM 3D VIEWER SETTINGS SET.\033[0m\n"
 
       echo -e "\033[0;33mSet IIIF configs.\033[0m"
       drush config-set wisski_iip_image.wisski_iiif_settings iiif_server "https://${DRUPAL_DOMAIN}/fcgi-bin/iipsrv.fcgi?IIIF="
