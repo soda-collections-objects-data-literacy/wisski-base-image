@@ -95,7 +95,7 @@ FROM drupal:${DRUPAL_BASE_IMAGE_TAG}
 
 ARG MODE=production
 # Production: semver manifest path (wisski_base/production/<version>) with lock file.
-ARG WISSKI_PACKAGES_VERSION=3.2.1
+ARG WISSKI_PACKAGES_VERSION=3.3.0
 # Development: major-line manifest path (wisski_base/development/<line>), no lock file.
 ARG WISSKI_PACKAGES_LINE=3.x
 
@@ -240,8 +240,7 @@ RUN set -eux; \
     ln -sf /opt/drupal/vendor/bin/drush /usr/local/bin/drush; \
     ln -sfn /opt/drupal/web /var/www/html; \
     echo "${packagesVersion}" > /opt/drupal/.wisski-packages-version; \
-    chown -R www-data:www-data /opt/drupal; \
-    chmod -R 775 /opt/drupal
+    chown -R www-data:www-data /opt/drupal
 
 # JS libraries for WissKI and DLF AIM 3D Viewer (mirrors drush download commands).
 RUN set -eux; \
@@ -266,6 +265,23 @@ RUN set -eux; \
     cp -a /tmp/dfg_3dviewer-standalone/. /opt/drupal/web/libraries/dlf_aim_3d_viewer/; \
     rm -rf /tmp/dlf_aim_3d_viewer.zip /tmp/dfg_3dviewer-standalone; \
     chown -R www-data:www-data /opt/drupal/web/libraries
+
+# Bake static file permissions for the immutable codebase, following Drupal
+# security guidelines (directories 755, files 644). The codebase never changes
+# at runtime, so doing this once at build time avoids a slow recursive walk over
+# vendor/ on first boot. Runtime only adjusts the writable state directories and
+# locks down the generated settings files (see set-permissions.sh).
+RUN set -eux; \
+    find /opt/drupal -type d -exec chmod 755 {} +; \
+    find /opt/drupal -type f -exec chmod 644 {} +; \
+    if [ -d /opt/drupal/vendor/bin ]; then \
+    find /opt/drupal/vendor/bin -type f -exec chmod 755 {} +; \
+    fi; \
+    find /opt/drupal/vendor -type f -print0 | while IFS= read -r -d '' file; do \
+    if head -n1 "$file" 2>/dev/null | grep -q "^#!"; then chmod 755 "$file"; fi; \
+    done; \
+    find /opt/drupal/web -name .htaccess -exec chmod 444 {} +; \
+    if [ -f /opt/drupal/web/robots.txt ]; then chmod 444 /opt/drupal/web/robots.txt; fi
 
 # Persistent private files live outside the web root (mounted as a volume).
 RUN set -eux; \

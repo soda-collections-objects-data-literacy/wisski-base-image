@@ -1,6 +1,12 @@
 # Changelog
 
 ## [unreleased]
+
+### Changed
+- bake static permissions for the immutable codebase at build time (directories 755, files 644, vendor executables 755, `.htaccess`/`robots.txt` 444); `set-permissions.sh` no longer walks the whole tree on first boot, only the writable state dirs and generated settings files, cutting install time.
+
+
+## 3.3.0
 ### Added
 - bake WissKI Mirador integration, Colorbox, DOMPurify, and DFG 3D Viewer JS libraries into the image at build time under `web/libraries/`.
 - development images install the DFG 3D Viewer library from the `1.x` branch zip in the JS library repository; production images use the latest GitLab release.
@@ -10,9 +16,11 @@
 - remove runtime `drush` library downloads from the entrypoint; libraries are part of the immutable baked codebase.
 - enable `dfg_3dviewer` before running `drush dfg-3dviewer:configure` in the default data model recipe.
 
+
 ### Files Modified
-- `Dockerfile`: download and unpack Mirador, Colorbox, DOMPurify, and DFG 3D Viewer libraries after the composer bake step.
+- `Dockerfile`: download and unpack Mirador, Colorbox, DOMPurify, and DFG 3D Viewer libraries after the composer bake step; add a build-time step that sets static codebase permissions and drop the blanket `chmod -R 775 /opt/drupal`.
 - `entrypoint.sh`: remove `INSTALL ADDITIONAL LIBRARIES` block; keep `drush dfg-3dviewer:configure` and IIIF config in the recipe.
+- `config/drupal/set-permissions.sh`: drop the recursive whole-tree `chown`/`chmod` and vendor shebang scan; only lock down generated settings and fix the writable directories (files, private-files, xdebug log, Composer home).
 
 ## 3.2.1
 ### Changed

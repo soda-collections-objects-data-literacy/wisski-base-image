@@ -3,9 +3,12 @@
 # See: https://www.drupal.org/docs/administering-a-drupal-site/security-in-drupal/securing-file-permissions-and-ownership
 #
 # Strategy:
-# 1. Set ownership of entire /opt/drupal to www-data:www-data (even if commands ran as root).
-# 2. Set base permissions to 775/664 (writable by www-data).
-# 3. Lock down sensitive files and directories (settings.php, sites/default) for security.
+# The immutable codebase (core, modules, vendor, libraries) already has its
+# static ownership and permissions baked at build time in the Dockerfile
+# (directories 755, files 644, vendor executables 755, .htaccess/robots 444).
+# This script therefore only handles the paths that change at install/runtime:
+# 1. Lock down the generated settings files and sites/default for security.
+# 2. Make the writable state directories (files, private-files, logs) writable.
 #
 # Exit on error.
 set -e
@@ -34,72 +37,24 @@ if [ ! -d "${DRUPAL_ROOT}" ]; then
   exit 1
 fi
 
-# Set ownership: www-data owns the entire Drupal tree so it can write where needed.
-# This ensures files created by root during installation are properly owned.
-echo -e "\033[0;33m1. Setting ownership: ${WEB_USER}:${WEB_GROUP} for the entire Drupal tree...\033[0m"
-chown -R ${WEB_USER}:${WEB_GROUP} "${DRUPAL_ROOT}"
-
-echo -e "\033[0;33m2. Setting base permissions (775/664) so www-data can write...\033[0m"
-find "${DRUPAL_ROOT}" -type d -exec chmod 775 {} +
-find "${DRUPAL_ROOT}" -type f -exec chmod 664 {} +
-
-# Common: Make vendor/bin executables executable
-echo -e "\033[0;33m2a. Making vendor/bin executables executable (755)...\033[0m"
-if [ -d "${DRUPAL_ROOT}/vendor/bin" ]; then
-  # Make all files in vendor/bin executable (these are symlinks or wrappers)
-  find "${DRUPAL_ROOT}/vendor/bin" -type f -exec chmod 755 {} +
-  echo -e "   - ${DRUPAL_ROOT}/vendor/bin: executables set to 755"
-
-  # Find all actual executable files referenced by vendor/bin symlinks and make them executable
-  find "${DRUPAL_ROOT}/vendor/bin" -type l | while read -r symlink; do
-    target=$(readlink -f "$symlink" 2>/dev/null || true)
-    if [ -n "$target" ] && [ -f "$target" ]; then
-      chmod 755 "$target"
-    fi
-  done
-
-  # Find all files in vendor directory that have shebang (likely executables)
-  # This catches executables that might not be symlinked from vendor/bin
-  find "${DRUPAL_ROOT}/vendor" -type f -print0 | while IFS= read -r -d '' file; do
-    if head -n1 "$file" 2>/dev/null | grep -q "^#!"; then
-      chmod 755 "$file"
-    fi
-  done
-  echo -e "   - All vendor executables set to 755"
-fi
-
-# Common: Lock down critical configuration files and sites/default directory
-echo -e "\033[0;33m3. Locking down critical configuration files (444) and sites/default (555)...\033[0m"
+# Lock down the generated settings files and sites/default directory.
+# These are created at install time (by root), so fix ownership before mode.
+echo -e "\033[0;33m1. Locking down critical configuration files (444) and sites/default (555)...\033[0m"
 if [ -d "${WEB_ROOT}/sites/default" ]; then
+  chown ${WEB_USER}:${WEB_GROUP} "${WEB_ROOT}/sites/default"
+  for file in settings.php services.yml settings.local.php; do
+    if [ -f "${WEB_ROOT}/sites/default/${file}" ]; then
+      chown ${WEB_USER}:${WEB_GROUP} "${WEB_ROOT}/sites/default/${file}"
+      chmod 444 "${WEB_ROOT}/sites/default/${file}"
+      echo -e "   - ${file}: 444 (read-only)"
+    fi
+  done
   chmod 555 "${WEB_ROOT}/sites/default"
   echo -e "   - sites/default: 555 (read-only)"
 fi
 
-if [ -f "${WEB_ROOT}/sites/default/settings.php" ]; then
-  chmod 444 "${WEB_ROOT}/sites/default/settings.php"
-  echo -e "   - settings.php: 444 (read-only)"
-fi
-
-if [ -f "${WEB_ROOT}/sites/default/services.yml" ]; then
-  chmod 444 "${WEB_ROOT}/sites/default/services.yml"
-  echo -e "   - services.yml: 444 (read-only)"
-fi
-
-if [ -f "${WEB_ROOT}/sites/default/settings.local.php" ]; then
-  chmod 444 "${WEB_ROOT}/sites/default/settings.local.php"
-  echo -e "   - settings.local.php: 444 (read-only)"
-fi
-
-# Common: Protect .htaccess files
-echo -e "\033[0;33m4. Protecting .htaccess files (444)...\033[0m"
-find "${WEB_ROOT}" -name ".htaccess" -exec chmod 444 {} +
-
-if [ -f "${WEB_ROOT}/robots.txt" ]; then
-  chmod 444 "${WEB_ROOT}/robots.txt"
-fi
-
-# Common: Make files directory writable
-echo -e "\033[0;33m5. Making files directory writable (775/664)...\033[0m"
+# Make the public files directory writable.
+echo -e "\033[0;33m2. Making files directory writable (775/664)...\033[0m"
 if [ -d "${WEB_ROOT}/sites/default/files" ]; then
   chown -R ${WEB_USER}:${WEB_GROUP} "${WEB_ROOT}/sites/default/files"
   find "${WEB_ROOT}/sites/default/files" -type d -exec chmod 775 {} +
@@ -107,8 +62,8 @@ if [ -d "${WEB_ROOT}/sites/default/files" ]; then
   echo -e "   - ${WEB_ROOT}/sites/default/files: 775/664"
 fi
 
-# Common: Make private files directory writable (lives outside the web root).
-echo -e "\033[0;33m6. Making private files directory writable (775/664)...\033[0m"
+# Make the private files directory writable (lives outside the web root).
+echo -e "\033[0;33m3. Making private files directory writable (775/664)...\033[0m"
 if [ -d "${PRIVATE_FILES_DIR}" ]; then
   chown -R ${WEB_USER}:${WEB_GROUP} "${PRIVATE_FILES_DIR}"
   find "${PRIVATE_FILES_DIR}" -type d -exec chmod 775 {} +
@@ -116,8 +71,8 @@ if [ -d "${PRIVATE_FILES_DIR}" ]; then
   echo -e "   - ${PRIVATE_FILES_DIR}: 775/664"
 fi
 
-# Common: Make xdebug log directory writable
-echo -e "\033[0;33m7. Making xdebug log directory writable (775/664)...\033[0m"
+# Make the xdebug log directory writable.
+echo -e "\033[0;33m4. Making xdebug log directory writable (775/664)...\033[0m"
 if [ -d "/var/log/xdebug" ]; then
   chown -R ${WEB_USER}:${WEB_GROUP} "/var/log/xdebug"
   chmod 775 "/var/log/xdebug"
@@ -125,8 +80,8 @@ if [ -d "/var/log/xdebug" ]; then
   echo -e "   - /var/log/xdebug: ${WEB_USER}:${WEB_GROUP} 775/664"
 fi
 
-# Common: Ensure Composer home directory is writable.
-echo -e "\033[0;33m8. Ensuring Composer home directory is writable (775)...\033[0m"
+# Ensure the Composer home directory is writable.
+echo -e "\033[0;33m5. Ensuring Composer home directory is writable (775)...\033[0m"
 mkdir -p "${COMPOSER_HOME:-/var/composer-home}"
 chown -R ${WEB_USER}:${WEB_GROUP} "${COMPOSER_HOME:-/var/composer-home}"
 chmod -R 775 "${COMPOSER_HOME:-/var/composer-home}"
