@@ -277,9 +277,7 @@ RUN set -eux; \
     if [ -d /opt/drupal/vendor/bin ]; then \
     find /opt/drupal/vendor/bin -type f -exec chmod 755 {} +; \
     fi; \
-    find /opt/drupal/vendor -type f -print0 | while IFS= read -r -d '' file; do \
-    if head -n1 "$file" 2>/dev/null | grep -q "^#!"; then chmod 755 "$file"; fi; \
-    done; \
+    find /opt/drupal/vendor -type f -print0 | xargs -0 grep -l -m1 '^#!' 2>/dev/null | xargs -r chmod 755; \
     find /opt/drupal/web -name .htaccess -exec chmod 444 {} +; \
     if [ -f /opt/drupal/web/robots.txt ]; then chmod 444 /opt/drupal/web/robots.txt; fi
 

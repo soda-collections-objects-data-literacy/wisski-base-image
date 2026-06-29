@@ -2,6 +2,11 @@
 
 ## [unreleased]
 
+## 3.3.1
+
+### Fixed
+- fix vendor executable permissions in the build-time chmod step: the shebang scan used `read -d ''`, which `/bin/sh` (dash) does not support in `RUN` instructions, so launchers such as `vendor/drush/drush/drush` stayed at 644 and Drush failed with "Permission denied" on first install.
+
 ### Changed
 - bake static permissions for the immutable codebase at build time (directories 755, files 644, vendor executables 755, `.htaccess`/`robots.txt` 444); `set-permissions.sh` no longer walks the whole tree on first boot, only the writable state dirs and generated settings files, cutting install time.
 
