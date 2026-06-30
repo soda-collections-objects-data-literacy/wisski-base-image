@@ -149,6 +149,11 @@ chown www-data:www-data /opt/drupal/web/sites /opt/drupal/private-files 2>/dev/n
 mkdir -p "${DRUPAL_PRIVATE_FILES_DIR}"
 chown www-data:www-data "${DRUPAL_PRIVATE_FILES_DIR}"
 
+# Composer cache must stay writable by www-data (docker exec package checks).
+mkdir -p "${COMPOSER_HOME}/cache"
+chown -R www-data:www-data "${COMPOSER_HOME}"
+chmod -R 775 "${COMPOSER_HOME}"
+
 # Check if Drupal is already installed.
 echo -e "\033[0;33mCHECKING IF DRUPAL IS ALREADY INSTALLED.\033[0m"
 if [ -f "$INSTALL_COMPLETE_FILE" ]; then
@@ -583,6 +588,8 @@ start_iipsrv() {
   export JPEG_QUALITY="90"
   export MAX_CVT="5000"
   export MEMCACHED_SERVERS="localhost"
+  # WissKI manifests use IIIF Image API v2; iipsrv 1.3 defaults to v3.
+  export IIIF_VERSION="2"
   local bindAddress="127.0.0.1"
   local bindPort="9100"
   su -s /bin/bash www-data -c "exec /fcgi-bin/iipsrv.fcgi --bind ${bindAddress}:${bindPort}" &

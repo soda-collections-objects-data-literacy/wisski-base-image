@@ -2,6 +2,10 @@
 
 ## [unreleased]
 
+### Fixed
+- set `IIIF_VERSION=2` for iipsrv (nginx `fastcgi_param`, Apache `FcgidInitialEnv`, and the standalone iipsrv process) so IIIF `info.json` matches WissKI Presentation 2 manifests; fixes blank Mirador canvases when Mirador 3 requests v3 image URLs.
+- pre-create `/var/composer-home/cache` owned by `www-data` and re-apply ownership on every boot so `composer show --latest` via docker exec works.
+
 ## 3.3.1
 
 ### Fixed

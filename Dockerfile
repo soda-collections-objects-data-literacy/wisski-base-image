@@ -95,7 +95,7 @@ FROM drupal:${DRUPAL_BASE_IMAGE_TAG}
 
 ARG MODE=production
 # Production: semver manifest path (wisski_base/production/<version>) with lock file.
-ARG WISSKI_PACKAGES_VERSION=3.3.1
+ARG WISSKI_PACKAGES_VERSION=3.3.2
 # Development: major-line manifest path (wisski_base/development/<line>), no lock file.
 ARG WISSKI_PACKAGES_LINE=3.x
 
@@ -292,6 +292,14 @@ LABEL org.wisski.packages.version="${WISSKI_PACKAGES_VERSION}" \
 
 # Set Composer home directory.
 ENV COMPOSER_HOME=/var/composer-home
+
+# Pre-create Composer cache dirs for www-data. Runtime exec (e.g. composer show
+# --latest via docker exec as www-data) needs a writable cache; root-owned cache
+# appears if anything runs Composer as root with COMPOSER_HOME set.
+RUN set -eux; \
+    mkdir -p /var/composer-home/cache/vcs /var/composer-home/cache/repo; \
+    chown -R www-data:www-data /var/composer-home; \
+    chmod -R 775 /var/composer-home
 
 # Set www-data user to use bash.
 RUN usermod -s /bin/bash www-data
