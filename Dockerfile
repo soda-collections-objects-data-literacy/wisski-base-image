@@ -249,11 +249,11 @@ RUN set -eux; \
     unzip -qo /tmp/wisski-mirador-integration.zip -d /tmp; \
     cp -a /tmp/wisski-mirador-integration-main/. /opt/drupal/web/libraries/wisski-mirador-integration/; \
     rm -rf /tmp/wisski-mirador-integration.zip /tmp/wisski-mirador-integration-main; \
-    curl -fsSL "https://github.com/jackmoore/colorbox/archive/master.zip" -o /tmp/colorbox.zip; \
+    curl -fsSL "https://github.com/TurbojetTechnologies/colorbox/archive/1.7.0.zip" -o /tmp/colorbox.zip; \
     mkdir -p /opt/drupal/web/libraries/colorbox; \
     unzip -qo /tmp/colorbox.zip -d /tmp; \
-    cp -a /tmp/colorbox-master/. /opt/drupal/web/libraries/colorbox/; \
-    rm -rf /tmp/colorbox.zip /tmp/colorbox-master; \
+    cp -a /tmp/colorbox-1.7.0/. /opt/drupal/web/libraries/colorbox/; \
+    rm -rf /tmp/colorbox.zip /tmp/colorbox-1.7.0; \
     curl -fsSL "https://github.com/cure53/DOMPurify/archive/main.zip" -o /tmp/dompurify.zip; \
     mkdir -p /opt/drupal/web/libraries/dompurify; \
     unzip -qo /tmp/dompurify.zip -d /tmp; \
