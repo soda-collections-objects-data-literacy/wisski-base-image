@@ -202,6 +202,13 @@ RUN mkdir -p /run/php && \
     echo 'listen.group = www-data' >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
     echo 'listen.mode = 0660' >> /usr/local/etc/php-fpm.d/zz-docker.conf
 
+# Production: raise max_children for concurrent WissKI entity views (default Drupal pool is 5).
+COPY config/php-fpm/zz-wisski-production.conf /usr/local/etc/php-fpm.d/zz-wisski-production.conf
+RUN set -eux; \
+    if [ "$MODE" != "production" ]; then \
+    rm -f /usr/local/etc/php-fpm.d/zz-wisski-production.conf; \
+    fi
+
 # Create configs and Composer home directories,
 # writable by the runtime user (single layer to avoid image bloat).
 RUN set -eux; \
