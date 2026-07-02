@@ -2,9 +2,39 @@
 
 ## [unreleased]
 
+## [3.6.0]
+
+### Added
+- Nginx blocks for common vulnerability scanner paths (WordPress probes, `.env`, etc.) before requests reach Drupal/PHP; protects the `raw.*` Traefik bypass path.
+
+## 3.5.0
+
+### Changed
+- production images ship `config/php-fpm/zz-wisski-production.conf` (`pm.max_children = 15`, dynamic pool sizing, `request_terminate_timeout = 300`) so concurrent WissKI entity views are not capped at the default pool of five workers; omitted from development images.
+
+## 3.4.1
+
+### Changed
+- bump baked package manifest to `wisski_base/production/3.4.1`.
+
+## 3.4.0
+
+### Changed
+- bump baked package manifest to `wisski_base/production/3.4.0`.
+
+## 3.3.3
+
+### Changed
+- bake Colorbox from [TurbojetTechnologies/colorbox](https://github.com/TurbojetTechnologies/colorbox) release `1.7.0` instead of `jackmoore/colorbox` `master`.
+
+## 3.3.2
+
 ### Fixed
 - set `IIIF_VERSION=2` for iipsrv (nginx `fastcgi_param`, Apache `FcgidInitialEnv`, and the standalone iipsrv process) so IIIF `info.json` matches WissKI Presentation 2 manifests; fixes blank Mirador canvases when Mirador 3 requests v3 image URLs.
 - pre-create `/var/composer-home/cache` owned by `www-data` and re-apply ownership on every boot so `composer show --latest` via docker exec works.
+
+### Changed
+- bump baked package manifest to `wisski_base/production/3.3.2`.
 
 ## 3.3.1
 
