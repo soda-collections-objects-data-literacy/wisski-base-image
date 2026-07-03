@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.7.2]
+
+### Changed
+- Revert to `DRUPAL_BASE_IMAGE_TAG=11.3-php8.3-fpm-bookworm` and packages manifest `3.5.1` (Drupal 11.3 / PHP 8.3); WissKI is not ready for PHP 8.4 and Drupal 11.4 has no official PHP 8.3 image.
+
 ## [3.7.1]
 
 ### Fixed

@@ -1,5 +1,5 @@
 # Pin the Drupal base image tag deliberately when upgrading core.
-ARG DRUPAL_BASE_IMAGE_TAG=11.4-php8.4-fpm-bookworm
+ARG DRUPAL_BASE_IMAGE_TAG=11.3-php8.3-fpm-bookworm
 
 # -----------------------------------------------------------------------------
 # Builder: compile PHP extensions and iipsrv; toolchain stays in this stage.
@@ -95,7 +95,7 @@ FROM drupal:${DRUPAL_BASE_IMAGE_TAG}
 
 ARG MODE=production
 # Production: semver manifest path (wisski_base/production/<version>) with lock file.
-ARG WISSKI_PACKAGES_VERSION=3.5.0
+ARG WISSKI_PACKAGES_VERSION=3.5.1
 # Development: major-line manifest path (wisski_base/development/<line>), no lock file.
 ARG WISSKI_PACKAGES_LINE=3.x
 
