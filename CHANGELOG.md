@@ -2,6 +2,9 @@
 
 ## [unreleased]
 
+### Changed
+- bump baked package manifest to `wisski_base/production/3.4.2` (fixes `drupal/dlf_aim_3d_viewer` lock shasum).
+
 ## [3.6.1]
 ### Fixed
 - take package version from image or env not from image tag.
