@@ -1,9 +1,10 @@
 # Changelog
 
-## [unreleased]
+## [3.7.0]
 
 ### Changed
-- bump baked package manifest to `wisski_base/production/3.4.2` (fixes `drupal/dlf_aim_3d_viewer` lock shasum).
+- Pin `DRUPAL_BASE_IMAGE_TAG` to `11.4-php8.3-fpm-bookworm`
+- Bump baked package manifest to `wisski_base/production/3.5.0` (Drupal 11.4)
 
 ## [3.6.1]
 ### Fixed

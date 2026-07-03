@@ -21,7 +21,7 @@ This Docker image provides a complete WissKI installation with:
 - **Security**: OpenID Connect SSO and optional reverse-proxy trust for Traefik/Varnish edges
 - **Performance**: Redis cache backend, APCu, OPcache, and tuned PHP settings for WissKI workloads
 
-Current production package manifest: **3.3.0** (see `WISSKI_PACKAGES_VERSION` in the Dockerfile).
+Current production package manifest: **3.5.0** (see `WISSKI_PACKAGES_VERSION` in the Dockerfile).
 
 ## Published Images
 
@@ -296,7 +296,7 @@ docker build \
 | --- | --- | --- |
 | `DRUPAL_BASE_IMAGE_TAG` | `11.3-php8.3-fpm-bookworm` | Upstream Drupal image tag |
 | `MODE` | `production` | `production` or `development` |
-| `WISSKI_PACKAGES_VERSION` | `3.3.0` | Semver manifest path for production builds |
+| `WISSKI_PACKAGES_VERSION` | `3.5.0` | Semver manifest path for production builds |
 | `WISSKI_PACKAGES_LINE` | `3.x` | Major-line manifest path for development builds |
 | `IIPSRV_VERSION` | `iipsrv-1.3` | IIPImage server git tag |
 
