@@ -2,9 +2,6 @@
 
 ## [unreleased]
 
-### Fixed
-- development image builds: use `composer install` with the development-track lock file instead of `composer update` (floating update pulled Drupal 11.4 and failed on blocked `symfony/runtime` plugin).
-
 ### Changed
 - bump baked package manifest to `wisski_base/production/3.4.2` (fixes `drupal/dlf_aim_3d_viewer` lock shasum).
 

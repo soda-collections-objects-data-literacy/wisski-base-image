@@ -1,5 +1,5 @@
 # Pin the Drupal base image tag deliberately when upgrading core.
-ARG DRUPAL_BASE_IMAGE_TAG=11.3-php8.3-fpm-bookworm
+ARG DRUPAL_BASE_IMAGE_TAG=11.4-php8.3-fpm-bookworm
 
 # -----------------------------------------------------------------------------
 # Builder: compile PHP extensions and iipsrv; toolchain stays in this stage.
@@ -223,8 +223,8 @@ RUN git config --system --add safe.directory '*'
 COPY config/redis/redis.settings.php /var/configs/redis.settings.php
 
 # Bake the whole Drupal codebase (core, modules, recipes, drush) from the
-# composer manifest in the drupal_packages repo. Both production and development
-# tracks ship a lock file; composer install keeps builds reproducible.
+# composer manifest in the drupal_packages repo. Production uses a pinned
+# lock file; development resolves the latest compatible packages at build time.
 # The codebase is immutable at runtime; no composer calls happen in the entrypoint.
 RUN set -eux; \
     rm -rf /opt/drupal; \
@@ -234,8 +234,7 @@ RUN set -eux; \
     if [ "$MODE" = "development" ]; then \
     manifestBaseUrl="${packagesRepoBaseUrl}/development/${WISSKI_PACKAGES_LINE}"; \
     curl -fsSL "${manifestBaseUrl}/composer.json" -o composer.json; \
-    curl -fsSL "${manifestBaseUrl}/composer.lock" -o composer.lock; \
-    composer install --no-dev --no-interaction --no-progress --optimize-autoloader; \
+    composer update --no-dev --no-interaction --no-progress --optimize-autoloader; \
     packagesVersion="${WISSKI_PACKAGES_LINE}-$(md5sum vendor/composer/installed.json | cut -d' ' -f1)"; \
     else \
     manifestBaseUrl="${packagesRepoBaseUrl}/production/${WISSKI_PACKAGES_VERSION}"; \
