@@ -2,6 +2,10 @@
 
 ## [unreleased]
 
+## [3.6.1]
+### Fixed
+- take package version from image or env not from image tag.
+
 ## [3.6.0]
 
 ### Added
