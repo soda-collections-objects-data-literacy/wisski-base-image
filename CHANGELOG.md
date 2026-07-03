@@ -1,9 +1,14 @@
 # Changelog
 
+## [3.7.1]
+
+### Fixed
+- Use `11.4-php8.4-fpm-bookworm` base image; `11.4-php8.3-fpm-bookworm` does not exist on Docker Hub (Drupal 11.4 ships with PHP 8.4).
+
 ## [3.7.0]
 
 ### Changed
-- Pin `DRUPAL_BASE_IMAGE_TAG` to `11.4-php8.3-fpm-bookworm`
+- Pin `DRUPAL_BASE_IMAGE_TAG` to `11.4-php8.4-fpm-bookworm`
 - Bump baked package manifest to `wisski_base/production/3.5.0` (Drupal 11.4)
 
 ## [3.6.1]

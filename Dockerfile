@@ -1,5 +1,5 @@
 # Pin the Drupal base image tag deliberately when upgrading core.
-ARG DRUPAL_BASE_IMAGE_TAG=11.4-php8.3-fpm-bookworm
+ARG DRUPAL_BASE_IMAGE_TAG=11.4-php8.4-fpm-bookworm
 
 # -----------------------------------------------------------------------------
 # Builder: compile PHP extensions and iipsrv; toolchain stays in this stage.

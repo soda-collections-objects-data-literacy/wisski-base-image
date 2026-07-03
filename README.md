@@ -12,7 +12,7 @@ A containerized WissKI (Wissenschaftliche KommunikationsInfrastruktur) environme
 
 This Docker image provides a complete WissKI installation with:
 
-- **Base image**: `drupal:11.3-php8.3-fpm-bookworm` (pinned via `DRUPAL_BASE_IMAGE_TAG`)
+- **Base image**: `drupal:11.4-php8.4-fpm-bookworm` (pinned via `DRUPAL_BASE_IMAGE_TAG`)
 - **Web stack**: Nginx + PHP-FPM (not Apache)
 - **WissKI**: Digital humanities platform for managing scholarly data
 - **Immutable codebase**: Drupal core, modules, recipes, and Drush are baked at build time from the [drupal_packages](https://github.com/soda-collections-objects-data-literacy/drupal_packages) `wisski_base` manifests — no Composer calls at runtime
@@ -294,7 +294,7 @@ docker build \
 
 | Argument | Default | Description |
 | --- | --- | --- |
-| `DRUPAL_BASE_IMAGE_TAG` | `11.3-php8.3-fpm-bookworm` | Upstream Drupal image tag |
+| `DRUPAL_BASE_IMAGE_TAG` | `11.4-php8.4-fpm-bookworm` | Upstream Drupal image tag |
 | `MODE` | `production` | `production` or `development` |
 | `WISSKI_PACKAGES_VERSION` | `3.5.0` | Semver manifest path for production builds |
 | `WISSKI_PACKAGES_LINE` | `3.x` | Major-line manifest path for development builds |
