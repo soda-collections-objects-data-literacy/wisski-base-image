@@ -8,6 +8,20 @@ if [ "${MODE}" = "development" ]; then
   set -ex
 fi
 
+# Run application-level commands as the runtime user so every file they create
+# (settings.php, sites/default/files, vendor changes) is born www-data-owned —
+# no recursive chown repair is needed afterwards. runuser preserves the
+# environment but switches HOME/USER/LOGNAME and supplementary groups.
+runAsWwwData() {
+  runuser -u www-data -- "$@"
+}
+
+# Shadow drush/composer so every call below runs unprivileged. External
+# commands like `timeout` bypass shell functions, so those call sites use
+# runAsWwwData explicitly.
+drush() { runAsWwwData /usr/local/bin/drush "$@"; }
+composer() { runAsWwwData /usr/local/bin/composer "$@"; }
+
 # Set Environment variables.
 
 # Set Composer home directory.
@@ -144,15 +158,23 @@ if [ -n "${USER_GROUPS}" ]; then
 fi
 echo -e "\033[0;32mGROUPS ADDED TO WWW-DATA USER.\033[0m\n"
 
-# Ensure the volume mounts are writable by the runtime user.
-chown www-data:www-data /opt/drupal/web/sites /opt/drupal/private-files 2>/dev/null || true
-mkdir -p "${DRUPAL_PRIVATE_FILES_DIR}"
-chown www-data:www-data "${DRUPAL_PRIVATE_FILES_DIR}"
+# Ensure the volume mounts are writable by the runtime user. Only the mount
+# points themselves are fixed (non-recursive) and only when a fresh volume
+# appears with wrong ownership; everything inside is created by www-data.
+for mountPoint in /opt/drupal/web/sites /opt/drupal/private-files "${DRUPAL_PRIVATE_FILES_DIR}"; do
+  mkdir -p "${mountPoint}"
+  if [ "$(stat -c %U "${mountPoint}")" != "www-data" ]; then
+    chown www-data:www-data "${mountPoint}"
+  fi
+done
 
 # Composer cache must stay writable by www-data (docker exec package checks).
+# Ownership below the top level is baked at build time and only ever written
+# by www-data afterwards — no recursive chown/chmod on every boot.
 mkdir -p "${COMPOSER_HOME}/cache"
-chown -R www-data:www-data "${COMPOSER_HOME}"
-chmod -R 775 "${COMPOSER_HOME}"
+if [ "$(stat -c %U "${COMPOSER_HOME}")" != "www-data" ]; then
+  chown www-data:www-data "${COMPOSER_HOME}" "${COMPOSER_HOME}/cache"
+fi
 
 # Check if Drupal is already installed.
 echo -e "\033[0;33mCHECKING IF DRUPAL IS ALREADY INSTALLED.\033[0m"
@@ -221,7 +243,9 @@ else
   # Install the site with timeout.
   echo -e "\033[0;33mINSTALLING DRUPAL SITE...\033[0m"
 
-  if timeout 300 drush si \
+  # timeout is an external command and bypasses the drush shell function,
+  # so drop privileges explicitly here.
+  if timeout 300 runuser -u www-data -- /usr/local/bin/drush si \
     --db-url="${DB_DRIVER}://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}" \
     --site-name="${DRUPAL_SITE_NAME}" \
     --account-name="admin" \
