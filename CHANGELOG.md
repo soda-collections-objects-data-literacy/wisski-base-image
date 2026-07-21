@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+- `WISSKI_8X_4X_DEVELOPMENT`: replace the baked WissKI module via `git clone` of `8.x-4.x` (optional `WISSKI_8X_4X_BRANCH`) instead of `composer require`, which fails against the canonical VCS repo and `wisski_starter`'s `dev-scs_base` pin.
+
 ## [3.7.2]
 
 ### Changed

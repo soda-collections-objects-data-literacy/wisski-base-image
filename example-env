@@ -42,6 +42,9 @@ WISSKI_DEFAULT_GRAPH=http://my.graph/contents/
 WISSKI_STARTER_VERSION=true
 WISSKI_DEFAULT_DATA_MODEL_VERSION=true
 WISSKI_FLAVOURS=
+# After recipes: replace contrib/wisski with a shallow git checkout (dev only).
+# WISSKI_8X_4X_DEVELOPMENT=1
+# WISSKI_8X_4X_BRANCH=8.x-4.x
 
 # Triplestore settings
 TS_PASSWORD=ts_password

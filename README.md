@@ -148,6 +148,8 @@ Configure the container with environment variables. See [`example-env`](example-
 | `WISSKI_DEFAULT_GRAPH` | Full URI of the default graph (e.g. `http://my.institution.edu/data/`) |
 | `WISSKI_STARTER_VERSION` | Non-empty = apply the WissKI starter recipe on first install |
 | `WISSKI_DEFAULT_DATA_MODEL_VERSION` | Non-empty = install triplestore adapter, import ontology, and apply the default data model recipe |
+| `WISSKI_8X_4X_DEVELOPMENT` | Non-empty = after recipes, replace `web/modules/contrib/wisski` with a shallow git checkout (dev only; Composer lock stays on `scs_base`) |
+| `WISSKI_8X_4X_BRANCH` | Branch for the hard-cut checkout (default: `8.x-4.x`) |
 
 Module and recipe versions are determined at **image build time** from the `drupal_packages` manifest. The `WISSKI_*_VERSION` variables are apply flags only; they do not select package versions.
 
@@ -195,8 +197,9 @@ On first startup (when no install marker exists), the container will:
 7. Enable Nextcloud WebDAV mount (if Nextcloud credentials provided)
 8. Apply the WissKI starter recipe (if `WISSKI_STARTER_VERSION` is set)
 9. Install the triplestore adapter, import the default ontology, and apply the default data model recipe (if `WISSKI_DEFAULT_DATA_MODEL_VERSION` is set)
-10. Configure IMCE profiles, Redis module, reverse proxy trust, and secure permissions
-11. Write the install-complete marker
+10. Optionally replace WissKI with an `8.x-4.x` git checkout (if `WISSKI_8X_4X_DEVELOPMENT` is set)
+11. Configure IMCE profiles, Redis module, reverse proxy trust, and secure permissions
+12. Write the install-complete marker
 
 This process may take several minutes. The Docker health check allows a 30-minute start period to accommodate first-boot installation.
 

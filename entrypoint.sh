@@ -511,13 +511,23 @@ EOF
     echo -e "\033[0;33mWISSKI DEFAULT DATA MODEL RECIPE SKIPPED\033[0m\n"
   fi
 
-  # Switch to WissKI 8.x-4.x development
+  # Switch to WissKI 8.x-4.x development.
+  # Hard-cut: replace the baked module tree with a git checkout. Composer
+  # cannot resolve this (canonical VCS repo + wisski_starter pins scs_base).
+  # Recipes are already applied above; only the PHP code is swapped.
   if [ -n "${WISSKI_8X_4X_DEVELOPMENT}" ]; then
     echo -e "\033[0;33mSWITCH TO WISSKI 8.x-4.x DEVELOPMENT.\033[0m"
-      composer require drupal/wisski:4.x-dev@dev --with-all-dependencies
-      drush updatedb -y
-      drush cr
-    echo -e "\033[0;32mWISSKI 8.x-4.x DEVELOPMENT MODE ENABLED.\033[0m\n"
+    WISSKI_MODULE_DIR="/opt/drupal/web/modules/contrib/wisski"
+    WISSKI_DEV_BRANCH="${WISSKI_8X_4X_BRANCH:-8.x-4.x}"
+
+    rm -rf "${WISSKI_MODULE_DIR}"
+    git clone --depth 1 --branch "${WISSKI_DEV_BRANCH}" \
+      https://git.drupalcode.org/project/wisski.git \
+      "${WISSKI_MODULE_DIR}"
+
+    drush updatedb -y
+    drush cr
+    echo -e "\033[0;32mWISSKI 8.x-4.x DEVELOPMENT MODE ENABLED (${WISSKI_DEV_BRANCH}).\033[0m\n"
   fi
 
 
