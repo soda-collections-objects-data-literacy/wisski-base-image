@@ -509,8 +509,18 @@ EOF
 
   else
     echo -e "\033[0;33mWISSKI DEFAULT DATA MODEL RECIPE SKIPPED\033[0m\n"
-
   fi
+
+  # Switch to WissKI 8.x-4.x development
+  if [ -n "${WISSKI_8X_4X_DEVELOPMENT}" ]; then
+    echo -e "\033[0;33mSWITCH TO WISSKI 8.x-4.x DEVELOPMENT.\033[0m"
+      composer require drupal/wisski:4.x-dev@dev --with-all-dependencies
+      drush updatedb -y
+      drush cr
+    echo -e "\033[0;32mWISSKI 8.x-4.x DEVELOPMENT MODE ENABLED.\033[0m\n"
+  fi
+
+
 
   # Set IMCE profiles (after recipes, when IMCE may be installed)
   echo -e "\033[0;33mSET IMCE PROFILES.\033[0m"
@@ -537,7 +547,10 @@ EOF
     echo -e "\033[0;33mREDIS INTEGRATION SKIPPED\033[0m\n"
   fi
 
+  # Sync reverse proxy.
+  echo -e "\033[0;33mSYNC REVERSE PROXY.\033[0m"
   /usr/local/bin/sync-reverse-proxy.sh
+  echo -e "\033[0;32mREVERSE PROXY SYNCED.\033[0m\n"
 
   # Set secure permissions following Drupal security guidelines.
   echo -e "\033[0;33mSET SECURE PERMISSIONS.\033[0m"
