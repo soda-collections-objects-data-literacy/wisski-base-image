@@ -2,6 +2,41 @@
 
 ## [Unreleased]
 
+## [4.0.0]
+
+### Changed
+- **Breaking:** build from `php:8.3-fpm-bookworm` instead of `drupal:11.3-php8.3-fpm-bookworm`; the Drupal codebase was already fully baked from the drupal_packages manifest, so the drupal base only provided PHP tooling. Build arg `DRUPAL_BASE_IMAGE_TAG` is renamed to `PHP_BASE_IMAGE_TAG` (default `8.3-fpm-bookworm`). The upstream `drupal:11.3-php8.3-*` tag is no longer maintained; pinning the php image directly removes that dead coupling.
+- restructure the Dockerfile into four stages: `ext-builder` (PHP extensions), `iipsrv-builder` (compiles in parallel, independent of PHP), `codebase` (bakes `/opt/drupal`), and the runtime image.
+- bake `/opt/drupal` as `www-data` with umask 022 in the `codebase` stage: every file is born with correct ownership and modes (dirs 755, files 644, vendor executables preserved by composer). Removes the recursive `chown -R`, the whole-tree `find … chmod`, and the vendor shebang scan (~5 min of build time), and ships `/opt/drupal` in a single layer (image ~700 MB smaller).
+- use a BuildKit cache mount for the composer cache instead of `composer clear-cache`; local rebuilds reuse downloaded packages.
+- entrypoint privilege separation: all `drush`/`composer` install and update steps run as `www-data` (via `runuser`); root only handles `USER_GROUPS` setup, guarded non-recursive first-boot chown of the volume mount points, and service startup. Install-time files (`settings.php`, `sites/default/files`) are created www-data-owned by construction.
+- `set-permissions.sh` shrinks to chmod-only on fixed paths (`settings.php` 444, `sites/default` 555); no recursive `chown`/`find` walks. The per-boot recursive `chown -R`/`chmod -R` on `COMPOSER_HOME` is replaced by a guarded top-level check.
+- php-fpm pool tuning (`pm.max_children = 15`) now applies to development images too (renamed `zz-wisski-production.conf` → `zz-wisski-pool.conf`), so staging instances show production-like concurrency instead of capping at 5 workers.
+- PHP session store host is no longer hardcoded: `session.save_path` uses `${REDIS_HOST}:${REDIS_PORT}` (ini env substitution), aligning sessions with the cache backend configuration in `redis.settings.php`.
+
+### Added
+- explicit `docker-php-ext-install pdo_mysql pdo_pgsql zip` and `libicu-dev`/`libicu72` (previously inherited from the drupal base image); `iproute2` and `python3` are installed explicitly for `sync-reverse-proxy.sh`.
+- build-time sanity layer: fails the build if a PHP extension is missing or an extension shared-library dependency is unresolved (`ldd` check).
+- `config/php-fpm/zzz-wisski-socket.conf`: php-fpm UNIX socket configuration as a dedicated override file.
+
+### Fixed
+- php-fpm listened on TCP 9000 instead of the UNIX socket (nginx 502 on `/health`): the old `sed` targeted `zz-docker.conf`, but current php images define `listen = 9000` in a different file, so it silently matched nothing. The socket is now set by `zzz-wisski-socket.conf`, which sorts last and always wins.
+- image healthcheck sends `Host: ${DRUPAL_DOMAIN}` (falls back to `localhost`), so standalone containers no longer report unhealthy due to the trusted-host 400.
+- pre-create `/var/log/xdebug/xdebug.log` as `www-data:www-data 664`: the root-run php-fpm master otherwise created it root-owned and the workers logged "File could not be opened" on every debug-triggered request.
+
+### Removed
+- `config/mysqli/zz-mysqli-recommended.ini`: the `mysqli` extension is not installed (Drupal uses `pdo_mysql`), so the settings were silently ignored.
+- `config/apache/`: leftovers from the 2.x Apache era; the image is nginx-only.
+- inert `opcache.preload_user` from both opcache profiles (meaningless without `opcache.preload`).
+
+### Files Modified
+- `Dockerfile`: four-stage build on the php base image; www-data codebase bake; sanity checks; healthcheck Host header.
+- `entrypoint.sh`: `runuser`-based privilege drop for drush/composer; guarded non-recursive mount-point ownership fixes.
+- `config/drupal/set-permissions.sh`: chmod-only lockdown of generated settings files.
+- `config/php-fpm/zzz-wisski-socket.conf`, `config/php-fpm/zz-wisski-pool.conf` (renamed): new/renamed.
+- `config/redis/zz-redis-custom.ini`: env-driven session store, documented lock timings (5 ms retry wait, not 5 s).
+- `config/opcache/zz-opcache-recommended-{dev,prod}.ini`: drop inert preload_user.
+
 ## [3.8.0]
 
 ### Fixed
