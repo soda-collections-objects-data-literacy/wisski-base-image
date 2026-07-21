@@ -13,6 +13,7 @@
 - `set-permissions.sh` shrinks to chmod-only on fixed paths (`settings.php` 444, `sites/default` 555); no recursive `chown`/`find` walks. The per-boot recursive `chown -R`/`chmod -R` on `COMPOSER_HOME` is replaced by a guarded top-level check.
 - php-fpm pool tuning (`pm.max_children = 15`) now applies to development images too (renamed `zz-wisski-production.conf` → `zz-wisski-pool.conf`), so staging instances show production-like concurrency instead of capping at 5 workers.
 - PHP session store host is no longer hardcoded: `session.save_path` uses `${REDIS_HOST}:${REDIS_PORT}` (ini env substitution), aligning sessions with the cache backend configuration in `redis.settings.php`.
+- CI: bump Actions to Node 24 majors (`actions/checkout@v5`, `docker/metadata-action@v6`, `docker/setup-qemu-action@v4`, `docker/setup-buildx-action@v4`, `docker/login-action@v4`, `docker/build-push-action@v7`) and trigger builds on the `4.x` branch.
 
 ### Added
 - explicit `docker-php-ext-install pdo_mysql pdo_pgsql zip` and `libicu-dev`/`libicu72` (previously inherited from the drupal base image); `iproute2` and `python3` are installed explicitly for `sync-reverse-proxy.sh`.
