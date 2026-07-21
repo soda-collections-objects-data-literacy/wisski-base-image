@@ -59,16 +59,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ${{ env.REGISTRY }}
-      - name: Determine packages line
-        id: packages
-        run: |
-          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            version="${GITHUB_REF#refs/tags/}"
-            major="${version%%.*}"
-            echo "line=${major}.x" >> "$GITHUB_OUTPUT"
-          else
-            echo "line=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
-          fi
+      # Development package line and production package version come from the
+      # Dockerfile ARG defaults (WISSKI_PACKAGES_LINE / WISSKI_PACKAGES_VERSION).
+      # Do not derive them from the git tag major — image major can diverge
+      # from the drupal_packages line (e.g. image 4.x still baking packages 3.x).
       - uses: docker/build-push-action@v7
         with:
           context: ${{ env.CONTEXT_DIRECTORY }}
@@ -76,7 +70,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             MODE=${{ matrix.mode }}
-            ${{ matrix.mode == 'development' && format('WISSKI_PACKAGES_LINE={0}', steps.packages.outputs.line) || '' }}
           platforms: ${{ env.PLATFORMS }}
           pull: true
           push: true
