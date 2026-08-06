@@ -138,7 +138,7 @@ FROM ext-builder AS codebase
 
 ARG MODE=production
 # Production: semver manifest path (wisski_base/production/<version>) with lock file.
-ARG WISSKI_PACKAGES_VERSION=3.5.1
+ARG WISSKI_PACKAGES_VERSION=3.6.0
 # Development: major-line manifest path (wisski_base/development/<line>), no lock file.
 ARG WISSKI_PACKAGES_LINE=3.x
 
