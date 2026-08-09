@@ -233,7 +233,6 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
     curl \
     default-mysql-client \
-    fuse3 \
     git \
     imagemagick \
     iproute2 \

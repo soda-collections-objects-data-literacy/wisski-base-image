@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added
+- `NEXTCLOUD_MOUNT_MODE` (`external` \| `sync` \| `none`) for Nextcloud WebDAV mount setup; `external` enables the module with `operation_mode=external` and `external_mount_path=private://nextcloud` without credentials.
+- Idempotent every-boot upgrade that switches existing installs to `external` when `NEXTCLOUD_MOUNT_MODE=external`.
+- `mkdir -p` of `${DRUPAL_PRIVATE_FILES_DIR}/nextcloud` after private-files setup (no recursive chown/chmod).
+
+### Changed
+- Unset `NEXTCLOUD_MOUNT_MODE` with all three `NEXTCLOUD_*` credentials still enables sync mode (backward compatible); without credentials the module stays disabled.
+- README / `example-env`: document the three mount modes; credential trio is sync-only.
+
+### Removed
+- `fuse3` from the runtime image (mount belongs in the sidecar for `external` mode; rclone remains for `sync`).
+
 ## [4.1.0]
 
 - Drupal packages version to 3.6.0

@@ -168,6 +168,11 @@ for mountPoint in /opt/drupal/web/sites /opt/drupal/private-files "${DRUPAL_PRIV
   fi
 done
 
+# Nextcloud mount target under private files. mkdir only — never chown/chmod -R
+# this tree; with NEXTCLOUD_MOUNT_MODE=external it may be a sidecar FUSE/WebDAV
+# mount of remote data.
+mkdir -p "${DRUPAL_PRIVATE_FILES_DIR}/nextcloud"
+
 # Composer cache must stay writable by www-data (docker exec package checks).
 # Ownership below the top level is baked at build time and only ever written
 # by www-data afterwards — no recursive chown/chmod on every boot.
@@ -387,17 +392,50 @@ EOF
   fi
 
   # Enable nextcloud webdav mount module (shipped in the image).
-  if [[ -n "${NEXTCLOUD_BASE_URL}" && -n "${NEXTCLOUD_LOGIN_NAME}" && -n "${NEXTCLOUD_APP_PASSWORD}" ]]; then
-    echo -e "\033[0;33mENABLE NEXTCLOUD CLIENT MODULE.\033[0m"
-    {
-      drush en nextcloud_webdav_mount -y
-      drush nc-config --server-url="${NEXTCLOUD_BASE_URL}" --webdav-path='/remote.php/dav/files/{username}/' --operation-mode=sync --sync-direction=bisync --remote-path=SCS-Share --sync-interval=3600 --enable-log=0
-
-    } 1> /dev/null
-    echo -e "\033[0;32mNEXTCLOUD MOUNT MODULE ENABLED.\033[0m\n"
-  else
-    echo -e "\033[0;33mNEXTCLOUD CONNECTION SKIPPED\033[0m\n"
+  # Modes: external (sidecar mount), sync (rclone bisync), none (disabled).
+  # Unset with all three NEXTCLOUD_* credentials falls back to sync.
+  nextcloud_mount_mode="${NEXTCLOUD_MOUNT_MODE:-}"
+  if [ -z "${nextcloud_mount_mode}" ]; then
+    if [[ -n "${NEXTCLOUD_BASE_URL:-}" && -n "${NEXTCLOUD_LOGIN_NAME:-}" && -n "${NEXTCLOUD_APP_PASSWORD:-}" ]]; then
+      nextcloud_mount_mode="sync"
+    else
+      nextcloud_mount_mode="none"
+    fi
   fi
+
+  case "${nextcloud_mount_mode}" in
+    external)
+      if [[ -n "${NEXTCLOUD_BASE_URL:-}" || -n "${NEXTCLOUD_LOGIN_NAME:-}" || -n "${NEXTCLOUD_APP_PASSWORD:-}" ]]; then
+        echo -e "\033[0;33mWARNING: NEXTCLOUD_BASE_URL/LOGIN_NAME/APP_PASSWORD are set but ignored in external mode.\033[0m"
+      fi
+      echo -e "\033[0;33mENABLE NEXTCLOUD CLIENT MODULE (external mount).\033[0m"
+      {
+        drush en -y nextcloud_webdav_mount
+        drush config-set -y nextcloud_webdav_mount.settings operation_mode external
+        drush config-set -y nextcloud_webdav_mount.settings external_mount_path 'private://nextcloud'
+      } 1> /dev/null
+      echo -e "\033[0;32mNEXTCLOUD MOUNT MODULE ENABLED (external).\033[0m\n"
+      ;;
+    sync)
+      if [[ -z "${NEXTCLOUD_BASE_URL:-}" || -z "${NEXTCLOUD_LOGIN_NAME:-}" || -z "${NEXTCLOUD_APP_PASSWORD:-}" ]]; then
+        echo -e "\033[0;31mERROR: NEXTCLOUD_MOUNT_MODE=sync requires NEXTCLOUD_BASE_URL, NEXTCLOUD_LOGIN_NAME, and NEXTCLOUD_APP_PASSWORD.\033[0m"
+        echo -e "\033[0;33mNEXTCLOUD CONNECTION SKIPPED\033[0m\n"
+      else
+        echo -e "\033[0;33mENABLE NEXTCLOUD CLIENT MODULE.\033[0m"
+        {
+          drush en nextcloud_webdav_mount -y
+          drush nc-config --server-url="${NEXTCLOUD_BASE_URL}" --webdav-path='/remote.php/dav/files/{username}/' --operation-mode=sync --sync-direction=bisync --remote-path=SCS-Share --sync-interval=3600 --enable-log=0
+        } 1> /dev/null
+        echo -e "\033[0;32mNEXTCLOUD MOUNT MODULE ENABLED.\033[0m\n"
+      fi
+      ;;
+    none)
+      echo -e "\033[0;33mNEXTCLOUD CONNECTION SKIPPED\033[0m\n"
+      ;;
+    *)
+      echo -e "\033[0;31mWARNING: Unknown NEXTCLOUD_MOUNT_MODE='${nextcloud_mount_mode}'; skipping Nextcloud setup.\033[0m\n"
+      ;;
+  esac
 
   # Apply WissKI Starter recipe (recipe package is shipped in the image).
   if [ -n "${WISSKI_STARTER_VERSION}" ]; then
@@ -601,6 +639,18 @@ EOF
   echo -e "\033[0;32m+---------------------------+\033[0m"
   echo -e "\033[0;32m|FINISHED INSTALLING DRUPAL.|\033[0m"
   echo -e "\033[0;32m+---------------------------+\033[0m"
+fi
+
+# Idempotent every-boot upgrade: switch existing sync installs to external when
+# the deployment requests NEXTCLOUD_MOUNT_MODE=external (no per-instance steps).
+if [ "${NEXTCLOUD_MOUNT_MODE:-}" = "external" ]; then
+  current=$(drush config-get nextcloud_webdav_mount.settings operation_mode --format=string 2>/dev/null || true)
+  if [ -n "$current" ] && [ "$current" != "external" ]; then
+    echo -e "\033[0;33mSWITCHING NEXTCLOUD MOUNT TO EXTERNAL MODE.\033[0m"
+    drush config-set -y nextcloud_webdav_mount.settings operation_mode external
+    drush config-set -y nextcloud_webdav_mount.settings external_mount_path 'private://nextcloud'
+    echo -e "\033[0;32mNEXTCLOUD MOUNT SWITCHED TO EXTERNAL MODE.\033[0m\n"
+  fi
 fi
 
 start_php_fpm() {

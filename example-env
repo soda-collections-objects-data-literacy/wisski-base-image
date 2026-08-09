@@ -59,3 +59,11 @@ OPENID_CONNECT_CLIENT_SECRET=
 KEYCLOAK_ADMIN_GROUP=
 KEYCLOAK_REALM=
 KEYCLOAK_USER_GROUP=
+
+# Nextcloud settings
+# external (sidecar mount, recommended in SCS) | sync (standalone rclone) | none
+NEXTCLOUD_MOUNT_MODE=none
+# Only for NEXTCLOUD_MOUNT_MODE=sync (ignored in external mode):
+#NEXTCLOUD_BASE_URL=
+#NEXTCLOUD_LOGIN_NAME=
+#NEXTCLOUD_APP_PASSWORD=

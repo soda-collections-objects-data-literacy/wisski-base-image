@@ -85,7 +85,7 @@ On boot the entrypoint starts PHP-FPM, memcached, and iipsrv, then runs nginx in
 
 ### Optional Integrations
 
-- **Nextcloud**: WebDAV mount module when `NEXTCLOUD_*` variables are set
+- **Nextcloud**: WebDAV mount module via `NEXTCLOUD_MOUNT_MODE` (`external`, `sync`, or `none`)
 - **Keycloak SSO**: OpenID Connect client and role mappings when `OPENID_CONNECT_CLIENT_SECRET` is set
 
 ## Persistent Volumes
@@ -180,9 +180,12 @@ When `OPENID_CONNECT_CLIENT_SECRET` is set, all of the following are required:
 
 | Variable | Description |
 | --- | --- |
-| `NEXTCLOUD_BASE_URL` | Nextcloud server URL |
-| `NEXTCLOUD_LOGIN_NAME` | Service account login |
-| `NEXTCLOUD_APP_PASSWORD` | App password for WebDAV sync |
+| `NEXTCLOUD_MOUNT_MODE` | `external` (sidecar mount into `private://nextcloud`), `sync` (in-container rclone bisync), or `none`. Unset with all three credential variables set falls back to `sync` for backward compatibility; unset without credentials leaves the module disabled. |
+| `NEXTCLOUD_BASE_URL` | Nextcloud server URL (**sync only**; ignored with a warning in `external` mode) |
+| `NEXTCLOUD_LOGIN_NAME` | Service account login (**sync only**) |
+| `NEXTCLOUD_APP_PASSWORD` | App password for WebDAV sync (**sync only**) |
+
+In SCS deployments, prefer `NEXTCLOUD_MOUNT_MODE=external`: the Nextcloud share is mounted by a sidecar into the private-files volume, and this image only enables the Drupal module in passive external mode (no credentials, no rclone sync, no FUSE in the container). See the SCS Manager deployment docs for the sidecar stack wiring.
 
 ## Initial Setup Process
 
@@ -194,7 +197,7 @@ On first startup (when no install marker exists), the container will:
 4. Enable core modules (health check, single content sync, sophron guesser)
 5. Create the `wisski_user` role
 6. Configure OpenID Connect and SSO Bouncer (if Keycloak credentials provided)
-7. Enable Nextcloud WebDAV mount (if Nextcloud credentials provided)
+7. Enable Nextcloud WebDAV mount according to `NEXTCLOUD_MOUNT_MODE` (`external`, `sync` with credentials, or skip)
 8. Apply the WissKI starter recipe (if `WISSKI_STARTER_VERSION` is set)
 9. Install the triplestore adapter, import the default ontology, and apply the default data model recipe (if `WISSKI_DEFAULT_DATA_MODEL_VERSION` is set)
 10. Optionally replace WissKI with an `8.x-4.x` git checkout (if `WISSKI_8X_4X_DEVELOPMENT` is set)
