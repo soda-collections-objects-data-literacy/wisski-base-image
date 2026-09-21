@@ -138,9 +138,9 @@ FROM ext-builder AS codebase
 
 ARG MODE=production
 # Production: semver manifest path (wisski_base/production/<version>) with lock file.
-ARG WISSKI_PACKAGES_VERSION=3.6.0
+ARG WISSKI_PACKAGES_VERSION=4.0.0
 # Development: major-line manifest path (wisski_base/development/<line>), no lock file.
-ARG WISSKI_PACKAGES_LINE=3.x
+ARG WISSKI_PACKAGES_LINE=4.x
 
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 
