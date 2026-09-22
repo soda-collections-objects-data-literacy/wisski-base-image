@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+### [5.0.0]
+
 ### Added
 - `NEXTCLOUD_MOUNT_MODE` (`external` \| `sync` \| `none`) for Nextcloud WebDAV mount setup; `external` enables the module with `operation_mode=external` and `external_mount_path=private://nextcloud` without credentials.
 - Idempotent every-boot upgrade that switches existing installs to `external` when `NEXTCLOUD_MOUNT_MODE=external`.
@@ -11,6 +13,7 @@
 - Unset `NEXTCLOUD_MOUNT_MODE` with all three `NEXTCLOUD_*` credentials still enables sync mode (backward compatible); without credentials the module stays disabled.
 - `MODE`, `WISSKI_PACKAGES_VERSION`, and `WISSKI_PACKAGES_LINE` have one default, declared before the first `FROM`. Stages redeclare the names without a value so they inherit it. Image labels follow the baked codebase (`4.0.0` / `4.x`) instead of the stale runtime defaults `3.5.1` / `3.x`.
 - README / `example-env`: document the three mount modes; credential trio is sync-only.
+- WissKI Package Version 4.0.2
 
 ### Fixed
 - Grant `wisski_user` the `access navigation` permission. Drupal 11.3's Standard profile ships the Navigation module instead of Toolbar, so `access toolbar` does not exist and `set -e` aborted first install.
