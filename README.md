@@ -21,7 +21,7 @@ This Docker image provides a complete WissKI installation with:
 - **Security**: OpenID Connect SSO and optional reverse-proxy trust for Traefik/Varnish edges
 - **Performance**: Redis cache backend, APCu, OPcache, and tuned PHP settings for WissKI workloads
 
-Current production package manifest: **3.5.1** (see `WISSKI_PACKAGES_VERSION` in the Dockerfile).
+Current production package manifest: **4.0.0** (see `WISSKI_PACKAGES_VERSION` in the Dockerfile).
 
 ## Published Images
 
@@ -30,7 +30,7 @@ Images are built and published to GitHub Container Registry on pushes to `2.x` /
 | Image | Purpose |
 | --- | --- |
 | `ghcr.io/soda-collections-objects-data-literacy/wisski-base-image-production` | Pinned semver manifest + lock file; OPcache on, no Xdebug |
-| `ghcr.io/soda-collections-objects-data-literacy/wisski-base-image-development` | Floating major-line manifest (e.g. `3.x`); Xdebug on, dev OPcache settings |
+| `ghcr.io/soda-collections-objects-data-literacy/wisski-base-image-development` | Floating major-line manifest (e.g. `4.x`); Xdebug on, dev OPcache settings |
 
 Tagging:
 
@@ -287,12 +287,12 @@ docker build \
   -t wisski-base-image:3.3.0 .
 ```
 
-Development build (latest compatible packages from the `3.x` line, Xdebug enabled):
+Development build (latest compatible packages from the `4.x` line, Xdebug enabled):
 
 ```bash
 docker build \
   --build-arg MODE=development \
-  --build-arg WISSKI_PACKAGES_LINE=3.x \
+  --build-arg WISSKI_PACKAGES_LINE=4.x \
   -t wisski-devel-image .
 ```
 
@@ -302,8 +302,8 @@ docker build \
 | --- | --- | --- |
 | `DRUPAL_BASE_IMAGE_TAG` | `11.3-php8.3-fpm-bookworm` | Upstream Drupal image tag |
 | `MODE` | `production` | `production` or `development` |
-| `WISSKI_PACKAGES_VERSION` | `3.5.1` | Semver manifest path for production builds |
-| `WISSKI_PACKAGES_LINE` | `3.x` | Major-line manifest path for development builds |
+| `WISSKI_PACKAGES_VERSION` | `4.0.0` | Semver manifest path for production builds |
+| `WISSKI_PACKAGES_LINE` | `4.x` | Major-line manifest path for development builds |
 | `IIPSRV_VERSION` | `iipsrv-1.3` | IIPImage server git tag |
 
 ### Environment File

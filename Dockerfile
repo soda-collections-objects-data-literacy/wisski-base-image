@@ -3,12 +3,21 @@
 # manifest below, so no drupal:* base image is needed.
 ARG PHP_BASE_IMAGE_TAG=8.3-fpm-bookworm
 
+# Single defaults for every stage. An ARG is scoped to the stage that declares
+# it, so each stage below repeats the name without a value and inherits this
+# default (or a --build-arg). A value on the stage declaration would shadow it.
+ARG MODE=production
+# Production: semver manifest path (wisski_base/production/<version>) with lock file.
+ARG WISSKI_PACKAGES_VERSION=4.0.0
+# Development: major-line manifest path (wisski_base/development/<line>), no lock file.
+ARG WISSKI_PACKAGES_LINE=4.x
+
 # -----------------------------------------------------------------------------
 # ext-builder: compile PHP extensions; toolchain stays in this stage.
 # -----------------------------------------------------------------------------
 FROM php:${PHP_BASE_IMAGE_TAG} AS ext-builder
 
-ARG MODE=production
+ARG MODE
 
 RUN set -eux; \
     apt-get update; \
@@ -136,11 +145,9 @@ RUN set -eux; \
 # -----------------------------------------------------------------------------
 FROM ext-builder AS codebase
 
-ARG MODE=production
-# Production: semver manifest path (wisski_base/production/<version>) with lock file.
-ARG WISSKI_PACKAGES_VERSION=4.0.0
-# Development: major-line manifest path (wisski_base/development/<line>), no lock file.
-ARG WISSKI_PACKAGES_LINE=4.x
+ARG MODE
+ARG WISSKI_PACKAGES_VERSION
+ARG WISSKI_PACKAGES_LINE
 
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 
@@ -220,9 +227,9 @@ RUN set -eux; \
 # -----------------------------------------------------------------------------
 FROM php:${PHP_BASE_IMAGE_TAG}
 
-ARG MODE=production
-ARG WISSKI_PACKAGES_VERSION=3.5.1
-ARG WISSKI_PACKAGES_LINE=3.x
+ARG MODE
+ARG WISSKI_PACKAGES_VERSION
+ARG WISSKI_PACKAGES_LINE
 
 # Runtime packages only (no autoconf, lib*-dev, or other build toolchain).
 # iipsrv, Redis, and the triplestore run in separate processes/containers.

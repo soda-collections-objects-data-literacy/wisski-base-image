@@ -9,6 +9,7 @@
 
 ### Changed
 - Unset `NEXTCLOUD_MOUNT_MODE` with all three `NEXTCLOUD_*` credentials still enables sync mode (backward compatible); without credentials the module stays disabled.
+- `MODE`, `WISSKI_PACKAGES_VERSION`, and `WISSKI_PACKAGES_LINE` have one default, declared before the first `FROM`. Stages redeclare the names without a value so they inherit it. Image labels follow the baked codebase (`4.0.0` / `4.x`) instead of the stale runtime defaults `3.5.1` / `3.x`.
 - README / `example-env`: document the three mount modes; credential trio is sync-only.
 
 ### Removed
