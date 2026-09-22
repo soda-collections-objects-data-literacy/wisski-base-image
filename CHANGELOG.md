@@ -12,6 +12,9 @@
 - `MODE`, `WISSKI_PACKAGES_VERSION`, and `WISSKI_PACKAGES_LINE` have one default, declared before the first `FROM`. Stages redeclare the names without a value so they inherit it. Image labels follow the baked codebase (`4.0.0` / `4.x`) instead of the stale runtime defaults `3.5.1` / `3.x`.
 - README / `example-env`: document the three mount modes; credential trio is sync-only.
 
+### Fixed
+- Grant `wisski_user` the `access navigation` permission. Drupal 11.3's Standard profile ships the Navigation module instead of Toolbar, so `access toolbar` does not exist and `set -e` aborted first install.
+
 ### Removed
 - `fuse3` from the runtime image (mount belongs in the sidecar for `external` mode; rclone remains for `sync`).
 

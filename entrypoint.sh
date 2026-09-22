@@ -550,7 +550,7 @@ EOF
 
       echo -e "\033[0;32mGRANTING WISSKI USER PERMISSIONS.\033[0m\n"
       # Grant WissKI user permissions.
-        drush role:perm:add 'wisski_user' 'access toolbar' -y
+        drush role:perm:add 'wisski_user' 'access navigation' -y
         drush role:perm:add 'wisski_user' 'access navigate' -y
         drush role:perm:add 'wisski_user' 'access create' -y
         drush role:perm:add 'wisski_user' 'access find' -y
