@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### [5.1.0]
+
+### Changed
+- PHP base image `8.3-fpm-bookworm` → `8.5-fpm-bookworm`.
+- WissKI packages manifest `4.0.2` → `4.2.0`.
+- Pin Redis PECL (`6.1.0` → `8.10.2`) and Xdebug (`3.4.3` → `3.5.3`) via global ARGs; `IIPSRV_VERSION` uses the same before-`FROM` default and is redeclared without a value in `iipsrv-builder`.
+
 ### [5.0.0]
 
 ### Added
