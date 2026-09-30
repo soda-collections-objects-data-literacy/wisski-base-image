@@ -1,16 +1,22 @@
 # Pin the PHP base image tag deliberately when upgrading PHP.
 # The Drupal codebase itself is baked from the drupal_packages composer
 # manifest below, so no drupal:* base image is needed.
-ARG PHP_BASE_IMAGE_TAG=8.3-fpm-bookworm
+ARG PHP_BASE_IMAGE_TAG=8.5-fpm-bookworm
 
 # Single defaults for every stage. An ARG is scoped to the stage that declares
 # it, so each stage below repeats the name without a value and inherits this
 # default (or a --build-arg). A value on the stage declaration would shadow it.
 ARG MODE=production
 # Production: semver manifest path (wisski_base/production/<version>) with lock file.
-ARG WISSKI_PACKAGES_VERSION=4.0.2
+ARG WISSKI_PACKAGES_VERSION=4.2.0
 # Development: major-line manifest path (wisski_base/development/<line>), no lock file.
 ARG WISSKI_PACKAGES_LINE=4.x
+
+# Versions
+ARG IIPSRV_VERSION=iipsrv-1.3
+ARG REDIS_VERSION=8.10.2
+ARG UPLOADPROGRESS_VERSION=2.0.5
+ARG XDEBUG_VERSION=3.5.3
 
 # -----------------------------------------------------------------------------
 # ext-builder: compile PHP extensions; toolchain stays in this stage.
@@ -18,6 +24,9 @@ ARG WISSKI_PACKAGES_LINE=4.x
 FROM php:${PHP_BASE_IMAGE_TAG} AS ext-builder
 
 ARG MODE
+ARG REDIS_VERSION
+ARG UPLOADPROGRESS_VERSION
+ARG XDEBUG_VERSION
 
 RUN set -eux; \
     apt-get update; \
@@ -83,13 +92,13 @@ RUN set -eux; \
 
 # Redis.
 RUN set -eux; \
-    pecl install redis-6.1.0; \
+    pecl install redis-${REDIS_VERSION}; \
     docker-php-ext-enable redis
 
 # xdebug (development mode only).
 RUN set -eux; \
     if [ "$MODE" = "development" ]; then \
-    pecl install xdebug-3.4.3; \
+    pecl install xdebug-${XDEBUG_VERSION}; \
     docker-php-ext-enable xdebug; \
     fi
 
@@ -100,7 +109,7 @@ RUN set -eux; \
 # -----------------------------------------------------------------------------
 FROM php:${PHP_BASE_IMAGE_TAG} AS iipsrv-builder
 
-ARG IIPSRV_VERSION=iipsrv-1.3
+ARG IIPSRV_VERSION
 
 RUN set -eux; \
     apt-get update; \
