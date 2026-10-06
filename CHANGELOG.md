@@ -4,6 +4,7 @@
 
 ### Fixed
 - Enable and configure IMCE during installation when the module is available; skip the setup when it is absent.
+- Pin Redis PECL to version `6.3.0` instead of the invalid `8.10.2` version.
 
 ### [5.1.0]
 
