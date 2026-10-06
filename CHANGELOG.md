@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- WissKI Package Version 4.3.0
+- Enable `navigation_extra_tools` together with `devel` in development mode.
+
 ## [5.1.1] - 2026-10-06
 
 ### Fixed

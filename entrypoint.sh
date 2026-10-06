@@ -321,7 +321,7 @@ EOF
   if [ "${MODE}" = "development" ]; then
     echo -e "\033[0;33mENABLE DEVELOPMENT MODULES.\033[0m"
     {
-      drush en devel -y
+      drush en devel navigation_extra_tools -y
     } 1> /dev/null
     echo -e "\033[0;32mDEVELOPMENT MODULES ENABLED.\033[0m\n"
   else

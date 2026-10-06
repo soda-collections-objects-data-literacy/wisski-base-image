@@ -8,7 +8,7 @@ ARG PHP_BASE_IMAGE_TAG=8.5-fpm-bookworm
 # default (or a --build-arg). A value on the stage declaration would shadow it.
 ARG MODE=production
 # Production: semver manifest path (wisski_base/production/<version>) with lock file.
-ARG WISSKI_PACKAGES_VERSION=4.2.0
+ARG WISSKI_PACKAGES_VERSION=4.3.0
 # Development: major-line manifest path (wisski_base/development/<line>), no lock file.
 ARG WISSKI_PACKAGES_LINE=4.x
 
