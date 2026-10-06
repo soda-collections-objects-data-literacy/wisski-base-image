@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [5.1.1] - 2026-10-06
+
 ### Fixed
 - Enable and configure IMCE during installation when the module is available; skip the setup when it is absent.
 - Pin Redis PECL to version `6.3.0` instead of the invalid `8.10.2` version.
@@ -235,3 +237,6 @@
 
 ### Fixed
 - fix duplicate APCu load warning by not enabling apcu twice (pecl only in builder; zz-apcu-custom.ini enables it at runtime).
+
+[unreleased]: https://github.com/soda-collections-objects-data-literacy/wisski-base-image/compare/v5.1.1...HEAD
+[5.1.1]: https://github.com/soda-collections-objects-data-literacy/wisski-base-image/compare/5.1.0...v5.1.1
