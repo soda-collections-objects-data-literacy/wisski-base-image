@@ -594,18 +594,23 @@ EOF
 
 
 
-  # Set IMCE profiles (after recipes, when IMCE may be installed)
-  echo -e "\033[0;33mSET IMCE PROFILES.\033[0m"
-  {
-    drush config-set imce.settings roles_profiles.authenticated.public member -y
-    drush config-set imce.settings roles_profiles.authenticated.private member -y
-    drush config-set imce.settings roles_profiles.administrator.public admin -y
-    drush config-set imce.settings roles_profiles.administrator.private admin -y
-    drush config-set imce.settings roles_profiles.wisski_user.public member -y
-    drush config-set imce.settings roles_profiles.wisski_user.private member -y
-    drush config-set --input-format=yaml imce.profile.member conf.folders '[{path: "users/user[user:name]", permissions: {all: true}}]' -y
-  } 1> /dev/null
-  echo -e "\033[0;32mIMCE PROFILES SET.\033[0m\n"
+  # Enable and configure IMCE after recipes, when the module may be installed.
+  if drush pm:list --type=module --field=name --format=list | grep -qx 'imce'; then
+    echo -e "\033[0;33mCONFIGURING IMCE.\033[0m"
+    {
+      drush en imce -y
+      drush config-set imce.settings roles_profiles.authenticated.public member -y
+      drush config-set imce.settings roles_profiles.authenticated.private member -y
+      drush config-set imce.settings roles_profiles.administrator.public admin -y
+      drush config-set imce.settings roles_profiles.administrator.private admin -y
+      drush config-set imce.settings roles_profiles.wisski_user.public member -y
+      drush config-set imce.settings roles_profiles.wisski_user.private member -y
+      drush config-set --input-format=yaml imce.profile.member conf.folders '[{path: "users/user[user:name]", permissions: {all: true}}]' -y
+    } 1> /dev/null
+    echo -e "\033[0;32mIMCE CONFIGURED.\033[0m\n"
+  else
+    echo -e "\033[0;33mIMCE CONFIGURATION SKIPPED\033[0m\n"
+  fi
 
   # Enable the Redis module (settings.php include was added above).
   if [ -n "${REDIS_HOST}" ]; then

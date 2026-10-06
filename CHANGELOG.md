@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- Enable and configure IMCE during installation when the module is available; skip the setup when it is absent.
+
 ### [5.1.0]
 
 ### Changed
