@@ -195,12 +195,33 @@ RUN --mount=type=cache,target=/composer-cache,uid=33,gid=33 \
 
 # JS libraries for WissKI and DLF AIM 3D Viewer (mirrors drush download commands).
 # Perms fixup is scoped to web/libraries only (extracted zips can carry odd modes).
+# wisski-mirador-integration already bundles Mirador 4 and sets window.Mirador.
+# The release is pinned in the installed module (MiradorLibrary.php). Baking
+# it here lets an image start offline. Older WissKI builds have no pin and
+# keep the main-branch archive.
 RUN set -eux; \
-    curl -fsSL "https://github.com/rnsrk/wisski-mirador-integration/archive/main.zip" -o /tmp/wisski-mirador-integration.zip; \
-    mkdir -p /opt/drupal/web/libraries/wisski-mirador-integration; \
-    unzip -qo /tmp/wisski-mirador-integration.zip -d /tmp; \
-    cp -a /tmp/wisski-mirador-integration-main/. /opt/drupal/web/libraries/wisski-mirador-integration/; \
-    rm -rf /tmp/wisski-mirador-integration.zip /tmp/wisski-mirador-integration-main; \
+    miradorLibrary="/opt/drupal/web/modules/contrib/wisski/wisski_mirador/src/MiradorLibrary.php"; \
+    if [ -f "${miradorLibrary}" ]; then \
+      miradorVersion="$(grep -E "const VERSION = '" "${miradorLibrary}" | head -n1 | cut -d "'" -f2)"; \
+      miradorSha="$(grep -E "const ARCHIVE_SHA256 = '" "${miradorLibrary}" | head -n1 | cut -d "'" -f2)"; \
+      test -n "${miradorVersion}"; \
+      test -n "${miradorSha}"; \
+      curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors \
+        "https://github.com/rnsrk/wisski-mirador-integration/archive/refs/tags/v${miradorVersion}.zip" \
+        -o /tmp/wisski-mirador-integration.zip; \
+      echo "${miradorSha}  /tmp/wisski-mirador-integration.zip" | sha256sum -c -; \
+      unzip -qo /tmp/wisski-mirador-integration.zip -d /tmp; \
+      mkdir -p /opt/drupal/web/libraries/wisski-mirador-integration; \
+      cp -a "/tmp/wisski-mirador-integration-${miradorVersion}/." /opt/drupal/web/libraries/wisski-mirador-integration/; \
+      rm -f /opt/drupal/web/libraries/wisski-mirador-integration/*.map; \
+      rm -rf /tmp/wisski-mirador-integration.zip "/tmp/wisski-mirador-integration-${miradorVersion}"; \
+    else \
+      curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors "https://github.com/rnsrk/wisski-mirador-integration/archive/main.zip" -o /tmp/wisski-mirador-integration.zip; \
+      mkdir -p /opt/drupal/web/libraries/wisski-mirador-integration; \
+      unzip -qo /tmp/wisski-mirador-integration.zip -d /tmp; \
+      cp -a /tmp/wisski-mirador-integration-main/. /opt/drupal/web/libraries/wisski-mirador-integration/; \
+      rm -rf /tmp/wisski-mirador-integration.zip /tmp/wisski-mirador-integration-main; \
+    fi; \
     curl -fsSL "https://github.com/TurbojetTechnologies/colorbox/archive/1.7.0.zip" -o /tmp/colorbox.zip; \
     mkdir -p /opt/drupal/web/libraries/colorbox; \
     unzip -qo /tmp/colorbox.zip -d /tmp; \

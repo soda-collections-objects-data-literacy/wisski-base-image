@@ -64,8 +64,8 @@ On boot the entrypoint starts PHP-FPM, memcached, and iipsrv, then runs nginx in
 - SPARQL 1.1 triplestore adapter (`sparql11_with_pb`)
 - Redis caching (PhpRedis extension + Drupal Redis module)
 - ImageMagick, VIPS, and GD (with AVIF support) for image processing
-- IIPImage server for high-resolution IIIF serving (configured for **IIIF Image API v2** via `IIIF_VERSION=2`, matching WissKI Presentation 2 manifests and Mirador 3)
-- Baked JS libraries: WissKI Mirador integration, Colorbox, DOMPurify, DFG 3D Viewer
+- IIPImage server for high-resolution IIIF serving (configured for **IIIF Image API v2** via `IIIF_VERSION=2`, matching WissKI Presentation 2 manifests and Mirador)
+- Baked JS libraries: WissKI Mirador integration (bundles Mirador 4), Colorbox, DOMPurify, DFG 3D Viewer
 
 ### Development & Administration
 

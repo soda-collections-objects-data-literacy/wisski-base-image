@@ -6,6 +6,10 @@
 
 - WissKI Package Version 4.3.0
 - Enable `navigation_extra_tools` together with `devel` in development mode.
+- install `wisski-mirador-integration` from the release pinned in `MiradorLibrary.php` (checksum checked). That bundle already contains Mirador 4. Older WissKI builds without that pin still get the main-branch archive.
+
+### Files Modified
+- `Dockerfile`: download the pinned WissKI Mirador Integration release after the composer bake step.
 
 ## [5.1.1] - 2026-10-06
 
