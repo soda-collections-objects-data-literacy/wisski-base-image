@@ -11,6 +11,9 @@
 ### Files Modified
 - `Dockerfile`: download the pinned WissKI Mirador Integration release after the composer bake step.
 
+### Fixed
+- Fetch `dfg_3dviewer` from its `main` branch (the `standalone` branch is gone, which broke the build); drop `dist/dev`, `dist/prod` and `dist/test`, since the module loads only `dist/drupal/main`.
+
 ## [5.1.1] - 2026-10-06
 
 ### Fixed

@@ -232,11 +232,12 @@ RUN set -eux; \
     unzip -qo /tmp/dompurify.zip -d /tmp; \
     cp -a /tmp/DOMPurify-main/dist /opt/drupal/web/libraries/dompurify/; \
     rm -rf /tmp/dompurify.zip /tmp/DOMPurify-main; \
-    curl -fsSL "https://github.com/thedworak/dfg_3dviewer/archive/standalone.zip" -o /tmp/dlf_aim_3d_viewer.zip; \
+    curl -fsSL "https://github.com/thedworak/dfg_3dviewer/archive/main.zip" -o /tmp/dlf_aim_3d_viewer.zip; \
     mkdir -p /opt/drupal/web/libraries/dlf_aim_3d_viewer; \
     unzip -qo /tmp/dlf_aim_3d_viewer.zip -d /tmp; \
-    cp -a /tmp/dfg_3dviewer-standalone/. /opt/drupal/web/libraries/dlf_aim_3d_viewer/; \
-    rm -rf /tmp/dlf_aim_3d_viewer.zip /tmp/dfg_3dviewer-standalone; \
+    cp -a /tmp/dfg_3dviewer-main/. /opt/drupal/web/libraries/dlf_aim_3d_viewer/; \
+    rm -rf /opt/drupal/web/libraries/dlf_aim_3d_viewer/dist/dev /opt/drupal/web/libraries/dlf_aim_3d_viewer/dist/prod /opt/drupal/web/libraries/dlf_aim_3d_viewer/dist/test; \
+    rm -rf /tmp/dlf_aim_3d_viewer.zip /tmp/dfg_3dviewer-main; \
     find /opt/drupal/web/libraries -type d -exec chmod 755 {} +; \
     find /opt/drupal/web/libraries -type f -exec chmod 644 {} +
 
