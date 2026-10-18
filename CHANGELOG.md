@@ -6,10 +6,8 @@
 
 - WissKI Package Version 4.3.0
 - Enable `navigation_extra_tools` together with `devel` in development mode.
-- install `wisski-mirador-integration` from the release pinned in `MiradorLibrary.php` (checksum checked). That bundle already contains Mirador 4. Older WissKI builds without that pin still get the main-branch archive.
-
-### Files Modified
-- `Dockerfile`: download the pinned WissKI Mirador Integration release after the composer bake step.
+- install `wisski-mirador-integration` from the release pinned in `MiradorLibrary.php` (checksum checked). That bundle is already built in `rnsrk/wisski-mirador-integration` and contains Mirador 4. Older WissKI builds without that pin still get the main-branch archive.
+- Library downloads retry (`--retry 5 --retry-all-errors`) and copy without archive ownership.
 
 ### Fixed
 - Fetch `dfg_3dviewer` from its `main` branch (the `standalone` branch is gone, which broke the build); drop `dist/dev`, `dist/prod` and `dist/test`, since the module loads only `dist/drupal/main`.
