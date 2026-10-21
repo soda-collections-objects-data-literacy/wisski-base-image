@@ -4,7 +4,7 @@
 
 ### Changed
 
-- WissKI Package Version 4.3.0
+- WissKI Package Version 4.5.0
 - Enable `navigation_extra_tools` together with `devel` in development mode.
 - install `wisski-mirador-integration` from the release pinned in `MiradorLibrary.php` (checksum checked). That bundle is already built in `rnsrk/wisski-mirador-integration` and contains Mirador 4. Older WissKI builds without that pin still get the main-branch archive.
 - Library downloads retry (`--retry 5 --retry-all-errors`) and copy without archive ownership; they run as one heredoc `RUN` step instead of a backslash-continued one.
