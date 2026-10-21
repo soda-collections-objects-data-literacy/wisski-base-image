@@ -464,7 +464,7 @@ EOF
     echo -e "\033[0;32mDEFAULT TRIPLESTORE ADAPTER INSTALLED.\033[0m\n"
 
     echo -e "\033[0;33mIMPORT WISSKI DEFAULT ONTOLOGY.\033[0m"
-    drush wisski-core:import-ontology --store='default' --ontology_url='https://wiss-ki.eu/ontology/default/2.5.0/' --reasoning
+    drush wisski-core:import-ontology --store='default' --ontology_url='https://wiss-ki.eu/ontology/default/2.7.0/' --reasoning
     echo -e "\033[0;32mWISSKI DEFAULT ONTOLOGY IMPORTED.\033[0m\n"
 
     # Apply WissKI Default Data Model recipe (recipe package is shipped in the image).
@@ -508,6 +508,11 @@ EOF
       drush content:import ../recipes/wisski_default_data_model/content/content.zip
       echo -e "\033[0;32mSTART PAGE AND DEFAULT MENU ITEMS IMPORTED.\033[0m\n"
 
+      echo -e "\033[0;33mSET FRONT PAGE.\033[0m\n"
+      # Set front page.
+      drush config:set system.site page.front /wisski_home -y
+      echo -e "\033[0;32mFRONT PAGE SET.\033[0m\n"
+
       echo -e "\033[0;33mDISABLE WISSKI MAIN MENU LINKS.\033[0m\n"
       # Disable WissKI main menu links (menu: main). Config stores encoded keys (dots -> __); use the API.
       # Create  main  wisski.create_entities | Navigate  main  wisski.browse_entities | Find  main  wisski.search_entities
@@ -518,11 +523,6 @@ EOF
         }
         "
       echo -e "\033[0;32mWISSKI MAIN MENU LINKS DISABLED.\033[0m\n"
-
-      echo -e "\033[0;33mSET FRONT PAGE.\033[0m\n"
-      # Set front page.
-      drush config:set system.site page.front /home -y
-      echo -e "\033[0;32mFRONT PAGE SET.\033[0m\n"
 
       # Set DLF AIM 3D Viewer settings.
       echo -e "\033[0;33mSET DLF AIM 3D VIEWER SETTINGS.\033[0m\n"
