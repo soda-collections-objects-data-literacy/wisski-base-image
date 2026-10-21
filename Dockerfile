@@ -200,47 +200,51 @@ RUN --mount=type=cache,target=/composer-cache,uid=33,gid=33 \
 # Older WissKI builds have no pin and keep the main-branch archive. Copies drop
 # archive ownership, and the perms fixup is scoped to web/libraries only.
 # dfg_3dviewer keeps only dist/drupal; the module loads dist/drupal/main.
-RUN set -eux; \
-    fetch() { curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors "$1" -o "$2"; }; \
-    libs=/opt/drupal/web/libraries; \
-    miradorLibrary="/opt/drupal/web/modules/contrib/wisski/wisski_mirador/src/MiradorLibrary.php"; \
-    if [ -f "${miradorLibrary}" ]; then \
-      miradorVersion="$(grep -E "const VERSION = '" "${miradorLibrary}" | head -n1 | cut -d "'" -f2)"; \
-      miradorSha="$(grep -E "const ARCHIVE_SHA256 = '" "${miradorLibrary}" | head -n1 | cut -d "'" -f2)"; \
-      test -n "${miradorVersion}"; \
-      test -n "${miradorSha}"; \
-      fetch "https://github.com/rnsrk/wisski-mirador-integration/archive/refs/tags/v${miradorVersion}.zip" /tmp/wisski-mirador-integration.zip; \
-      echo "${miradorSha}  /tmp/wisski-mirador-integration.zip" | sha256sum -c -; \
-      unzip -qo /tmp/wisski-mirador-integration.zip -d /tmp; \
-      mkdir -p "${libs}/wisski-mirador-integration"; \
-      cp -a --no-preserve=ownership "/tmp/wisski-mirador-integration-${miradorVersion}/." "${libs}/wisski-mirador-integration/"; \
-      rm -f "${libs}/wisski-mirador-integration/"*.map; \
-      rm -rf /tmp/wisski-mirador-integration.zip "/tmp/wisski-mirador-integration-${miradorVersion}"; \
-    else \
-      fetch "https://github.com/rnsrk/wisski-mirador-integration/archive/main.zip" /tmp/wisski-mirador-integration.zip; \
-      mkdir -p "${libs}/wisski-mirador-integration"; \
-      unzip -qo /tmp/wisski-mirador-integration.zip -d /tmp; \
-      cp -a --no-preserve=ownership /tmp/wisski-mirador-integration-main/. "${libs}/wisski-mirador-integration/"; \
-      rm -rf /tmp/wisski-mirador-integration.zip /tmp/wisski-mirador-integration-main; \
-    fi; \
-    fetch "https://github.com/TurbojetTechnologies/colorbox/archive/1.7.0.zip" /tmp/colorbox.zip; \
-    mkdir -p "${libs}/colorbox"; \
-    unzip -qo /tmp/colorbox.zip -d /tmp; \
-    cp -a --no-preserve=ownership /tmp/colorbox-1.7.0/. "${libs}/colorbox/"; \
-    rm -rf /tmp/colorbox.zip /tmp/colorbox-1.7.0; \
-    fetch "https://github.com/cure53/DOMPurify/archive/main.zip" /tmp/dompurify.zip; \
-    mkdir -p "${libs}/dompurify"; \
-    unzip -qo /tmp/dompurify.zip -d /tmp; \
-    cp -a --no-preserve=ownership /tmp/DOMPurify-main/dist "${libs}/dompurify/"; \
-    rm -rf /tmp/dompurify.zip /tmp/DOMPurify-main; \
-    fetch "https://github.com/thedworak/dfg_3dviewer/archive/main.zip" /tmp/dlf_aim_3d_viewer.zip; \
-    mkdir -p "${libs}/dlf_aim_3d_viewer"; \
-    unzip -qo /tmp/dlf_aim_3d_viewer.zip -d /tmp; \
-    cp -a --no-preserve=ownership /tmp/dfg_3dviewer-main/. "${libs}/dlf_aim_3d_viewer/"; \
-    rm -rf "${libs}/dlf_aim_3d_viewer/dist/dev" "${libs}/dlf_aim_3d_viewer/dist/prod" "${libs}/dlf_aim_3d_viewer/dist/test"; \
-    rm -rf /tmp/dlf_aim_3d_viewer.zip /tmp/dfg_3dviewer-main; \
-    find "${libs}" -type d -exec chmod 755 {} +; \
-    find "${libs}" -type f -exec chmod 644 {} +
+# Heredoc, not a continued RUN: a shell function at the start of a
+# continued line is parsed as a Dockerfile instruction ("Unknown instruction: FETCH").
+RUN <<'EOS'
+set -eux
+fetch() { curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors "$1" -o "$2"; }
+libs=/opt/drupal/web/libraries
+miradorLibrary="/opt/drupal/web/modules/contrib/wisski/wisski_mirador/src/MiradorLibrary.php"
+if [ -f "${miradorLibrary}" ]; then
+  miradorVersion="$(grep -E "const VERSION = '" "${miradorLibrary}" | head -n1 | cut -d "'" -f2)"
+  miradorSha="$(grep -E "const ARCHIVE_SHA256 = '" "${miradorLibrary}" | head -n1 | cut -d "'" -f2)"
+  test -n "${miradorVersion}"
+  test -n "${miradorSha}"
+  fetch "https://github.com/rnsrk/wisski-mirador-integration/archive/refs/tags/v${miradorVersion}.zip" /tmp/wisski-mirador-integration.zip
+  echo "${miradorSha}  /tmp/wisski-mirador-integration.zip" | sha256sum -c -
+  unzip -qo /tmp/wisski-mirador-integration.zip -d /tmp
+  mkdir -p "${libs}/wisski-mirador-integration"
+  cp -a --no-preserve=ownership "/tmp/wisski-mirador-integration-${miradorVersion}/." "${libs}/wisski-mirador-integration/"
+  rm -f "${libs}/wisski-mirador-integration/"*.map
+  rm -rf /tmp/wisski-mirador-integration.zip "/tmp/wisski-mirador-integration-${miradorVersion}"
+else
+  fetch "https://github.com/rnsrk/wisski-mirador-integration/archive/main.zip" /tmp/wisski-mirador-integration.zip
+  mkdir -p "${libs}/wisski-mirador-integration"
+  unzip -qo /tmp/wisski-mirador-integration.zip -d /tmp
+  cp -a --no-preserve=ownership /tmp/wisski-mirador-integration-main/. "${libs}/wisski-mirador-integration/"
+  rm -rf /tmp/wisski-mirador-integration.zip /tmp/wisski-mirador-integration-main
+fi
+fetch "https://github.com/TurbojetTechnologies/colorbox/archive/1.7.0.zip" /tmp/colorbox.zip
+mkdir -p "${libs}/colorbox"
+unzip -qo /tmp/colorbox.zip -d /tmp
+cp -a --no-preserve=ownership /tmp/colorbox-1.7.0/. "${libs}/colorbox/"
+rm -rf /tmp/colorbox.zip /tmp/colorbox-1.7.0
+fetch "https://github.com/cure53/DOMPurify/archive/main.zip" /tmp/dompurify.zip
+mkdir -p "${libs}/dompurify"
+unzip -qo /tmp/dompurify.zip -d /tmp
+cp -a --no-preserve=ownership /tmp/DOMPurify-main/dist "${libs}/dompurify/"
+rm -rf /tmp/dompurify.zip /tmp/DOMPurify-main
+fetch "https://github.com/thedworak/dfg_3dviewer/archive/main.zip" /tmp/dlf_aim_3d_viewer.zip
+mkdir -p "${libs}/dlf_aim_3d_viewer"
+unzip -qo /tmp/dlf_aim_3d_viewer.zip -d /tmp
+cp -a --no-preserve=ownership /tmp/dfg_3dviewer-main/. "${libs}/dlf_aim_3d_viewer/"
+rm -rf "${libs}/dlf_aim_3d_viewer/dist/dev" "${libs}/dlf_aim_3d_viewer/dist/prod" "${libs}/dlf_aim_3d_viewer/dist/test"
+rm -rf /tmp/dlf_aim_3d_viewer.zip /tmp/dfg_3dviewer-main
+find "${libs}" -type d -exec chmod 755 {} +
+find "${libs}" -type f -exec chmod 644 {} +
+EOS
 
 # Targeted read-only bits, following Drupal security guidelines. The rest of
 # the tree already has dirs 755 / files 644 by construction (umask 022), and
