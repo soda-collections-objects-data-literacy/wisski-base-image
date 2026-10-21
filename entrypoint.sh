@@ -451,9 +451,11 @@ EOF
     # Install default adapter.
     echo -e "\033[0;33mINSTALL DEFAULT TRIPLESTORE ADAPTER.\033[0m"
       # Use token authentication when TS_TOKEN is set; otherwise username and password.
+      # The SALZ adapter sends the token verbatim as the Authorization header value,
+      # so it must carry the "Token " scheme prefix the auth proxy expects.
       TS_AUTH_ARGS=()
       if [ -n "${TS_TOKEN}" ]; then
-        TS_AUTH_ARGS+=(--ts_use_token=1 --ts_token="${TS_TOKEN}")
+        TS_AUTH_ARGS+=(--ts_use_token=1 --ts_token="Token ${TS_TOKEN#Token }")
       else
         TS_AUTH_ARGS+=(--ts_use_token=0 --ts_user="${TS_USERNAME}" --ts_password="${TS_PASSWORD}")
       fi
