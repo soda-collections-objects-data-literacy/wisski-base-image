@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [5.3.0] - 2026-10-22
+
 ### Changed
 
 - WissKI Package Version 4.5.0
@@ -253,5 +255,6 @@
 ### Fixed
 - fix duplicate APCu load warning by not enabling apcu twice (pecl only in builder; zz-apcu-custom.ini enables it at runtime).
 
-[unreleased]: https://github.com/soda-collections-objects-data-literacy/wisski-base-image/compare/v5.1.1...HEAD
+[unreleased]: https://github.com/soda-collections-objects-data-literacy/wisski-base-image/compare/v5.3.0...HEAD
+[5.3.0]: https://github.com/soda-collections-objects-data-literacy/wisski-base-image/compare/v5.1.1...v5.3.0
 [5.1.1]: https://github.com/soda-collections-objects-data-literacy/wisski-base-image/compare/5.1.0...v5.1.1
