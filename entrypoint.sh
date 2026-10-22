@@ -660,6 +660,14 @@ if [ "${NEXTCLOUD_MOUNT_MODE:-}" = "external" ]; then
   fi
 fi
 
+# Idempotent every-boot upgrade: pin HTML5 form validation explicitly.
+# Drupal 12 defaults enable_html5_validation to FALSE; adopt that default now.
+if [ -f "${SETTINGS_FILE}" ] && ! grep -q "enable_html5_validation" "${SETTINGS_FILE}"; then
+  echo -e "\033[0;33mSETTING HTML5 FORM VALIDATION IN SETTINGS.PHP...\033[0m"
+  printf '\n%s\n' "\$settings['enable_html5_validation'] = FALSE;" >> "${SETTINGS_FILE}"
+  echo -e "\033[0;32mHTML5 FORM VALIDATION SET.\033[0m\n"
+fi
+
 start_php_fpm() {
   if pgrep -x php-fpm >/dev/null 2>&1; then
     echo -e "\033[0;32mPHP-FPM already running.\033[0m"

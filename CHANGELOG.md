@@ -12,6 +12,7 @@
 - Library downloads retry (`--retry 5 --retry-all-errors`) and copy without archive ownership; they run as one heredoc `RUN` step instead of a backslash-continued one.
 
 ### Fixed
+- `settings.php` sets `$settings['enable_html5_validation'] = FALSE;` (the Drupal 12 default), which turns off browser-side HTML5 form validation and clears the status report warning. Added on every boot when missing, so existing sites get it too.
 - The default triplestore adapter sends `TS_TOKEN` with the `Token ` scheme prefix the auth proxy expects; a value that already carries the prefix is not doubled.
 - Fetch `dfg_3dviewer` from its `main` branch (the `standalone` branch is gone, which broke the build); drop `dist/dev`, `dist/prod` and `dist/test`, since the module loads only `dist/drupal/main`.
 
