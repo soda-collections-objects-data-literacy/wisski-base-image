@@ -7,6 +7,7 @@
 - WissKI Package Version 4.5.0
 - New installations import the WissKI default ontology `2.7.0` (was `2.5.0`).
 - New installations with the default data model use `/wisski_home` as front page (was `/home`), set right after the start page content is imported.
+- New installations that apply the default data model set the OpenID Connect login and logout redirects to `/wisski_home` (was `home`). Without that model the redirects stay on `home`.
 - Enable `navigation_extra_tools` together with `devel` in development mode.
 - install `wisski-mirador-integration` from the release pinned in `MiradorLibrary.php` (checksum checked). That bundle is already built in `rnsrk/wisski-mirador-integration` and contains Mirador 4. Older WissKI builds without that pin still get the main-branch archive.
 - Library downloads retry (`--retry 5 --retry-all-errors`) and copy without archive ownership; they run as one heredoc `RUN` step instead of a backslash-continued one.

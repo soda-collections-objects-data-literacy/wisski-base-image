@@ -513,6 +513,14 @@ EOF
       drush config:set system.site page.front /wisski_home -y
       echo -e "\033[0;32mFRONT PAGE SET.\033[0m\n"
 
+      # /wisski_home exists only after the default data model content import.
+      if [ -n "${OPENID_CONNECT_CLIENT_SECRET}" ]; then
+        echo -e "\033[0;33mSET OPENID CONNECT REDIRECTS.\033[0m\n"
+        drush config:set openid_connect.settings redirect_login /wisski_home -y
+        drush config:set openid_connect.settings redirect_logout /wisski_home -y
+        echo -e "\033[0;32mOPENID CONNECT REDIRECTS SET.\033[0m\n"
+      fi
+
       echo -e "\033[0;33mDISABLE WISSKI MAIN MENU LINKS.\033[0m\n"
       # Disable WissKI main menu links (menu: main). Config stores encoded keys (dots -> __); use the API.
       # Create  main  wisski.create_entities | Navigate  main  wisski.browse_entities | Find  main  wisski.search_entities
