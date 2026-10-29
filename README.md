@@ -180,7 +180,7 @@ When `OPENID_CONNECT_CLIENT_SECRET` is set, all of the following are required:
 
 | Variable | Description |
 | --- | --- |
-| `NEXTCLOUD_MOUNT_MODE` | `external` (sidecar mount into `private://nextcloud`), `sync` (in-container rclone bisync), or `none`. Unset with all three credential variables set falls back to `sync` for backward compatibility; unset without credentials leaves the module disabled. |
+| `NEXTCLOUD_MOUNT_MODE` | `external` (sidecar mount into `private://project_files`), `sync` (in-container rclone bisync), or `none`. Unset with all three credential variables set falls back to `sync` for backward compatibility; unset without credentials leaves the module disabled. |
 | `NEXTCLOUD_BASE_URL` | Nextcloud server URL (**sync only**; ignored with a warning in `external` mode) |
 | `NEXTCLOUD_LOGIN_NAME` | Service account login (**sync only**) |
 | `NEXTCLOUD_APP_PASSWORD` | App password for WebDAV sync (**sync only**) |

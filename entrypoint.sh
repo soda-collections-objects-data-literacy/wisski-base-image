@@ -168,10 +168,11 @@ for mountPoint in /opt/drupal/web/sites /opt/drupal/private-files "${DRUPAL_PRIV
   fi
 done
 
-# Nextcloud mount target under private files. mkdir only — never chown/chmod -R
-# this tree; with NEXTCLOUD_MOUNT_MODE=external it may be a sidecar FUSE/WebDAV
-# mount of remote data.
-mkdir -p "${DRUPAL_PRIVATE_FILES_DIR}/nextcloud"
+# Project files mount target under private files. mkdir only — never
+# chown/chmod -R this tree; with NEXTCLOUD_MOUNT_MODE=external it may be a
+# sidecar FUSE/WebDAV mount of remote data.
+NEXTCLOUD_MOUNT_RELATIVE_PATH=project_files
+mkdir -p "${DRUPAL_PRIVATE_FILES_DIR}/${NEXTCLOUD_MOUNT_RELATIVE_PATH}"
 
 # Composer cache must stay writable by www-data (docker exec package checks).
 # Ownership below the top level is baked at build time and only ever written
@@ -412,7 +413,7 @@ EOF
       {
         drush en -y nextcloud_webdav_mount
         drush config-set -y nextcloud_webdav_mount.settings operation_mode external
-        drush config-set -y nextcloud_webdav_mount.settings external_mount_path 'private://nextcloud'
+        drush config-set -y nextcloud_webdav_mount.settings external_mount_path "private://${NEXTCLOUD_MOUNT_RELATIVE_PATH}"
       } 1> /dev/null
       echo -e "\033[0;32mNEXTCLOUD MOUNT MODULE ENABLED (external).\033[0m\n"
       ;;
@@ -659,11 +660,13 @@ fi
 # Idempotent every-boot upgrade: switch existing sync installs to external when
 # the deployment requests NEXTCLOUD_MOUNT_MODE=external (no per-instance steps).
 if [ "${NEXTCLOUD_MOUNT_MODE:-}" = "external" ]; then
-  current=$(drush config-get nextcloud_webdav_mount.settings operation_mode --format=string 2>/dev/null || true)
-  if [ -n "$current" ] && [ "$current" != "external" ]; then
-    echo -e "\033[0;33mSWITCHING NEXTCLOUD MOUNT TO EXTERNAL MODE.\033[0m"
+  desired_path="private://${NEXTCLOUD_MOUNT_RELATIVE_PATH}"
+  current_mode=$(drush config-get nextcloud_webdav_mount.settings operation_mode --format=string 2>/dev/null || true)
+  current_path=$(drush config-get nextcloud_webdav_mount.settings external_mount_path --format=string 2>/dev/null || true)
+  if [ -n "$current_mode" ] && { [ "$current_mode" != "external" ] || [ "$current_path" != "$desired_path" ]; }; then
+    echo -e "\033[0;33mSWITCHING NEXTCLOUD MOUNT TO EXTERNAL MODE (${desired_path}).\033[0m"
     drush config-set -y nextcloud_webdav_mount.settings operation_mode external
-    drush config-set -y nextcloud_webdav_mount.settings external_mount_path 'private://nextcloud'
+    drush config-set -y nextcloud_webdav_mount.settings external_mount_path "${desired_path}"
     echo -e "\033[0;32mNEXTCLOUD MOUNT SWITCHED TO EXTERNAL MODE.\033[0m\n"
   fi
 fi

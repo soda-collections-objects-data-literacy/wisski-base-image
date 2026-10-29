@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [5.3.1] - 2026-10-29
+
+### Changed
+
+- External Nextcloud mount path is `private://project_files` (`${DRUPAL_PRIVATE_FILES_DIR}/project_files`). Existing external installs are updated to that path on boot.
+
 ## [5.3.0] - 2026-10-22
 
 ### Changed
