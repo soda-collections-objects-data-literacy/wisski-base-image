@@ -2,15 +2,13 @@
 
 ## [Unreleased]
 
-### Changed
-
-- **Breaking:** the rolling development line moves from branch `5.x` to `main`, so the rolling images are tagged `:main` instead of `:5.x`. Stable releases stay plain version tags (`5.5.0`, `5.5`, `5`, `latest`). A `X.x` branch is only cut from a release tag to maintain an older major and then builds `:X.x`.
-- The rolling development image is rebuilt nightly, so it follows new commits on the floating WissKI package lines.
-
 ## [5.5.0] - 2026-11-08
 
 ### Changed
 
+- **Breaking:** the rolling development line moves from branch `5.x` to `main`, so the rolling images are tagged `:main` instead of `:5.x`. Stable releases stay plain version tags (`5.5.0`, `5.5`, `5`, `latest`). A `X.x` branch is only cut from a release tag to maintain an older major and then builds `:X.x`.
+- The rolling development image is rebuilt nightly, so it follows new commits on the floating WissKI package lines.
+- `drupal/nextcloud_webdav_mount` 2.1.0 (via WissKI Package Version 4.6.0): the admin settings get their own Nextcloud group under Configuration, and the Navigation sidebar gets a top-level Nextcloud entry.
 - WissKI Package Version 4.6.0: WissKI default data model recipe 3.0.0, WissKI starter recipe 2.3.0, upstream `drupal/openid_connect` 3.0.0-alpha9 instead of the fork, Drush 13.8.
 - New installations create the OpenID Connect client with plain `drush config:set` instead of the `openid-connect:create-client` command from the forked module, so the image works with upstream `drupal/openid_connect`. The client machine name is now `scs_sso` (was `SCS SSO`); existing installations keep their client.
 
