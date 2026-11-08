@@ -195,8 +195,39 @@ if [ -f "$INSTALL_COMPLETE_FILE" ]; then
     echo -e "\033[0;33mPACKAGE SET CHANGED (${sitePackagesVersion} -> ${imagePackagesVersion}); RUNNING DATABASE UPDATES...\033[0m"
     drush updatedb -y
     drush cr
-    echo "${imagePackagesVersion}" > "${SITE_PACKAGES_VERSION_FILE}"
     echo -e "\033[0;32mDATABASE UPDATES APPLIED.\033[0m\n"
+
+    # Bring the WissKI default data model config up to the baked-in recipe:
+    # creates new and updates changed config, deletes nothing. Local changes to
+    # the data-model config are overwritten. Only on sites that got the recipe
+    # at install time; WISSKI_RECIPE_CONFIG_UPDATE=0 opts out. Failures are
+    # logged and do not stop the container.
+    recipeDir="/opt/drupal/recipes/wisski_default_data_model"
+    if [ "${WISSKI_RECIPE_CONFIG_UPDATE:-1}" != "0" ] \
+      && [ -n "${WISSKI_DEFAULT_DATA_MODEL_VERSION}" ] \
+      && [ -d "${recipeDir}/config" ] \
+      && drush config:get wisski_core.wisski_bundle.b00c6ecbe77a76e1ca9d4b9ebd162f45 id >/dev/null 2>&1; then
+      echo -e "\033[0;33mUPDATING WISSKI DEFAULT DATA MODEL CONFIG...\033[0m"
+      if drush config:import --partial --source="${recipeDir}/config" -y; then
+        # --partial skips language collections (and recipes hit core #3453331).
+        if [ -d "${recipeDir}/config/language/de" ]; then
+          drush php-eval "
+            \$source = new \Drupal\Core\Config\FileStorage('${recipeDir}/config/language/de');
+            \$langStorage = \Drupal::service('config.storage')->createCollection('language.de');
+            foreach (\$source->listAll() as \$name) {
+              \$langStorage->write(\$name, \$source->read(\$name));
+            }
+            " || true
+        fi
+        drush php:eval '\Drupal::service(\Drupal\wisski_core\Services\BundleMenu\BundleMenuInterface::class)->syncAll();' || true
+        drush cr
+        echo -e "\033[0;32mWISSKI DEFAULT DATA MODEL CONFIG UPDATED.\033[0m\n"
+      else
+        echo -e "\033[0;31mWARNING: WissKI default data model config import failed; the site keeps its current config.\033[0m\n"
+      fi
+    fi
+
+    echo "${imagePackagesVersion}" > "${SITE_PACKAGES_VERSION_FILE}"
   fi
 
   /usr/local/bin/sync-reverse-proxy.sh

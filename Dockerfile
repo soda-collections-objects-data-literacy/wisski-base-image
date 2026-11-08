@@ -8,7 +8,7 @@ ARG PHP_BASE_IMAGE_TAG=8.5-fpm-bookworm
 # default (or a --build-arg). A value on the stage declaration would shadow it.
 ARG MODE=production
 # Production: semver manifest path (wisski_base/production/<version>) with lock file.
-ARG WISSKI_PACKAGES_VERSION=4.6.0
+ARG WISSKI_PACKAGES_VERSION=4.6.1
 # Development: major-line manifest path (wisski_base/development/<line>), no lock file.
 ARG WISSKI_PACKAGES_LINE=4.x
 
@@ -157,6 +157,8 @@ FROM ext-builder AS codebase
 ARG MODE
 ARG WISSKI_PACKAGES_VERSION
 ARG WISSKI_PACKAGES_LINE
+# Branch, tag or commit of the drupal_packages repo to read the manifests from.
+ARG DRUPAL_PACKAGES_REF=main
 
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 
@@ -178,7 +180,7 @@ USER www-data
 RUN --mount=type=cache,target=/composer-cache,uid=33,gid=33 \
     set -eux; \
     cd /opt/drupal; \
-    packagesRepoBaseUrl="https://raw.githubusercontent.com/soda-collections-objects-data-literacy/drupal_packages/main/wisski_base"; \
+    packagesRepoBaseUrl="https://raw.githubusercontent.com/soda-collections-objects-data-literacy/drupal_packages/${DRUPAL_PACKAGES_REF}/wisski_base"; \
     if [ "$MODE" = "development" ]; then \
     manifestBaseUrl="${packagesRepoBaseUrl}/development/${WISSKI_PACKAGES_LINE}"; \
     curl -fsSL "${manifestBaseUrl}/composer.json" -o composer.json; \
@@ -189,7 +191,7 @@ RUN --mount=type=cache,target=/composer-cache,uid=33,gid=33 \
     curl -fsSL "${manifestBaseUrl}/composer.json" -o composer.json; \
     curl -fsSL "${manifestBaseUrl}/composer.lock" -o composer.lock; \
     composer install --no-dev --no-interaction --no-progress --optimize-autoloader; \
-    packagesVersion="${WISSKI_PACKAGES_VERSION}"; \
+    packagesVersion="${WISSKI_PACKAGES_VERSION}-$(md5sum vendor/composer/installed.json | cut -d' ' -f1)"; \
     fi; \
     echo "${packagesVersion}" > /opt/drupal/.wisski-packages-version
 

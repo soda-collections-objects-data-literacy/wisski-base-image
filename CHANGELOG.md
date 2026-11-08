@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [5.6.0] - 2026-11-09
+
+### Changed
+
+- WissKI Package Version 4.6.1: WissKI default data model recipe 3.0.1, which restores the viewfield blocks such as "(Claimed) Ownership" and drops a dangling `custom_label` dependency that made config imports fail.
+- Production images record the package set as `<version>-<md5 of installed.json>`, like development images do. A changed lock file under the same package version now also triggers `drush updatedb` on existing sites.
+- When the package set changes, existing sites that got the WissKI default data model at install time also import its config (`drush config:import --partial`, plus the German overrides and a WissKI menu sync). This creates new and updates changed data-model config, deletes nothing, and overwrites local changes to that config. Set `WISSKI_RECIPE_CONFIG_UPDATE=0` to skip it. A failed import is logged and does not stop the container.
+- New build argument `DRUPAL_PACKAGES_REF` (default `main`) selects the branch, tag or commit of `drupal_packages` to read the manifests from, e.g. to build before the raw.githubusercontent.com cache has caught up.
+
 ## [5.5.1] - 2026-11-08
 
 ### Fixed
