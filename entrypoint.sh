@@ -406,8 +406,10 @@ EOF
 
   case "${nextcloud_mount_mode}" in
     external)
-      if [[ -n "${NEXTCLOUD_BASE_URL:-}" || -n "${NEXTCLOUD_LOGIN_NAME:-}" || -n "${NEXTCLOUD_APP_PASSWORD:-}" ]]; then
-        echo -e "\033[0;33mWARNING: NEXTCLOUD_BASE_URL/LOGIN_NAME/APP_PASSWORD are set but ignored in external mode.\033[0m"
+      # NEXTCLOUD_BASE_URL is always passed by the SCS Manager and is harmless here;
+      # only credentials indicate a misconfiguration.
+      if [[ -n "${NEXTCLOUD_LOGIN_NAME:-}" || -n "${NEXTCLOUD_APP_PASSWORD:-}" ]]; then
+        echo -e "\033[0;33mWARNING: NEXTCLOUD_LOGIN_NAME/APP_PASSWORD are set but ignored in external mode.\033[0m"
       fi
       echo -e "\033[0;33mENABLE NEXTCLOUD CLIENT MODULE (external mount).\033[0m"
       {
@@ -480,7 +482,11 @@ EOF
       echo -e "\033[0;32mAdd German language and update translations.\033[0m\n"
 
       # Add German language and update translations.
-      drush language-add de && drush locale-check && drush locale-update
+      # The recipe may already have enabled German; language-add warns in that case.
+      if [ "$(drush php-eval "echo \\Drupal::languageManager()->getLanguage('de') ? 1 : 0;")" != "1" ]; then
+        drush language-add de
+      fi
+      drush locale-check && drush locale-update
       drush php-eval "
         \$source = new \Drupal\Core\Config\FileStorage('/opt/drupal/recipes/wisski_default_data_model/config/language/de');
         \$langStorage = \Drupal::service('config.storage')->createCollection('language.de');
@@ -503,11 +509,8 @@ EOF
       #curl -sSL 'https://wiss-ki.eu/example-contents' | curl -sS -w '\n%{http_code}\n' -X POST "${TS_WRITE_URL}" -H "Authorization: Token ${TS_TOKEN}" -H 'Content-Type: application/n-quads' --data-binary @-
 
 
-      echo -e "\033[0;33mImport start page and default menu items.\033[0m\n"
-      # Import example contents.
-      drush config:set single_content_sync.settings site_uuid_check 0 -y
-      drush content:import ../recipes/wisski_default_data_model/content/content.zip
-      echo -e "\033[0;32mSTART PAGE AND DEFAULT MENU ITEMS IMPORTED.\033[0m\n"
+      # Start page and default menu items ship as core default content in the
+      # recipe's content/ directory and are imported by `drush recipe` above.
 
       echo -e "\033[0;33mSET FRONT PAGE.\033[0m\n"
       # Set front page.
