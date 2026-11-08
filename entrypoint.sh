@@ -530,9 +530,15 @@ EOF
         drush locale:import de "$po" --type=not-customized --override=all -y
       done
 
-      echo -e "\033[0;33mRECREATE WISSKI MAIN MENU.\033[0m\n"
-        drush wisski-core:recreate-menus    
       echo -e "\033[0;32mTRANSLATIONS UPDATED.\033[0m\n"
+
+      # Sync, do not recreate: wisski-core:recreate-menus deletes the view named
+      # after each bundle and regenerates it, which drops the recipe's views
+      # (e.g. the "(Claimed) Ownership" viewfield block). syncAll() only adds
+      # missing menu items and views.
+      echo -e "\033[0;33mSYNC WISSKI MENUS.\033[0m\n"
+      drush php:eval '\Drupal::service(\Drupal\wisski_core\Services\BundleMenu\BundleMenuInterface::class)->syncAll();'
+      echo -e "\033[0;32mWISSKI MENUS SYNCED.\033[0m\n"
 
       # Download and set WissKI logo.
       #wget https://wiss-ki.eu/sites/default/files/example/wisski_logo.png -O /opt/drupal/web/sites/default/files/wisski_logo.png

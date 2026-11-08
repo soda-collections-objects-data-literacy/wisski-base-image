@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [5.5.1] - 2026-11-08
+
+### Fixed
+
+- New installations sync the WissKI menus with `BundleMenu::syncAll()` instead of `drush wisski-core:recreate-menus`. Recreating deleted and regenerated the views named after each bundle, so the views shipped by the WissKI default data model recipe lost their block displays (e.g. the "(Claimed) Ownership" viewfield block). Existing installations restore them with `drush config:import --partial --source=../recipes/wisski_default_data_model/config`.
+
 ## [5.5.0] - 2026-11-08
 
 ### Changed
