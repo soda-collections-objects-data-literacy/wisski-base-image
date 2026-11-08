@@ -2,12 +2,13 @@
 
 ## [Unreleased]
 
+## [5.4.0] - 2026-11-08
+
 ### Changed
 
 - Enable core `search` module on new installations (Drupal 11.4's Standard profile no longer installs it).
 - Skip `drush language-add de` when the recipe already enabled German.
 - Warn about ignored Nextcloud settings in external mode only when credentials are set; `NEXTCLOUD_BASE_URL` is always passed by the SCS Manager.
-
 - In external Nextcloud mode, store `NEXTCLOUD_BASE_URL` as the module's `server_url` on every boot, so the Navigation entry links to the Nextcloud Files app ("Remote drive").
 
 ### Removed
