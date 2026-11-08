@@ -2,8 +2,11 @@
 
 ## [Unreleased]
 
+## [5.5.0] - 2026-11-08
+
 ### Changed
 
+- WissKI Package Version 4.6.0: WissKI default data model recipe 3.0.0, WissKI starter recipe 2.3.0, upstream `drupal/openid_connect` 3.0.0-alpha9 instead of the fork, Drush 13.8.
 - New installations create the OpenID Connect client with plain `drush config:set` instead of the `openid-connect:create-client` command from the forked module, so the image works with upstream `drupal/openid_connect`. The client machine name is now `scs_sso` (was `SCS SSO`); existing installations keep their client.
 
 ## [5.4.0] - 2026-11-08
