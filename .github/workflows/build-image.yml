@@ -1,8 +1,10 @@
 name: Publish WissKI Base Docker Images
 
 on:
+  # main is the rolling development line (image tag :main); X.x branches are
+  # only cut from a release tag to maintain an older major (image tag :X.x).
   push:
-    branches: [5.x]
+    branches: [main, "*.x"]
     tags:
       - "*.*.*"
   # Nightly rebuild of the rolling development image, so it picks up new

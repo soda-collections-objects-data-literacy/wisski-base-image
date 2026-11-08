@@ -4,7 +4,8 @@
 
 ### Changed
 
-- The rolling development image (`wisski-base-image-development:5.x`) is rebuilt nightly, so it follows new commits on the floating WissKI package lines; development continues on the `5.x` branch.
+- **Breaking:** the rolling development line moves from branch `5.x` to `main`, so the rolling images are tagged `:main` instead of `:5.x`. Stable releases stay plain version tags (`5.5.0`, `5.5`, `5`, `latest`). A `X.x` branch is only cut from a release tag to maintain an older major and then builds `:X.x`.
+- The rolling development image is rebuilt nightly, so it follows new commits on the floating WissKI package lines.
 
 ## [5.5.0] - 2026-11-08
 
