@@ -8,6 +8,8 @@
 - Skip `drush language-add de` when the recipe already enabled German.
 - Warn about ignored Nextcloud settings in external mode only when credentials are set; `NEXTCLOUD_BASE_URL` is always passed by the SCS Manager.
 
+- In external Nextcloud mode, store `NEXTCLOUD_BASE_URL` as the module's `server_url` on every boot, so the Navigation entry links to the Nextcloud Files app ("Remote drive").
+
 ### Removed
 
 - `content:import` of `content.zip`; start page and menu links ship as core default content in the default data model recipe and are imported by `drush recipe`.

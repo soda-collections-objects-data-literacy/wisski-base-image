@@ -413,8 +413,8 @@ EOF
 
   case "${nextcloud_mount_mode}" in
     external)
-      # NEXTCLOUD_BASE_URL is always passed by the SCS Manager and is harmless here;
-      # only credentials indicate a misconfiguration.
+      # NEXTCLOUD_BASE_URL is always passed by the SCS Manager and is stored as
+      # server_url for the Files app link; only credentials are a misconfiguration.
       if [[ -n "${NEXTCLOUD_LOGIN_NAME:-}" || -n "${NEXTCLOUD_APP_PASSWORD:-}" ]]; then
         echo -e "\033[0;33mWARNING: NEXTCLOUD_LOGIN_NAME/APP_PASSWORD are set but ignored in external mode.\033[0m"
       fi
@@ -678,6 +678,16 @@ if [ "${NEXTCLOUD_MOUNT_MODE:-}" = "external" ]; then
     drush config-set -y nextcloud_webdav_mount.settings operation_mode external
     drush config-set -y nextcloud_webdav_mount.settings external_mount_path "${desired_path}"
     echo -e "\033[0;32mNEXTCLOUD MOUNT SWITCHED TO EXTERNAL MODE.\033[0m\n"
+  fi
+  # Store the Nextcloud URL so the module can link to the Nextcloud Files app
+  # ("Remote drive"). Its menu links are built from config, so rebuild them.
+  desired_url="${NEXTCLOUD_BASE_URL%/}"
+  current_url=$(drush config-get nextcloud_webdav_mount.settings server_url --format=string 2>/dev/null || true)
+  if [ -n "$current_mode" ] && [ -n "$desired_url" ] && [ "$current_url" != "$desired_url" ]; then
+    echo -e "\033[0;33mSET NEXTCLOUD SERVER URL (${desired_url}).\033[0m"
+    drush config-set -y nextcloud_webdav_mount.settings server_url "${desired_url}"
+    drush php-eval "\\Drupal::service('plugin.manager.menu.link')->rebuild();"
+    echo -e "\033[0;32mNEXTCLOUD SERVER URL SET.\033[0m\n"
   fi
 fi
 
