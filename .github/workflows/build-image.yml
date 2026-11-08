@@ -34,7 +34,8 @@ jobs:
           is_latest=false
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
             current="${GITHUB_REF#refs/tags/}"
-            latest=$(git tag -l '*.*.*' --sort=-v:refname | head -1)
+            # Release tags are plain X.Y.Z; ignore old v-prefixed tags, which would sort first.
+            latest=$(git tag -l '[0-9]*.*.*' --sort=-v:refname | head -1)
             if [[ -n "$latest" && "$current" == "$latest" ]]; then
               is_latest=true
             fi
