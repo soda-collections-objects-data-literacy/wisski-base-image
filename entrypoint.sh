@@ -360,32 +360,56 @@ EOF
   if [ "${OPENID_CONNECT_CLIENT_SECRET}" != "" ]; then
     echo -e "\033[0;33mENABLING OPENID CONNECT MODULE.\033[0m"
     {
-      # The image ships the openid_connect fork with drush commands implementation.
       drush en openid_connect -y
     } 1> /dev/null
     echo -e "\033[0;32mOPENID CONNECT MODULE ENABLED.\033[0m\n"
 
-    # Set OpenID Connect settings.
-    echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
+    # Create the Keycloak client as a plain config object. config:set bypasses
+    # the entity API, so the UUID has to be supplied here.
+    echo -e "\033[0;33mCREATE OPENID CONNECT CLIENT.\033[0m"
     {
-      drush openid-connect:create-client 'SCS SSO' 'SODA SCS Client' generic --client-id="${DRUPAL_SITE_NAME}" --client-secret="${OPENID_CONNECT_CLIENT_SECRET}" --allowed-domains='*' --use-well-known=0 --authorization-endpoint="${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth" --token-endpoint="${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token" --userinfo-endpoint="${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo" --end-session-endpoint="${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout" --scopes=openid,email,profile --prompt=login
+      drush config:set --input-format=yaml openid_connect.client.scs_sso ? - -y <<EOF
+uuid: $(cat /proc/sys/kernel/random/uuid)
+langcode: en
+status: true
+dependencies: {  }
+id: scs_sso
+label: 'SCS SSO'
+plugin: generic
+settings:
+  client_id: '${DRUPAL_SITE_NAME}'
+  client_secret: '${OPENID_CONNECT_CLIENT_SECRET}'
+  iss_allowed_domains: '*'
+  prompt:
+    - login
+  issuer_url: ''
+  authorization_endpoint: '${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth'
+  token_endpoint: '${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token'
+  userinfo_endpoint: '${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo'
+  end_session_endpoint: '${KEYCLOAK_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout'
+  scopes:
+    - openid
+    - email
+    - profile
+EOF
     } 1> /dev/null
-    echo -e "\033[0;33mSET OPENID CONNECT SETTINGS.\033[0m"
-    {
-      drush config-set openid_connect.settings user_login_display above
-      drush config-set openid_connect.settings redirect_login home
-      drush config-set openid_connect.settings redirect_logout home
-      drush config-set openid_connect.settings override_registration_settings 1
-    } 1> /dev/null
-    echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
+    echo -e "\033[0;32mOPENID CONNECT CLIENT CREATED.\033[0m\n"
 
-    echo -e "\033[0;33mSET OPENID CONNECT ROLE MAPPINGS.\033[0m"
+    # Only the listed top-level keys are replaced; the rest keeps its defaults.
+    echo -e "\033[0;33mSET OPENID CONNECT SETTINGS AND ROLE MAPPINGS.\033[0m"
     {
-      drush config-set --input-format=yaml openid_connect.settings role_mappings.administrator "[${KEYCLOAK_ADMIN_GROUP}]" -y
-      drush config-set --input-format=yaml openid_connect.settings role_mappings.wisski_user "[${KEYCLOAK_USER_GROUP}]" -y
+      drush config:set --input-format=yaml openid_connect.settings ? - -y <<EOF
+user_login_display: above
+redirect_login: home
+redirect_logout: home
+override_registration_settings: true
+role_mappings:
+  administrator:
+    - '${KEYCLOAK_ADMIN_GROUP}'
+  wisski_user:
+    - '${KEYCLOAK_USER_GROUP}'
+EOF
     } 1> /dev/null
-    echo -e "\033[0;32mOPENID CONNECT ROLE MAPPINGS SET.\033[0m\n"
-
     echo -e "\033[0;32mOPENID CONNECT SETTINGS SET.\033[0m\n"
 
     echo -e "\033[0;33mENABLE SSO BOUNCER.\033[0m"

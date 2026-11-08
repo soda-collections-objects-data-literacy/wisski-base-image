@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- New installations create the OpenID Connect client with plain `drush config:set` instead of the `openid-connect:create-client` command from the forked module, so the image works with upstream `drupal/openid_connect`. The client machine name is now `scs_sso` (was `SCS SSO`); existing installations keep their client.
+
 ## [5.4.0] - 2026-11-08
 
 ### Changed
