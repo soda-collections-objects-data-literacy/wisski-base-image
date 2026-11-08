@@ -318,6 +318,13 @@ EOF
   } 1> /dev/null
   echo -e "\033[0;32mSINGLE CONTENT SYNC MODULE ENABLED.\033[0m\n"
 
+  # Enable core search module (no longer installed by the Standard profile in Drupal 11.4).
+  echo -e "\033[0;33mENABLE SEARCH MODULE.\033[0m"
+  {
+    drush en search -y
+  } 1> /dev/null
+  echo -e "\033[0;32mSEARCH MODULE ENABLED.\033[0m\n"
+
   # Enable development modules (development mode only; devel must not run in production).
   if [ "${MODE}" = "development" ]; then
     echo -e "\033[0;33mENABLE DEVELOPMENT MODULES.\033[0m"

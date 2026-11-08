@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Enable core `search` module on new installations (Drupal 11.4's Standard profile no longer installs it).
+- Skip `drush language-add de` when the recipe already enabled German.
+- Warn about ignored Nextcloud settings in external mode only when credentials are set; `NEXTCLOUD_BASE_URL` is always passed by the SCS Manager.
+
+### Removed
+
+- `content:import` of `content.zip`; start page and menu links ship as core default content in the default data model recipe and are imported by `drush recipe`.
+
 ## [5.3.1] - 2026-10-29
 
 ### Changed
