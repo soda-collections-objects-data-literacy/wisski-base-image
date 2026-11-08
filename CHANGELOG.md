@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- The rolling development image (`wisski-base-image-development:5.x`) is rebuilt nightly, so it follows new commits on the floating WissKI package lines; development continues on the `5.x` branch.
+
 ## [5.5.0] - 2026-11-08
 
 ### Changed

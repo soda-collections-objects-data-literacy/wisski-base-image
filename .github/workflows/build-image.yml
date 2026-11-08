@@ -5,6 +5,12 @@ on:
     branches: [5.x]
     tags:
       - "*.*.*"
+  # Nightly rebuild of the rolling development image, so it picks up new
+  # commits on the floating package lines (wisski 4.x-dev, recipes x.x-dev)
+  # even when this repository does not change. Runs on the default branch.
+  schedule:
+    - cron: "30 2 * * *"
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -18,12 +24,11 @@ jobs:
       packages: write
     strategy:
       matrix:
-        mode: [production, development]
-        include:
-          - mode: production
-            image_name: soda-collections-objects-data-literacy/wisski-base-image-production
-          - mode: development
-            image_name: soda-collections-objects-data-literacy/wisski-base-image-development
+        # The nightly run only refreshes the development image; production
+        # images are pinned by their lock file and need no rebuild.
+        mode: ${{ github.event_name == 'schedule' && fromJSON('["development"]') || fromJSON('["production","development"]') }}
+    env:
+      IMAGE_NAME: soda-collections-objects-data-literacy/wisski-base-image-${{ matrix.mode }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -45,7 +50,7 @@ jobs:
         id: meta
         with:
           images: |
-            ${{ env.REGISTRY }}/${{ matrix.image_name }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable=${{ steps.release.outputs.is_latest == 'true' }}
             type=raw,value=${{ github.ref_name }},enable=${{ startsWith(github.ref, 'refs/heads/') }}
