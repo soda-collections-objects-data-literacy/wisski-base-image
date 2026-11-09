@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [5.7.1] - 2026-11-09
+
 ### Fixed
 
 - Recipe config import on a package-set change: the entrypoint now first installs the modules the WissKI starter and default data model recipes list, so that config shipped for a newly added module (such as `wisski_date_field_extractor.settings` in recipe 3.0.2) no longer makes the whole import fail. Before, nothing was imported on such sites, including the viewfield blocks like "(Claimed) Ownership".
