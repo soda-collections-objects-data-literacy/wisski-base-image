@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- WissKI Package Version 4.6.2: WissKI default data model recipe 3.0.2, which ships the date field extractor mapping for the time model (`wisski_date_field_extractor.settings`). New installations get the mapping; existing sites get it through the recipe config import on the package-set change, then run `drush wisski:edtf-reparse` to write the time-spans of existing dates.
+
 ## [5.6.0] - 2026-11-09
 
 ### Changed
