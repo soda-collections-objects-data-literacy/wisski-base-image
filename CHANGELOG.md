@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [5.7.0] - 2026-11-09
+
 ### Removed
 
 - `WISSKI_8X_4X_DEVELOPMENT` and `WISSKI_8X_4X_BRANCH`: the entrypoint no longer replaces the baked WissKI module with a `git clone` of `8.x-4.x`. The development image already ships WissKI 8.x-4.x, and the SCS Manager no longer sets the variable.
