@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [5.8.0] - 2026-11-09
+
 ### Changed
 
 - WissKI Package Version 4.6.3: WissKI default data model recipe 3.1.0. All dates go through the EDTF time model (`P4_has_time-span` to a time expression), the date period and date bundles are gone, the views of the dated bundles sort and filter by date, the title patterns no longer print stray separators, and `wisski_core.settings` takes the values of the development site. Dates stored as date periods are not migrated.
