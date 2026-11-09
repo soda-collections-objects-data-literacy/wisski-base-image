@@ -203,11 +203,31 @@ if [ -f "$INSTALL_COMPLETE_FILE" ]; then
     # at install time; WISSKI_RECIPE_CONFIG_UPDATE=0 opts out. Failures are
     # logged and do not stop the container.
     recipeDir="/opt/drupal/recipes/wisski_default_data_model"
+    recipeConfigUpdated=1
     if [ "${WISSKI_RECIPE_CONFIG_UPDATE:-1}" != "0" ] \
       && [ -n "${WISSKI_DEFAULT_DATA_MODEL_VERSION}" ] \
       && [ -d "${recipeDir}/config" ] \
       && drush config:get wisski_core.wisski_bundle.b00c6ecbe77a76e1ca9d4b9ebd162f45 id >/dev/null 2>&1; then
       echo -e "\033[0;33mUPDATING WISSKI DEFAULT DATA MODEL CONFIG...\033[0m"
+      # config:import does not install modules, and it rejects the whole import
+      # if one config item belongs to a module that is not enabled. Install
+      # the modules the recipes list (new ones arrive with recipe releases)
+      # first; already enabled modules are skipped.
+      drush php:eval "
+        \$modules = [];
+        foreach (['/opt/drupal/recipes/wisski_starter', '${recipeDir}'] as \$dir) {
+          if (is_file(\$dir . '/recipe.yml')) {
+            \$recipe = \Symfony\Component\Yaml\Yaml::parseFile(\$dir . '/recipe.yml');
+            \$modules = array_merge(\$modules, \$recipe['install'] ?? []);
+          }
+        }
+        \$moduleList = \Drupal::service('extension.list.module');
+        \$missing = array_values(array_filter(array_unique(\$modules), fn(\$m) => \$moduleList->exists(\$m) && !\Drupal::moduleHandler()->moduleExists(\$m)));
+        if (\$missing) {
+          echo 'Installing recipe modules: ' . implode(', ', \$missing) . PHP_EOL;
+          \Drupal::service('module_installer')->install(\$missing);
+        }
+        " || echo -e "\033[0;31mWARNING: Installing the recipe modules failed.\033[0m"
       if drush config:import --partial --source="${recipeDir}/config" -y; then
         # --partial skips language collections (and recipes hit core #3453331).
         if [ -d "${recipeDir}/config/language/de" ]; then
@@ -223,11 +243,16 @@ if [ -f "$INSTALL_COMPLETE_FILE" ]; then
         drush cr
         echo -e "\033[0;32mWISSKI DEFAULT DATA MODEL CONFIG UPDATED.\033[0m\n"
       else
-        echo -e "\033[0;31mWARNING: WissKI default data model config import failed; the site keeps its current config.\033[0m\n"
+        echo -e "\033[0;31mWARNING: WissKI default data model config import failed; the site keeps its current config and the update is retried on the next start.\033[0m\n"
+        recipeConfigUpdated=0
       fi
     fi
 
-    echo "${imagePackagesVersion}" > "${SITE_PACKAGES_VERSION_FILE}"
+    # Record the package set only when the update went through, so a failed
+    # config import is retried on the next container start.
+    if [ "${recipeConfigUpdated}" = "1" ]; then
+      echo "${imagePackagesVersion}" > "${SITE_PACKAGES_VERSION_FILE}"
+    fi
   fi
 
   /usr/local/bin/sync-reverse-proxy.sh
