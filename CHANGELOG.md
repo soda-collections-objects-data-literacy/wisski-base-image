@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- WissKI Package Version 4.6.3: WissKI default data model recipe 3.1.0. All dates go through the EDTF time model (`P4_has_time-span` to a time expression), the date period and date bundles are gone, the views of the dated bundles sort and filter by date, the title patterns no longer print stray separators, and `wisski_core.settings` takes the values of the development site. Dates stored as date periods are not migrated.
+- Recipe 3.1.0 also drops a dangling dependency of the image file form display that made the recipe config import fail since recipe 2.3.0. On sites where it failed so far, the next container start applies the whole current data model config at once, `wisski_core.settings` included. Set `WISSKI_RECIPE_CONFIG_UPDATE=0` on a site that should keep its config.
+
 ## [5.7.1] - 2026-11-09
 
 ### Fixed
