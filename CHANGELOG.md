@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [5.10.0] - 2026-11-13
+
+### Changed
+
+- WissKI Package Version 4.7.0: WissKI default data model recipe 3.1.1, which
+  ships the correct WissKI Core settings (modern pathbuilder tree). Existing
+  sites that already have the default data model pick it up through the recipe
+  config import on the package-set change.
+
 ## [5.9.0] - 2026-11-12
 
 ### Changed
