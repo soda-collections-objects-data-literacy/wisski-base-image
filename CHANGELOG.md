@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Changed
+
+- `WISSKI_DEFAULT_DATA_MODEL_VERSION` is optional. When it is empty, the site
+  starts as a plain Drupal/WissKI site without the ontology and the default
+  data model. The default triplestore adapter is installed on every new site.
+- The `wisski_user` role gets its permissions on every new site, not only
+  with the default data model. Permissions of modules that are not installed
+  are skipped and listed in the container log.
+
 ## [5.8.0] - 2026-11-09
 
 ### Changed

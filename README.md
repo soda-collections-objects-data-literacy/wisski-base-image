@@ -147,7 +147,7 @@ Configure the container with environment variables. See [`example-env`](example-
 | --- | --- |
 | `WISSKI_DEFAULT_GRAPH` | Full URI of the default graph (e.g. `http://my.institution.edu/data/`) |
 | `WISSKI_STARTER_VERSION` | Non-empty = apply the WissKI starter recipe on first install |
-| `WISSKI_DEFAULT_DATA_MODEL_VERSION` | Non-empty = install triplestore adapter, import ontology, and apply the default data model recipe |
+| `WISSKI_DEFAULT_DATA_MODEL_VERSION` | Optional. Non-empty = import the ontology and apply the default data model recipe; empty = plain Drupal/WissKI site |
 
 Module and recipe versions are determined at **image build time** from the `drupal_packages` manifest. The `WISSKI_*_VERSION` variables are apply flags only; they do not select package versions.
 
@@ -197,7 +197,7 @@ On first startup (when no install marker exists), the container will:
 6. Configure OpenID Connect and SSO Bouncer (if Keycloak credentials provided)
 7. Enable Nextcloud WebDAV mount according to `NEXTCLOUD_MOUNT_MODE` (`external`, `sync` with credentials, or skip)
 8. Apply the WissKI starter recipe (if `WISSKI_STARTER_VERSION` is set)
-9. Install the triplestore adapter, import the default ontology, and apply the default data model recipe (if `WISSKI_DEFAULT_DATA_MODEL_VERSION` is set)
+9. Install the default triplestore adapter; import the default ontology and apply the default data model recipe (if `WISSKI_DEFAULT_DATA_MODEL_VERSION` is set)
 10. Configure IMCE profiles, Redis module, reverse proxy trust, and secure permissions
 11. Write the install-complete marker
 

@@ -88,7 +88,6 @@ REQUIRED_VARS=(
   "TS_WRITE_URL"
   "WISSKI_DEFAULT_GRAPH"
   "WISSKI_STARTER_VERSION"
-  "WISSKI_DEFAULT_DATA_MODEL_VERSION"
 )
 
 # Triplestore authentication: either TS_TOKEN or TS_USERNAME and TS_PASSWORD must be set.
@@ -112,6 +111,8 @@ fi
 # development: floating major line, e.g. 3.x, resolved at build time).
 # WISSKI_STARTER_VERSION and WISSKI_DEFAULT_DATA_MODEL_VERSION only act as
 # flags (non-empty = apply the recipe); they no longer select package versions.
+# WISSKI_DEFAULT_DATA_MODEL_VERSION may be empty: the site then gets the
+# triplestore adapter but no ontology and no default data model.
 
 MISSING_VARS=()
 
@@ -537,22 +538,23 @@ EOF
   else
     echo -e "\033[0;33mWISSKI STARTER RECIPE SKIPPED\033[0m\n"
   fi
-  if [ -n "${WISSKI_DEFAULT_DATA_MODEL_VERSION}" ]; then
-    # Install default adapter.
-    echo -e "\033[0;33mINSTALL DEFAULT TRIPLESTORE ADAPTER.\033[0m"
-      # Use token authentication when TS_TOKEN is set; otherwise username and password.
-      # The SALZ adapter sends the token verbatim as the Authorization header value,
-      # so it must carry the "Token " scheme prefix the auth proxy expects.
-      TS_AUTH_ARGS=()
-      if [ -n "${TS_TOKEN}" ]; then
-        TS_AUTH_ARGS+=(--ts_use_token=1 --ts_token="Token ${TS_TOKEN#Token }")
-      else
-        TS_AUTH_ARGS+=(--ts_use_token=0 --ts_user="${TS_USERNAME}" --ts_password="${TS_PASSWORD}")
-      fi
-      drush wisski-salz:create-adapter --type='sparql11_with_pb' --adapter_label='Default' --adapter_machine_name='default' --description='Default SALZ adapter' --ts_machine_name="${TS_REPOSITORY}" "${TS_AUTH_ARGS[@]}" --writable=1 --preferred=1 --read_url="${TS_READ_URL}" --write_url="${TS_WRITE_URL}" --federatable=0 --default_graph="${WISSKI_DEFAULT_GRAPH}" --same_as='http://www.w3.org/2002/07/owl#sameAs' 1> /dev/null
-      drush cr
-    echo -e "\033[0;32mDEFAULT TRIPLESTORE ADAPTER INSTALLED.\033[0m\n"
+  # Install the default adapter on every site, with or without the default
+  # data model, so a plain WissKI is connected to its triplestore.
+  echo -e "\033[0;33mINSTALL DEFAULT TRIPLESTORE ADAPTER.\033[0m"
+    # Use token authentication when TS_TOKEN is set; otherwise username and password.
+    # The SALZ adapter sends the token verbatim as the Authorization header value,
+    # so it must carry the "Token " scheme prefix the auth proxy expects.
+    TS_AUTH_ARGS=()
+    if [ -n "${TS_TOKEN}" ]; then
+      TS_AUTH_ARGS+=(--ts_use_token=1 --ts_token="Token ${TS_TOKEN#Token }")
+    else
+      TS_AUTH_ARGS+=(--ts_use_token=0 --ts_user="${TS_USERNAME}" --ts_password="${TS_PASSWORD}")
+    fi
+    drush wisski-salz:create-adapter --type='sparql11_with_pb' --adapter_label='Default' --adapter_machine_name='default' --description='Default SALZ adapter' --ts_machine_name="${TS_REPOSITORY}" "${TS_AUTH_ARGS[@]}" --writable=1 --preferred=1 --read_url="${TS_READ_URL}" --write_url="${TS_WRITE_URL}" --federatable=0 --default_graph="${WISSKI_DEFAULT_GRAPH}" --same_as='http://www.w3.org/2002/07/owl#sameAs' 1> /dev/null
+    drush cr
+  echo -e "\033[0;32mDEFAULT TRIPLESTORE ADAPTER INSTALLED.\033[0m\n"
 
+  if [ -n "${WISSKI_DEFAULT_DATA_MODEL_VERSION}" ]; then
     echo -e "\033[0;33mIMPORT WISSKI DEFAULT ONTOLOGY.\033[0m"
     drush wisski-core:import-ontology --store='default' --ontology_url='https://wiss-ki.eu/ontology/default/2.7.0/' --reasoning
     echo -e "\033[0;32mWISSKI DEFAULT ONTOLOGY IMPORTED.\033[0m\n"
@@ -655,30 +657,46 @@ EOF
       drush cr
       echo -e "\033[0;32mCACHE CLEARED.\033[0m\n"
 
-      echo -e "\033[0;32mGRANTING WISSKI USER PERMISSIONS.\033[0m\n"
-      # Grant WissKI user permissions.
-        drush role:perm:add 'wisski_user' 'access navigation' -y
-        drush role:perm:add 'wisski_user' 'access navigate' -y
-        drush role:perm:add 'wisski_user' 'access create' -y
-        drush role:perm:add 'wisski_user' 'access find' -y
-        drush role:perm:add 'wisski_user' 'create any wisski content' -y
-        drush role:perm:add 'wisski_user' 'view any wisski content' -y
-        drush role:perm:add 'wisski_user' 'view published wisski content' -y
-        drush role:perm:add 'wisski_user' 'view own unpublished wisski content' -y
-        drush role:perm:add 'wisski_user' 'view other unpublished wisski content' -y
-        drush role:perm:add 'wisski_user' 'view wisski revisions' -y
-        drush role:perm:add 'wisski_user' 'revert wisski revisions' -y
-        drush role:perm:add 'wisski_user' 'edit any wisski content' -y
-        drush role:perm:add 'wisski_user' 'delete any wisski content' -y
-        drush role:perm:add 'wisski_user' 'access wisski manifests' -y
-        drush role:perm:add 'wisski_user' 'wisski_adapter_sparql11_pb.query' -y
-      echo -e "\033[0;32mWISSKI USER PERMISSIONS GRANTED.\033[0m\n"
-
     echo -e "\033[0;32mWISSKI DEFAULT DATA MODEL RECIPE APPLIED.\033[0m\n"
 
   else
     echo -e "\033[0;33mWISSKI DEFAULT DATA MODEL RECIPE SKIPPED\033[0m\n"
   fi
+
+  # Grant the WissKI user permissions with and without the default data model.
+  # A plain site lacks some modules of the data model, so only permissions that
+  # exist are granted (role:perm:add fails on unknown ones under set -e).
+  echo -e "\033[0;33mGRANTING WISSKI USER PERMISSIONS.\033[0m\n"
+  drush php-eval "
+    \$wanted = [
+      'access navigation',
+      'access navigate',
+      'access create',
+      'access find',
+      'create any wisski content',
+      'view any wisski content',
+      'view published wisski content',
+      'view own unpublished wisski content',
+      'view other unpublished wisski content',
+      'view wisski revisions',
+      'revert wisski revisions',
+      'edit any wisski content',
+      'delete any wisski content',
+      'access wisski manifests',
+      'wisski_adapter_sparql11_pb.query',
+    ];
+    \$available = array_keys(\\Drupal::service('user.permissions')->getPermissions());
+    \$role = \\Drupal\\user\\Entity\\Role::load('wisski_user');
+    foreach (array_intersect(\$wanted, \$available) as \$permission) {
+      \$role->grantPermission(\$permission);
+    }
+    \$role->save();
+    \$skipped = array_diff(\$wanted, \$available);
+    if (\$skipped) {
+      echo 'Skipped missing permissions: ' . implode(', ', \$skipped) . PHP_EOL;
+    }
+    "
+  echo -e "\033[0;32mWISSKI USER PERMISSIONS GRANTED.\033[0m\n"
 
 
 
