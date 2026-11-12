@@ -10,6 +10,9 @@
 - The `wisski_user` role gets its permissions on every new site, not only
   with the default data model. Permissions of modules that are not installed
   are skipped and listed in the container log.
+- A site without the default data model gets the Basic page content type and
+  a start page at `/home` that points to the WissKI website and documentation,
+  instead of an empty front page and a login redirect to a missing page.
 
 ## [5.8.0] - 2026-11-09
 

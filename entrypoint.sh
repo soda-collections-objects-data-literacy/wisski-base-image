@@ -661,6 +661,29 @@ EOF
 
   else
     echo -e "\033[0;33mWISSKI DEFAULT DATA MODEL RECIPE SKIPPED\033[0m\n"
+
+    # A plain site has no content type and no start page, and the OpenID
+    # Connect login redirects to /home. Create a Basic page there that says
+    # what this site is and where to read on.
+    echo -e "\033[0;33mCREATE START PAGE.\033[0m"
+    drush recipe /opt/drupal/web/core/recipes/page_content_type
+    WISSKI_START_PAGE_HTML="$(cat <<'HTML'
+<p>This is your new WissKI: a Drupal site with the WissKI modules, connected to its own triplestore. It comes without an ontology and without a data model, so you can import your own ontology and build your data model in the pathbuilder.</p>
+<p>To learn how, see the <a href="https://wiss-ki.eu/">WissKI website</a> and its <a href="https://wiss-ki.eu/documentation">documentation</a>.</p>
+HTML
+)" drush php-eval '
+      $node = \Drupal\node\Entity\Node::create([
+        "type" => "page",
+        "title" => "Welcome to your WissKI",
+        "body" => ["value" => getenv("WISSKI_START_PAGE_HTML"), "format" => "basic_html"],
+        "path" => ["alias" => "/home"],
+        "status" => 1,
+        "uid" => 1,
+      ]);
+      $node->save();
+      \Drupal::configFactory()->getEditable("system.site")->set("page.front", "/node/" . $node->id())->save();
+    '
+    echo -e "\033[0;32mSTART PAGE CREATED.\033[0m\n"
   fi
 
   # Grant the WissKI user permissions with and without the default data model.
