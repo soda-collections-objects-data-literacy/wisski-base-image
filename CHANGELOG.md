@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [5.9.0] - 2026-11-12
+
 ### Changed
 
 - `WISSKI_DEFAULT_DATA_MODEL_VERSION` is optional. When it is empty, the site
