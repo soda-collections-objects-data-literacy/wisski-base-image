@@ -32,6 +32,8 @@ Images are built and published to GitHub Container Registry on pushes to `2.x` /
 | `ghcr.io/soda-collections-objects-data-literacy/wisski-base-image-production` | Pinned semver manifest + lock file; OPcache on, no Xdebug |
 | `ghcr.io/soda-collections-objects-data-literacy/wisski-base-image-development` | Floating major-line manifest (e.g. `4.x`); Xdebug on, dev OPcache settings |
 
+The codebase is baked at build time; running containers do not pull new `drupal/wisski` `4.x-dev` commits by themselves. Production stays on the lock until you ship a new packages version and image tag. Development rebuilds the rolling `:main` tag **nightly** (~02:30 UTC) with `composer update` on the floating line; after that you still need to pull and recreate the Drupal container. Longer write-up: SCS deployment docs, *WissKI stack* → *Image variants and WissKI module updates*.
+
 Tagging:
 
 - Semver git tags (e.g. `3.3.0`) produce matching image tags.
