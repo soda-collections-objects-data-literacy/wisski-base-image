@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [5.10.1] - 2026-11-13
+
+### Changed
+
+- Rebuild production against the current `drupal_packages` `4.7.0` lock: corrected
+  `nextcloud_webdav_mount` 2.1.0 dist checksum and a newer WissKI module commit.
+  Same package version as 5.10.0; existing sites pick up the lock change through
+  the package-set hash on the next container start.
+
 ## [5.10.0] - 2026-11-13
 
 ### Changed
