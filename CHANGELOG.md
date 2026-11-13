@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [5.10.2] - 2026-11-13
+
+### Changed
+
+- WissKI Package Version 4.7.1: WissKI default data model recipe 3.1.2, which
+  installs and imports `wisski_core` config with the recipe. Existing sites that
+  already have the default data model pick it up through the recipe config
+  import on the package-set change.
+
 ## [5.10.1] - 2026-11-13
 
 ### Changed
