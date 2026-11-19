@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [5.10.5] - 2026-11-19
+
+### Changed
+
+- WissKI Package Version 4.7.4: refreshes `drupal/wisski` `4.x-dev` to
+  `5ced2173` (pathbuilder import tags and cardinality, core settings schema,
+  FakeTime tear-down, translated help HTML, PHPStan 2.3.7 API fixes).
+
 ### Fixed
 
 - Scheduled development builds no longer die on relative `composer-patches`
