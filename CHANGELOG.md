@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [5.10.4] - 2026-11-19
+
 ### Changed
 
 - WissKI Package Version 4.7.3: ships `cweagans/composer-patches` and a
