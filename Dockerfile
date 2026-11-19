@@ -169,11 +169,11 @@ RUN set -eux; \
     mkdir -p /opt/drupal; \
     chown www-data:www-data /opt/drupal
 
-# field_group horizontal tabs: weight -1 loads JS before jQuery on Drupal
-# >= 10.4 / 11.1 (https://www.drupal.org/project/field_group/issues/3625536).
-# Manifests in drupal_packages reference patches/…; keep a copy in the image
-# so the build does not depend on curling the patch after the packages push.
-# Drop once field_group ships the fix.
+# Relative composer-patches paths (patches/…) need local files. Seed from this
+# repo, then refresh from the same drupal_packages manifest directory so a
+# packages-only patch does not break the scheduled development build
+# (cweagans + Composer 2: TypeError originUrl null on a relative path).
+# Drop the field_group copy once upstream ships field_group#3625536.
 COPY --chown=www-data:www-data patches/ /opt/drupal/patches/
 
 USER www-data
@@ -184,23 +184,62 @@ USER www-data
 # The codebase is immutable at runtime; no composer calls happen in the entrypoint.
 # The composer cache lives in a BuildKit cache mount (uid 33 = www-data) and
 # never enters the image layer.
-RUN --mount=type=cache,target=/composer-cache,uid=33,gid=33 \
-    set -eux; \
-    cd /opt/drupal; \
-    packagesRepoBaseUrl="https://raw.githubusercontent.com/soda-collections-objects-data-literacy/drupal_packages/${DRUPAL_PACKAGES_REF}/wisski_base"; \
-    if [ "$MODE" = "development" ]; then \
-    manifestBaseUrl="${packagesRepoBaseUrl}/development/${WISSKI_PACKAGES_LINE}"; \
-    curl -fsSL "${manifestBaseUrl}/composer.json" -o composer.json; \
-    composer update --no-dev --no-interaction --no-progress --optimize-autoloader; \
-    packagesVersion="${WISSKI_PACKAGES_LINE}-$(md5sum vendor/composer/installed.json | cut -d' ' -f1)"; \
-    else \
-    manifestBaseUrl="${packagesRepoBaseUrl}/production/${WISSKI_PACKAGES_VERSION}"; \
-    curl -fsSL "${manifestBaseUrl}/composer.json" -o composer.json; \
-    curl -fsSL "${manifestBaseUrl}/composer.lock" -o composer.lock; \
-    composer install --no-dev --no-interaction --no-progress --optimize-autoloader; \
-    packagesVersion="${WISSKI_PACKAGES_VERSION}-$(md5sum vendor/composer/installed.json | cut -d' ' -f1)"; \
-    fi; \
-    echo "${packagesVersion}" > /opt/drupal/.wisski-packages-version
+# Heredoc, not a continued RUN: keeps the relative-patch sync readable.
+RUN --mount=type=cache,target=/composer-cache,uid=33,gid=33 <<'EOS'
+set -eux
+cd /opt/drupal
+packagesRepoBaseUrl="https://raw.githubusercontent.com/soda-collections-objects-data-literacy/drupal_packages/${DRUPAL_PACKAGES_REF}/wisski_base"
+if [ "$MODE" = "development" ]; then
+  manifestBaseUrl="${packagesRepoBaseUrl}/development/${WISSKI_PACKAGES_LINE}"
+  curl -fsSL "${manifestBaseUrl}/composer.json" -o composer.json
+else
+  manifestBaseUrl="${packagesRepoBaseUrl}/production/${WISSKI_PACKAGES_VERSION}"
+  curl -fsSL "${manifestBaseUrl}/composer.json" -o composer.json
+  curl -fsSL "${manifestBaseUrl}/composer.lock" -o composer.lock
+fi
+# Relative composer-patches paths must be local files (see COPY above).
+MANIFEST_BASE_URL="${manifestBaseUrl}" php <<'PHP'
+<?php
+declare(strict_types=1);
+$json = json_decode(file_get_contents('composer.json'), true, 512, JSON_THROW_ON_ERROR);
+$base = rtrim((string) getenv('MANIFEST_BASE_URL'), '/');
+if ($base === '') {
+  fwrite(STDERR, "MANIFEST_BASE_URL empty\n");
+  exit(1);
+}
+foreach (($json['extra']['patches'] ?? []) as $entries) {
+  foreach ($entries as $path) {
+    if (!is_string($path) || preg_match('#^https?://#i', $path)) {
+      continue;
+    }
+    $dir = dirname($path);
+    if ($dir !== '.' && $dir !== '') {
+      mkdir($dir, 0755, true);
+    }
+    $url = $base . '/' . $path;
+    fwrite(STDERR, "fetching patch {$url}\n");
+    $data = @file_get_contents($url);
+    if ($data === false) {
+      if (!is_file($path)) {
+        fwrite(STDERR, "missing patch {$path}\n");
+        exit(1);
+      }
+      fwrite(STDERR, "kept seeded patch {$path}\n");
+      continue;
+    }
+    file_put_contents($path, $data);
+  }
+}
+PHP
+if [ "$MODE" = "development" ]; then
+  composer update --no-dev --no-interaction --no-progress --optimize-autoloader
+  packagesVersion="${WISSKI_PACKAGES_LINE}-$(md5sum vendor/composer/installed.json | cut -d' ' -f1)"
+else
+  composer install --no-dev --no-interaction --no-progress --optimize-autoloader
+  packagesVersion="${WISSKI_PACKAGES_VERSION}-$(md5sum vendor/composer/installed.json | cut -d' ' -f1)"
+fi
+echo "${packagesVersion}" > /opt/drupal/.wisski-packages-version
+EOS
 
 # JS libraries for WissKI and DLF AIM 3D Viewer (mirrors drush download commands).
 # wisski-mirador-integration is already built in the rnsrk repo

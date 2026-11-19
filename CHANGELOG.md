@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Scheduled development builds no longer die on relative `composer-patches`
+  paths (`TypeError: RemoteFilesystem::copy(): … originUrl … null`). After
+  curling the `drupal_packages` manifest the image refreshes every relative
+  `patches/…` entry from that same directory (seeded copy stays as fallback).
+  That was the 2026-11-19 nightly failure on 5.10.3; 5.10.4 already shipped the
+  `field_group` seed file.
+
 ## [5.10.4] - 2026-11-19
 
 ### Changed
