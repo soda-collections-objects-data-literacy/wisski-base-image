@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Changed
+
+- WissKI Package Version 4.7.3: ships `cweagans/composer-patches` and a
+  `drupal/field_group` patch so horizontal tabs initialize on Drupal >= 10.4 /
+  11.1 (`weight: -1` no longer loads the JS before jQuery;
+  [field_group#3625536](https://www.drupal.org/project/field_group/issues/3625536)).
+  Drop the patch once upstream ships the fix.
+
 ## [5.10.3] - 2026-11-13
 
 ### Changed

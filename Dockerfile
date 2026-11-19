@@ -8,7 +8,7 @@ ARG PHP_BASE_IMAGE_TAG=8.5-fpm-bookworm
 # default (or a --build-arg). A value on the stage declaration would shadow it.
 ARG MODE=production
 # Production: semver manifest path (wisski_base/production/<version>) with lock file.
-ARG WISSKI_PACKAGES_VERSION=4.7.2
+ARG WISSKI_PACKAGES_VERSION=4.7.3
 # Development: major-line manifest path (wisski_base/development/<line>), no lock file.
 ARG WISSKI_PACKAGES_LINE=4.x
 
@@ -168,6 +168,13 @@ ENV COMPOSER_HOME=/tmp/composer-home \
 RUN set -eux; \
     mkdir -p /opt/drupal; \
     chown www-data:www-data /opt/drupal
+
+# field_group horizontal tabs: weight -1 loads JS before jQuery on Drupal
+# >= 10.4 / 11.1 (https://www.drupal.org/project/field_group/issues/3625536).
+# Manifests in drupal_packages reference patches/…; keep a copy in the image
+# so the build does not depend on curling the patch after the packages push.
+# Drop once field_group ships the fix.
+COPY --chown=www-data:www-data patches/ /opt/drupal/patches/
 
 USER www-data
 
