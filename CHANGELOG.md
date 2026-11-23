@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Changed
+
+- New installations label the OpenID Connect client `scs_sso` "SODa SCS
+  Client" (was "SCS SSO"), so the login button reads "Log in with SODa SCS
+  Client" as the SCS Manager onboarding says. Existing installations keep
+  their label.
+
 ## [5.10.5] - 2026-11-19
 
 ### Changed

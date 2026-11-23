@@ -431,7 +431,7 @@ langcode: en
 status: true
 dependencies: {  }
 id: scs_sso
-label: 'SCS SSO'
+label: 'SODa SCS Client'
 plugin: generic
 settings:
   client_id: '${DRUPAL_SITE_NAME}'
