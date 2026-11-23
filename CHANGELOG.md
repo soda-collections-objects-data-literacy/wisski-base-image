@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [5.11.0] - 2026-11-23
+
 ### Changed
 
 - New installations label the OpenID Connect client `scs_sso` "SODa SCS
